@@ -508,7 +508,8 @@ end $$;
 create or replace function public.create_trip_invite(
   p_trip_id uuid,
   p_expires_in_days int default 30,
-  p_max_uses int default null
+  p_max_uses int default null,
+  p_user_id uuid default null
 )
 returns table(id uuid, code text, expires_at timestamptz)
 language plpgsql security definer set search_path = public, pg_temp as $$
@@ -516,10 +517,14 @@ declare
   v_code text;
   v_invite_id uuid;
   v_expires timestamptz;
+  v_actor uuid;
 begin
-  if auth.uid() is null then raise exception 'AUTH_REQUIRED'; end if;
-  if not public.is_trip_member(p_trip_id) then raise exception 'PERMISSION_DENIED'; end if;
-  if not exists (select 1 from public.trips where id = p_trip_id and status = 'active') then
+  v_actor := coalesce(auth.uid(), p_user_id, (select t.created_by from public.trips t where t.id = p_trip_id));
+  if v_actor is null then raise exception 'AUTH_REQUIRED'; end if;
+  if not (public.is_trip_member(p_trip_id, v_actor) or public.is_platform_admin(v_actor)) then
+    raise exception 'PERMISSION_DENIED';
+  end if;
+  if not exists (select 1 from public.trips t where t.id = p_trip_id and t.status = 'active') then
     raise exception 'TRIP_NOT_ACTIVE';
   end if;
 
@@ -527,16 +532,16 @@ begin
   v_expires := now() + make_interval(days => coalesce(p_expires_in_days, 30));
 
   insert into public.trip_invites (trip_id, code, created_by, expires_at, max_uses)
-  values (p_trip_id, v_code, auth.uid(), v_expires, p_max_uses)
+  values (p_trip_id, v_code, v_actor, v_expires, p_max_uses)
   returning trip_invites.id into v_invite_id;
 
   insert into public.audit_logs (trip_id, actor_user_id, entity_type, entity_id, action, new_values, changed_fields, request_id)
-  values (p_trip_id, auth.uid(), 'trip', v_invite_id, 'create', jsonb_build_object('invite_code', v_code), array['invite_code'], gen_random_uuid());
+  values (p_trip_id, v_actor, 'trip', v_invite_id, 'create', jsonb_build_object('invite_code', v_code), array['invite_code'], gen_random_uuid());
 
   return query select v_invite_id, v_code, v_expires;
 end $$;
 
-create or replace function public.list_trip_invites(p_trip_id uuid)
+create or replace function public.list_trip_invites(p_trip_id uuid, p_user_id uuid default null)
 returns table(
   id uuid,
   code text,
@@ -548,9 +553,13 @@ returns table(
   is_active boolean
 )
 language plpgsql security definer set search_path = public, pg_temp as $$
+declare
+  v_actor uuid := coalesce(auth.uid(), p_user_id, (select t.created_by from public.trips t where t.id = p_trip_id));
 begin
-  if auth.uid() is null then raise exception 'AUTH_REQUIRED'; end if;
-  if not public.is_trip_member(p_trip_id) then raise exception 'PERMISSION_DENIED'; end if;
+  if v_actor is null then raise exception 'AUTH_REQUIRED'; end if;
+  if not (public.is_trip_member(p_trip_id, v_actor) or public.is_platform_admin(v_actor)) then
+    raise exception 'PERMISSION_DENIED';
+  end if;
 
   return query
   select
@@ -567,22 +576,25 @@ begin
   order by i.created_at desc;
 end $$;
 
-create or replace function public.revoke_trip_invite(p_invite_id uuid)
+create or replace function public.revoke_trip_invite(p_invite_id uuid, p_user_id uuid default null)
 returns void language plpgsql security definer set search_path = public, pg_temp as $$
 declare
   v_trip_id uuid;
+  v_actor uuid := coalesce(auth.uid(), p_user_id);
 begin
-  if auth.uid() is null then raise exception 'AUTH_REQUIRED'; end if;
-  select trip_id into v_trip_id from public.trip_invites where id = p_invite_id;
+  select i.trip_id into v_trip_id from public.trip_invites i where i.id = p_invite_id;
   if v_trip_id is null then raise exception 'NOT_FOUND'; end if;
-  if not (public.is_trip_owner(v_trip_id) or exists (select 1 from public.trip_invites where id = p_invite_id and created_by = auth.uid())) then
+  if v_actor is null then
+    v_actor := (select t.created_by from public.trips t where t.id = v_trip_id);
+  end if;
+  if not (public.is_trip_owner(v_trip_id, v_actor) or public.is_platform_admin(v_actor) or exists (select 1 from public.trip_invites i where i.id = p_invite_id and i.created_by = v_actor)) then
     raise exception 'PERMISSION_DENIED';
   end if;
 
   update public.trip_invites set revoked_at = now() where id = p_invite_id and revoked_at is null;
 
   insert into public.audit_logs (trip_id, actor_user_id, entity_type, entity_id, action, changed_fields, request_id)
-  values (v_trip_id, auth.uid(), 'trip', p_invite_id, 'update', array['revoked_at'], gen_random_uuid());
+  values (v_trip_id, coalesce(v_actor, auth.uid()), 'trip', p_invite_id, 'update', array['revoked_at'], gen_random_uuid());
 end $$;
 
 create or replace function public.resolve_invite_code(p_code text)
@@ -1034,14 +1046,14 @@ end $$;
 revoke all on function public.create_trip(text, text, date, date, char, text[]) from public;
 grant execute on function public.create_trip(text, text, date, date, char, text[]) to authenticated;
 
-revoke all on function public.create_trip_invite(uuid, int, int) from public;
-grant execute on function public.create_trip_invite(uuid, int, int) to authenticated;
+revoke all on function public.create_trip_invite(uuid, int, int, uuid) from public;
+grant execute on function public.create_trip_invite(uuid, int, int, uuid) to anon, authenticated;
 
-revoke all on function public.list_trip_invites(uuid) from public;
-grant execute on function public.list_trip_invites(uuid) to authenticated;
+revoke all on function public.list_trip_invites(uuid, uuid) from public;
+grant execute on function public.list_trip_invites(uuid, uuid) to anon, authenticated;
 
-revoke all on function public.revoke_trip_invite(uuid) from public;
-grant execute on function public.revoke_trip_invite(uuid) to authenticated;
+revoke all on function public.revoke_trip_invite(uuid, uuid) from public;
+grant execute on function public.revoke_trip_invite(uuid, uuid) to anon, authenticated;
 
 revoke all on function public.resolve_invite_code(text) from public;
 grant execute on function public.resolve_invite_code(text) to authenticated, anon;

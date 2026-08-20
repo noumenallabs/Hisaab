@@ -338,7 +338,7 @@ declare
   v_code text;
   v_invite_id uuid;
   v_expires timestamptz;
-  v_actor uuid := coalesce(auth.uid(), p_user_id, (select created_by from public.trips where id = p_trip_id));
+  v_actor uuid := coalesce(auth.uid(), p_user_id, (select t.created_by from public.trips t where t.id = p_trip_id));
 begin
   v_code := public.generate_invite_code();
   v_expires := now() + (coalesce(p_expires_in_days, 30) || ' days')::interval;
