@@ -1,4 +1,5 @@
 import { useAuth } from "@/lib/auth"
+import { useTheme } from "@/lib/theme"
 import { getSupabase } from "@/lib/supabase"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -19,6 +20,7 @@ type ProfileForm = z.infer<typeof profileSchema>
 
 export function ProfilePage() {
   const { user } = useAuth()
+  const { theme, setTheme } = useTheme()
   const qc = useQueryClient()
   const [msg, setMsg] = useState<{ text: string; kind: "success" | "error" | "info" } | null>(null)
   const {
@@ -99,6 +101,51 @@ export function ProfilePage() {
             />
             <span className="mt-1 block text-[11px] text-ink-faint">Account email cannot be modified directly</span>
           </label>
+
+          {/* Appearance Section */}
+          <div className="pt-2">
+            <span className="block text-xs font-bold uppercase tracking-wider text-ink-soft">
+              Appearance & Theme
+            </span>
+            <div className="mt-2 grid grid-cols-3 gap-2">
+              <button
+                type="button"
+                onClick={() => setTheme("system")}
+                className={`flex flex-col items-center justify-center gap-1.5 rounded-xl border p-3 text-xs font-bold transition-all ${
+                  theme === "system"
+                    ? "border-brand bg-brand/10 text-brand shadow-xs"
+                    : "border-hair bg-surface text-ink-soft hover:bg-canvas hover:text-ink"
+                }`}
+              >
+                <span className="text-base">💻</span>
+                <span>System</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setTheme("light")}
+                className={`flex flex-col items-center justify-center gap-1.5 rounded-xl border p-3 text-xs font-bold transition-all ${
+                  theme === "light"
+                    ? "border-brand bg-brand/10 text-brand shadow-xs"
+                    : "border-hair bg-surface text-ink-soft hover:bg-canvas hover:text-ink"
+                }`}
+              >
+                <span className="text-base">☀️</span>
+                <span>Light</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setTheme("dark")}
+                className={`flex flex-col items-center justify-center gap-1.5 rounded-xl border p-3 text-xs font-bold transition-all ${
+                  theme === "dark"
+                    ? "border-brand bg-brand/10 text-brand shadow-xs"
+                    : "border-hair bg-surface text-ink-soft hover:bg-canvas hover:text-ink"
+                }`}
+              >
+                <span className="text-base">🌙</span>
+                <span>Dark</span>
+              </button>
+            </div>
+          </div>
 
           {msg && (
             <p

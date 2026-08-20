@@ -2,6 +2,7 @@ import { LogOut } from "lucide-react"
 import { Link, useNavigate } from "react-router"
 import { useAuth } from "@/lib/auth"
 import { HissaabLogo } from "./HissaabLogo"
+import { ThemeToggle } from "./ThemeToggle"
 
 export function AppHeader() {
   const { user, signOut } = useAuth()
@@ -15,7 +16,8 @@ export function AppHeader() {
       >
         <HissaabLogo size={36} textSize="text-xl" />
       </Link>
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2.5 sm:gap-3">
+        <ThemeToggle />
         <Link
           to="/profile"
           className="flex items-center gap-2.5 rounded-xl border border-hair bg-surface px-3 py-1.5 hover:bg-canvas transition-colors shadow-2xs"
@@ -34,7 +36,7 @@ export function AppHeader() {
             await signOut()
             navigate("/sign-in")
           }}
-          className="grid h-9 w-9 place-items-center rounded-xl border border-hair text-ink-soft hover:bg-white hover:text-owe transition-colors shadow-2xs"
+          className="grid h-9 w-9 place-items-center rounded-xl border border-hair text-ink-soft hover:bg-canvas hover:text-owe transition-colors shadow-2xs"
           aria-label="Sign out"
         >
           <LogOut size={16} />

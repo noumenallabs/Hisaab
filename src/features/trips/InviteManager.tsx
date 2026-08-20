@@ -98,14 +98,14 @@ export function InviteManager({ tripId }: { tripId: string }) {
               <div className="flex flex-wrap gap-1.5">
                 <button
                   onClick={() => copy(inv.code)}
-                  className="inline-flex min-h-11 items-center gap-1 rounded-md border border-hair bg-surface px-2.5 text-xs font-semibold hover:bg-white"
+                  className="inline-flex min-h-11 items-center gap-1 rounded-md border border-hair bg-surface px-2.5 text-xs font-semibold hover:bg-canvas"
                   aria-label={`Copy code ${inv.code}`}
                 >
                   <Copy size={14} /> {copied === inv.code ? "Copied" : "Copy"}
                 </button>
                 <button
                   onClick={() => copy(`${window.location.origin}/join/${inv.code}`)}
-                  className="inline-flex min-h-11 items-center rounded-md border border-hair bg-surface px-2.5 text-xs font-semibold hover:bg-white"
+                  className="inline-flex min-h-11 items-center rounded-md border border-hair bg-surface px-2.5 text-xs font-semibold hover:bg-canvas"
                   aria-label={`Copy link for ${inv.code}`}
                 >
                   Copy link

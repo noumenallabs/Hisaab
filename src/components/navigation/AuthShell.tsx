@@ -1,6 +1,7 @@
 import { Link, NavLink, useLocation } from "react-router"
 import { ArrowLeft } from "lucide-react"
 import { HissaabLogo } from "./HissaabLogo"
+import { ThemeToggle } from "./ThemeToggle"
 
 type Props = {
   title: string
@@ -44,12 +45,15 @@ export function AuthShell({
             </Link>
           )}
 
-          <Link
-            to="/trips"
-            className="text-xs font-semibold text-brand hover:underline"
-          >
-            All trips →
-          </Link>
+          <div className="flex items-center gap-3">
+            <ThemeToggle />
+            <Link
+              to="/trips"
+              className="text-xs font-semibold text-brand hover:underline"
+            >
+              All trips →
+            </Link>
+          </div>
         </div>
 
         {/* Card Container */}
@@ -97,7 +101,7 @@ export function AuthShell({
           )}
 
           {/* Header Banner */}
-          <div className="border-b border-hair bg-[#fbfcfe] px-7 py-6">
+          <div className="border-b border-hair bg-canvas/40 px-7 py-6">
             <h1 className="text-2xl font-bold tracking-tight text-ink">{title}</h1>
             {subtitle && <p className="mt-1.5 text-xs text-ink-soft leading-5">{subtitle}</p>}
           </div>

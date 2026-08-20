@@ -7,6 +7,21 @@
     <meta name="theme-color" content="#1c2430" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <title>Hissaab — Shared Expense Tracking</title>
+    <script>
+      (function() {
+        try {
+          var stored = localStorage.getItem('hissaab-theme');
+          var isDark = stored === 'dark' || (stored !== 'light' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+          if (isDark) {
+            document.documentElement.classList.add('dark');
+            document.documentElement.classList.remove('light');
+          } else {
+            document.documentElement.classList.add('light');
+            document.documentElement.classList.remove('dark');
+          }
+        } catch (e) {}
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>
