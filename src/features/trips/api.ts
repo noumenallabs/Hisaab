@@ -7,6 +7,26 @@ export type Trip = {
 export async function fetchTrips(): Promise<Trip[]> {
   const supabase = getSupabase()
   if (!supabase) return []
+
+  let customUserId: string | null = null
+  try {
+    const stored = localStorage.getItem("tripsplit:custom-user")
+    if (stored) customUserId = JSON.parse(stored)?.id ?? null
+  } catch {}
+
+  // 1. Try RPC get_user_trips (works for both authenticated users and passwordless / invite guests)
+  try {
+    const { data: rpcData, error: rpcErr } = await supabase.rpc("get_user_trips", {
+      p_user_id: customUserId,
+    } as never)
+    if (!rpcErr && rpcData && Array.isArray(rpcData)) {
+      return rpcData as unknown as Trip[]
+    }
+  } catch (err) {
+    console.warn("[fetchTrips rpc]", err)
+  }
+
+  // 2. Direct table fallback for authenticated sessions
   const { data, error } = await supabase
     .from("trips")
     .select("*")
@@ -59,6 +79,11 @@ export async function createTrip(input: {
 }): Promise<string> {
   const supabase = getSupabase()
   if (!supabase) throw new Error("Supabase not configured")
+  let customUserId: string | null = null
+  try {
+    const stored = localStorage.getItem("tripsplit:custom-user")
+    if (stored) customUserId = JSON.parse(stored)?.id ?? null
+  } catch {}
   const { data, error } = await supabase.rpc("create_trip", {
     p_name: input.name,
     p_destination: input.destination,
@@ -66,6 +91,7 @@ export async function createTrip(input: {
     p_end_date: input.end_date,
     p_base_currency: input.base_currency,
     p_invitee_emails: input.invitee_emails ?? [],
+    p_user_id: customUserId,
   } as never)
   if (error) throw error
   return data as string
@@ -91,19 +117,34 @@ export type TripInvite = { id: string; code: string; created_at: string; expires
 export async function listInvites(tripId: string): Promise<TripInvite[]> {
   const supabase = getSupabase()
   if (!supabase) return []
-  const { data, error } = await supabase.rpc("list_trip_invites", { p_trip_id: tripId } as never)
+  let customUserId: string | null = null
+  try {
+    const stored = localStorage.getItem("tripsplit:custom-user")
+    if (stored) customUserId = JSON.parse(stored)?.id ?? null
+  } catch {}
+  const { data, error } = await supabase.rpc("list_trip_invites", { p_trip_id: tripId, p_user_id: customUserId } as never)
   if (error) throw error
   return (data as TripInvite[]) ?? []
 }
 export async function createInvite(tripId: string, expiresInDays = 30, maxUses: number | null = null) {
   const supabase = getSupabase()!
-  const { data, error } = await supabase.rpc("create_trip_invite", { p_trip_id: tripId, p_expires_in_days: expiresInDays, p_max_uses: maxUses } as never)
+  let customUserId: string | null = null
+  try {
+    const stored = localStorage.getItem("tripsplit:custom-user")
+    if (stored) customUserId = JSON.parse(stored)?.id ?? null
+  } catch {}
+  const { data, error } = await supabase.rpc("create_trip_invite", { p_trip_id: tripId, p_expires_in_days: expiresInDays, p_max_uses: maxUses, p_user_id: customUserId } as never)
   if (error) throw error
   return data
 }
 export async function revokeInvite(inviteId: string) {
   const supabase = getSupabase()!
-  const { error } = await supabase.rpc("revoke_trip_invite", { p_invite_id: inviteId } as never)
+  let customUserId: string | null = null
+  try {
+    const stored = localStorage.getItem("tripsplit:custom-user")
+    if (stored) customUserId = JSON.parse(stored)?.id ?? null
+  } catch {}
+  const { error } = await supabase.rpc("revoke_trip_invite", { p_invite_id: inviteId, p_user_id: customUserId } as never)
   if (error) throw error
 }
 export async function resolveInvite(code: string): Promise<{ trip_id: string; trip_name: string; destination: string } | null> {

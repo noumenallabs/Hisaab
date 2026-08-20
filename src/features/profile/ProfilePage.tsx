@@ -19,7 +19,7 @@ const profileSchema = z.object({
 type ProfileForm = z.infer<typeof profileSchema>
 
 export function ProfilePage() {
-  const { user } = useAuth()
+  const { user, setCustomUser } = useAuth()
   const { theme, setTheme } = useTheme()
   const qc = useQueryClient()
   const [msg, setMsg] = useState<{ text: string; kind: "success" | "error" | "info" } | null>(null)
@@ -35,14 +35,17 @@ export function ProfilePage() {
   async function onSubmit(v: ProfileForm) {
     const supabase = getSupabase()
     if (!supabase || !isSupabaseConfigured) {
-      setMsg({ text: "Demo mode — profile is local.", kind: "info" })
+      if (user) setCustomUser({ ...user, name: v.name.trim() })
+      setMsg({ text: "Profile updated.", kind: "success" })
       return
     }
     const { error } = await supabase.rpc("update_profile", {
       p_name: v.name.trim(),
+      p_user_id: user?.id ?? null,
     } as never)
     if (error) setMsg({ text: toUserMessage(error.message), kind: "error" })
     else {
+      if (user) setCustomUser({ ...user, name: v.name.trim() })
       setMsg({ text: "Profile updated successfully.", kind: "success" })
       try {
         await supabase.auth.getUser()

@@ -6,7 +6,27 @@ export async function fetchAudit(
   limit = 20,
 ) {
   const supabase = getSupabase()
-  if (!supabase) return []
+  if (!supabase || !tripId) return []
+
+  let customUserId: string | null = null
+  try {
+    const stored = localStorage.getItem("tripsplit:custom-user")
+    if (stored) customUserId = JSON.parse(stored)?.id ?? null
+  } catch {}
+
+  // 1. Try RPC get_trip_audit_logs
+  try {
+    const { data: rpcData, error: rpcErr } = await supabase.rpc("get_trip_audit_logs", {
+      p_trip_id: tripId,
+      p_user_id: customUserId,
+      p_limit: limit,
+    } as never)
+    if (!rpcErr && rpcData && Array.isArray(rpcData)) {
+      return rpcData as any[]
+    }
+  } catch {}
+
+  // 2. Direct table fallback for authenticated sessions
   let q = supabase
     .from("audit_logs")
     .select("*")
@@ -21,6 +41,6 @@ export async function fetchAudit(
     )
   }
   const { data, error } = await q
-  if (error) throw error
-  return data
+  if (error) return []
+  return data ?? []
 }

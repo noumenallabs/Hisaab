@@ -155,11 +155,11 @@ export interface Database {
       }
       save_expense: { Args: { p_payload: Json }; Returns: Json }
       soft_delete_expense: {
-        Args: { p_expense_id: string; p_request_id: string }
+        Args: { p_expense_id: string; p_request_id: string; p_user_id?: string | null }
         Returns: void
       }
       restore_expense: {
-        Args: { p_expense_id: string; p_request_id: string }
+        Args: { p_expense_id: string; p_request_id: string; p_user_id?: string | null }
         Returns: void
       }
       record_settlement: { Args: { p_payload: Json }; Returns: Json }
@@ -201,40 +201,49 @@ export interface Database {
         }[]
       }
       list_trip_invites: {
-        Args: { p_trip_id: string }
+        Args: { p_trip_id: string; p_user_id?: string | null }
         Returns: { id: string; code: string; created_at: string; expires_at: string; max_uses: number | null; use_count: number; revoked_at: string | null; is_active: boolean }[]
       }
       create_trip_invite: {
-        Args: { p_trip_id: string; p_expires_in_days?: number; p_max_uses?: number | null }
+        Args: { p_trip_id: string; p_expires_in_days?: number; p_max_uses?: number | null; p_user_id?: string | null }
         Returns: { id: string; code: string; expires_at: string }[]
       }
-      revoke_trip_invite: { Args: { p_invite_id: string }; Returns: void }
+      revoke_trip_invite: { Args: { p_invite_id: string; p_user_id?: string | null }; Returns: void }
       resolve_invite_code: {
         Args: { p_code: string }
         Returns: { trip_id: string; trip_name: string; destination: string }[]
       }
-      update_trip: { Args: { p_trip_id: string; p_patch: Json; p_request_id: string }; Returns: void }
+      update_trip: { Args: { p_trip_id: string; p_patch: Json; p_request_id: string; p_user_id?: string | null }; Returns: void }
       change_member_role: {
-        Args: { p_trip_id: string; p_user_id: string; p_role: TripRole; p_request_id: string }
+        Args: { p_trip_id: string; p_user_id: string; p_role: TripRole; p_request_id: string; p_actor_id?: string | null }
         Returns: void
       }
       remove_trip_member: {
-        Args: { p_trip_id: string; p_user_id: string; p_request_id: string }
+        Args: { p_trip_id: string; p_user_id: string; p_request_id: string; p_actor_id?: string | null }
         Returns: void
       }
-      mark_trip_settled: { Args: { p_trip_id: string; p_request_id: string }; Returns: void }
-      reopen_trip: { Args: { p_trip_id: string; p_request_id: string }; Returns: void }
-      archive_trip: { Args: { p_trip_id: string; p_request_id: string }; Returns: void }
-      delete_trip: { Args: { p_trip_id: string; p_request_id: string }; Returns: void }
-      update_profile: { Args: { p_name: string }; Returns: void }
+      mark_trip_settled: { Args: { p_trip_id: string; p_request_id: string; p_user_id?: string | null }; Returns: void }
+      reopen_trip: { Args: { p_trip_id: string; p_request_id: string; p_user_id?: string | null }; Returns: void }
+      archive_trip: { Args: { p_trip_id: string; p_request_id: string; p_user_id?: string | null }; Returns: void }
+      delete_trip: { Args: { p_trip_id: string; p_request_id: string; p_user_id?: string | null }; Returns: void }
+      update_profile: { Args: { p_name: string; p_user_id?: string | null }; Returns: void }
       add_trip_member: {
         Args: {
           p_trip_id: string
           p_email: string
           p_role?: TripRole
           p_request_id?: string
+          p_user_id?: string | null
         }
         Returns: { userId: string; name: string; email: string }
+      }
+      get_user_trips: {
+        Args: { p_user_id?: string | null }
+        Returns: Json
+      }
+      get_trip_audit_logs: {
+        Args: { p_trip_id: string; p_user_id?: string | null; p_limit?: number }
+        Returns: Json
       }
     }
     Enums: {

@@ -25,17 +25,21 @@ export async function saveExpense(input: SaveExpenseInput) {
 }
 export async function softDeleteExpense(expenseId: string, requestId: string) {
   const supabase = getSupabase()!
+  const actorId = getActorUserId()
   const { error } = await supabase.rpc("soft_delete_expense", {
     p_expense_id: expenseId,
     p_request_id: requestId,
+    p_user_id: actorId,
   } as never)
   if (error) throw error
 }
 export async function restoreExpense(expenseId: string, requestId: string) {
   const supabase = getSupabase()!
+  const actorId = getActorUserId()
   const { error } = await supabase.rpc("restore_expense", {
     p_expense_id: expenseId,
     p_request_id: requestId,
+    p_user_id: actorId,
   } as never)
   if (error) throw error
 }
