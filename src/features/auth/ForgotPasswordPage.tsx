@@ -15,15 +15,21 @@ export function ForgotPasswordPage() {
   const { sendReset } = useAuth()
   const [sent, setSent] = useState(false)
   const [email, setEmail] = useState("")
+  const [err, setErr] = useState<string | null>(null)
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<Form>({ resolver: zodResolver(resetSchema) })
   async function onSubmit(v: Form) {
-    await sendReset(v.email)
-    setEmail(v.email)
-    setSent(true)
+    try {
+      setErr(null)
+      await sendReset(v.email.trim())
+      setEmail(v.email.trim())
+      setSent(true)
+    } catch (e: any) {
+      setErr(e.message ?? "Failed to send reset link. Please try again.")
+    }
   }
   return (
     <AuthShell
@@ -68,6 +74,11 @@ export function ForgotPasswordPage() {
               </span>
             )}
           </label>
+          {err && (
+            <p role="alert" className="rounded-xl bg-owe-soft p-3 text-xs font-semibold text-owe border border-owe/20">
+              {err}
+            </p>
+          )}
           <button
             disabled={isSubmitting}
             className="flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-brand text-sm font-bold text-white shadow-sm hover:bg-blue-700 disabled:opacity-50 transition-colors"

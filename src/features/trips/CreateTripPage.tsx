@@ -12,13 +12,20 @@ type Form = z.infer<typeof tripSchema>
 export function CreateTripPage() {
   const navigate = useNavigate()
   const [err, setErr] = useState<string | null>(null)
+  const today = new Date().toISOString().slice(0, 10)
+  const defaultEnd = new Date(Date.now() + 3 * 86400000).toISOString().slice(0, 10)
+
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<Form>({
     resolver: zodResolver(tripSchema),
-    defaultValues: { baseCurrency: "INR" } as any,
+    defaultValues: {
+      baseCurrency: "INR",
+      startDate: today,
+      endDate: defaultEnd,
+    } as any,
   })
   const create = useCreateTrip()
   async function onSubmit(v: Form) {

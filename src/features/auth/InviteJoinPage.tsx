@@ -20,6 +20,12 @@ export function InviteJoinPage() {
   const [status, setStatus] = useState<"idle" | "validating" | "preview" | "joining">("idle")
   const [err, setErr] = useState("")
 
+  // Auto-sync logged-in user email and name
+  useEffect(() => {
+    if (user?.email && !email) setEmail(user.email)
+    if (user?.name && !name) setName(user.name)
+  }, [user?.email, user?.name])
+
   // Debounced lookup
   useEffect(() => {
     if (!code || code.length < 4) {

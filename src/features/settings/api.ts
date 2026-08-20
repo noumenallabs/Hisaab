@@ -59,6 +59,16 @@ export async function markSettled(tripId: string) {
   } as never)
   if (error) throw error
 }
+export async function reopenTrip(tripId: string) {
+  const supabase = getSupabase()!
+  const actorId = getActorUserId()
+  const { error } = await supabase.rpc("reopen_trip", {
+    p_trip_id: tripId,
+    p_request_id: crypto.randomUUID(),
+    p_user_id: actorId,
+  } as never)
+  if (error) throw error
+}
 export async function archiveTrip(tripId: string) {
   const supabase = getSupabase()!
   const actorId = getActorUserId()

@@ -24,7 +24,8 @@ export function toMinor(amount: number, decimals: number): number {
 }
 
 export function fromMinor(minor: number, decimals: number): number {
-  return minor / Math.pow(10, decimals)
+  const safe = Number.isFinite(minor) ? minor : 0
+  return safe / Math.pow(10, decimals)
 }
 
 export function parseCurrencyInput(
@@ -33,12 +34,12 @@ export function parseCurrencyInput(
 ): number | null {
   const decimals = decimalsFor(code)
   const s = input.trim().replace(/,/g, "")
-  if (!s) return null
+  if (!s || s === "." || s === "-") return null
   if (!/^-?\d*(\.\d*)?$/.test(s)) return null
   const parts = s.split(".")
   if (parts[1] && parts[1].length > decimals) return null
   const n = Number(s)
-  if (Number.isNaN(n)) return null
+  if (!Number.isFinite(n)) return null
   return toMinor(n, decimals)
 }
 
@@ -47,9 +48,10 @@ export function formatMinor(
   code: string,
   locale?: string
 ): string {
+  const safeMinor = Number.isFinite(minor) ? minor : 0
   const currency = (code || "INR").toUpperCase()
   const decimals = decimalsFor(currency)
-  const major = fromMinor(minor, decimals)
+  const major = fromMinor(safeMinor, decimals)
   try {
     return new Intl.NumberFormat(locale ?? undefined, {
       style: "currency",

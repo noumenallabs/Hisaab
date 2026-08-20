@@ -51,6 +51,7 @@ export { CURRENCY_DECIMALS, decimalsFor }
 export type SplitMode = "equal" | "exact" | "percent" | "shares"
 
 export function allocateEqual(totalMinor: number, count: number): number[] {
+  if (count <= 0) return []
   const base = Math.floor(totalMinor / count)
   let remainder = totalMinor - base * count
   return Array.from({ length: count }, (_, i) => base + (i < remainder ? 1 : 0))
@@ -69,6 +70,7 @@ export function allocatePercent(
   totalMinor: number,
   percents: number[],
 ): number[] | null {
+  if (!percents.length) return null
   const sum = percents.reduce((a, b) => a + b, 0)
   if (Math.abs(sum - 100) > 0.001) return null
   const raw = percents.map((p) => (totalMinor * p) / 100)
@@ -86,6 +88,7 @@ export function allocateShares(
   totalMinor: number,
   shares: number[],
 ): number[] | null {
+  if (!shares.length) return null
   const totalShares = shares.reduce((a, b) => a + b, 0)
   if (totalShares <= 0) return null
   const raw = shares.map((s) => (totalMinor * s) / totalShares)

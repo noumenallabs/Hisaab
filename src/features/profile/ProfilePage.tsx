@@ -4,7 +4,7 @@ import { getSupabase } from "@/lib/supabase"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useQueryClient } from "@tanstack/react-query"
 import { isSupabaseConfigured } from "@/lib/env"
 import { toUserMessage } from "@/lib/errors"
@@ -26,11 +26,19 @@ export function ProfilePage() {
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors, isSubmitting },
   } = useForm<ProfileForm>({
     resolver: zodResolver(profileSchema),
     defaultValues: { name: (user as any)?.name ?? "" },
   })
+
+  // Sync when user finishes loading
+  useEffect(() => {
+    if (user?.name) {
+      reset({ name: user.name })
+    }
+  }, [user?.name, reset])
 
   async function onSubmit(v: ProfileForm) {
     const supabase = getSupabase()

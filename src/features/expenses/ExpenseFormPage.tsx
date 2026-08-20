@@ -432,17 +432,19 @@ export function ExpenseFormPage() {
                     id={`split-${i}`}
                     type="text"
                     inputMode="decimal"
-                    defaultValue={String(fromMinor((watchedSplits as any)?.[i]?.amountOwedMinor ?? 0, dec))}
-                    onBlur={(e) => {
+                    value={
+                      (watchedSplits as any)?.[i]?.amountOwedMinor === undefined || (watchedSplits as any)?.[i]?.amountOwedMinor === 0
+                        ? ""
+                        : String(fromMinor((watchedSplits as any)?.[i]?.amountOwedMinor ?? 0, dec))
+                    }
+                    onChange={(e) => {
                       const minor = parseCurrencyInput(e.target.value, baseCurrency)
-                      if (minor !== null) {
-                        const cur = (watch("splits") as any) ?? []
-                        const next = [...cur]
-                        next[i] = { ...next[i], userId: id, amountOwedMinor: minor }
-                        syncSplitsToForm(next)
-                      }
+                      const cur = (watch("splits") as any) ?? []
+                      const next = [...cur]
+                      next[i] = { ...next[i], userId: id, amountOwedMinor: minor ?? 0 }
+                      syncSplitsToForm(next)
                     }}
-                    className="flex-1 min-h-10 rounded-lg border border-hair bg-surface px-3 text-sm tabular-nums"
+                    className="flex-1 min-h-10 rounded-lg border border-hair bg-surface px-3 text-sm tabular-nums outline-none focus:border-brand focus:ring-1 focus:ring-brand"
                     placeholder={dec === 0 ? "0" : "0.00"}
                   />
                 )}
@@ -503,6 +505,7 @@ export function ExpenseFormPage() {
             try {
               validateReceiptFile(f)
               if (f.type.startsWith("image/")) {
+                if (localReceiptPreview) URL.revokeObjectURL(localReceiptPreview)
                 setLocalReceiptPreview(URL.createObjectURL(f))
               }
               setIsUploadingReceipt(true)
@@ -525,6 +528,7 @@ export function ExpenseFormPage() {
             <button
               type="button"
               onClick={() => {
+                if (localReceiptPreview) URL.revokeObjectURL(localReceiptPreview)
                 setLocalReceiptPreview(null)
                 setValue("receiptPath", null as any, { shouldDirty: true })
               }}

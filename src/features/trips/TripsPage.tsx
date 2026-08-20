@@ -1,7 +1,7 @@
 import { Link } from "react-router"
 import { ArrowRight, Plus, Users } from "lucide-react"
 import { useTripsQuery } from "./hooks"
-import { money } from "@/features/expenses/money"
+import { formatMinor } from "@/lib/currency"
 import { Skeleton } from "@/components/feedback/Skeleton"
 import { EmptyState } from "@/components/feedback/EmptyState"
 
@@ -101,7 +101,7 @@ export function TripsPage() {
                 <div className="relative mt-6 grid grid-cols-3 border-t border-hair pt-4 text-xs">
                   <span>
                     <b className="block font-mono text-sm font-bold text-ink">
-                      {t.total ? money(t.total) : "—"}
+                      {t.total || t.total_minor ? formatMinor(t.total ?? t.total_minor ?? 0, t.base_currency ?? "INR") : "—"}
                     </b>
                     <span className="text-ink-faint text-[10px]">Tracked</span>
                   </span>

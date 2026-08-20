@@ -6,19 +6,19 @@ import { useTripMembers } from "@/features/trips/useMembers"
 import { useState, useMemo } from "react"
 
 function humanSummary(a: any, name: string) {
+  if (a.action === "settle") return `${name} recorded a settlement`
+  if (a.action === "archive") return `${name} archived the trip`
+  if (a.action === "join") return `${name} joined the trip`
   const map: Record<string, string> = {
     create: "created",
     update: "updated",
     soft_delete: "deleted",
     restore: "restored",
-    join: "joined",
     remove: "removed",
     role_change: "changed role for",
-    settle: "recorded a settlement for",
-    archive: "archived",
   }
   const act = map[a.action] ?? a.action
-  const entity = a.entity_type === "member" ? "member" : a.entity_type
+  const entity = a.entity_type === "member" ? "member" : a.entity_type === "trip" ? "trip" : a.entity_type
   return `${name} ${act} ${entity}`
 }
 
@@ -49,7 +49,7 @@ export function ActivityPage() {
   const [filter, setFilter] = useState<"all" | "expense" | "settlement" | "member">("all")
 
   const memberMap = useMemo(
-    () => new Map((members as any ?? []).map((m: any) => [m.user_id, m.name])),
+    () => new Map((members as any ?? []).map((m: any) => [m.user_id ?? m.id, m.name ?? m.email ?? (m.user_id ?? m.id)?.slice(0, 8)])),
     [members]
   )
 

@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from "react-router"
 import { useTrip } from "@/features/trips/hooks"
-import { archiveTrip, deleteTrip, markSettled, removeMember, changeMemberRole, addTripMember } from "./api"
+import { archiveTrip, deleteTrip, markSettled, reopenTrip, removeMember, changeMemberRole, addTripMember } from "./api"
 import { InviteManager } from "@/features/trips/InviteManager"
 import { getSupabase } from "@/lib/supabase"
 import { useTripMembers } from "@/features/trips/useMembers"
@@ -198,22 +198,31 @@ export function TripSettingsPage() {
       </section>
       {getSupabase() && !isArchived && isOwner && (
         <section className="flex flex-wrap gap-2">
-          <button
-            onClick={() => act(() => markSettled(tripId!), "Marked settled")}
-            className="min-h-11 rounded-md bg-brand px-4 text-sm font-bold text-white"
-          >
-            Mark settled
-          </button>
+          {trip?.status === "settled" ? (
+            <button
+              onClick={() => act(() => reopenTrip(tripId!), "Trip reopened")}
+              className="min-h-11 rounded-xl bg-emerald-600 px-5 text-sm font-bold text-white hover:bg-emerald-700 transition-colors shadow-2xs"
+            >
+              Reopen trip
+            </button>
+          ) : (
+            <button
+              onClick={() => act(() => markSettled(tripId!), "Marked settled")}
+              className="min-h-11 rounded-xl bg-brand px-5 text-sm font-bold text-white hover:bg-blue-700 transition-colors shadow-2xs"
+            >
+              Mark settled
+            </button>
+          )}
           <button
             onClick={() => act(() => archiveTrip(tripId!), "Archived")}
-            className="min-h-11 rounded-md border border-hair bg-surface px-4 text-sm font-semibold"
+            className="min-h-11 rounded-xl border border-hair bg-surface px-4 text-sm font-semibold text-ink hover:bg-canvas transition-colors"
           >
             Archive trip
           </button>
           {isAdmin && (
             <button
               onClick={() => setConfirmDelete(true)}
-              className="min-h-11 rounded-md bg-owe px-4 text-sm font-bold text-white"
+              className="min-h-11 rounded-xl bg-owe px-4 text-sm font-bold text-white hover:bg-red-700 transition-colors shadow-2xs"
               aria-label="Delete trip"
             >
               Delete trip

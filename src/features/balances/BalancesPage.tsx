@@ -167,6 +167,8 @@ export function BalancesPage() {
           onSuccess={() => {
             queryClient.invalidateQueries({ queryKey: ["balances", tripId] })
             queryClient.invalidateQueries({ queryKey: ["expenses", tripId] })
+            queryClient.invalidateQueries({ queryKey: ["activity", tripId] })
+            queryClient.invalidateQueries({ queryKey: ["trip", tripId] })
           }}
         />
       )}

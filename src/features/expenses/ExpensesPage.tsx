@@ -8,8 +8,11 @@ import { Skeleton } from "@/components/feedback/Skeleton"
 import { Plus, Search } from "lucide-react"
 import { useMemo, useState, useEffect } from "react"
 
+import { useAuth } from "@/lib/auth"
+
 export function ExpensesPage() {
   const { tripId } = useParams()
+  const { user } = useAuth()
   const { data: trip } = useTrip(tripId!)
   const { data: members } = useTripMembers(tripId ?? "")
   const memberMap = useMemo(
@@ -22,9 +25,7 @@ export function ExpensesPage() {
       ),
     [members]
   )
-  const [uid, setUid] = useState<string | null>(null)
-  useEffect(() => { const s = getSupabase(); if (!s) return; s.auth.getUser().then(({data})=> setUid(data.user?.id ?? null)).catch(()=>{}) }, [])
-  const isOwner = !!(uid && (members as any[])?.some((m) => m.user_id === uid && m.role === "owner"))
+  const isOwner = !!(user?.id && (members as any[])?.some((m) => (m.user_id === user.id || m.id === user.id) && m.role === "owner"))
   const [showDeleted, setShowDeleted] = useState(false)
   const effectiveIncludeDeleted = isOwner && showDeleted
   const q = useExpenses(tripId!, { includeDeleted: effectiveIncludeDeleted })

@@ -23,10 +23,11 @@ export function TripOverviewPage() {
   const memberList = (members as any[]) ?? []
   const memberCount = memberList.length
   const expenseList = (expenses as any[]) ?? []
-  const expenseCount = expenseList.length
-  const totalMinor = expenseList.reduce((s: number, e: any) => s + (e.amount_minor ?? 0), 0)
+  const activeExpenses = expenseList.filter((e: any) => !e.deleted_at)
+  const expenseCount = activeExpenses.length
+  const totalMinor = activeExpenses.reduce((s: number, e: any) => s + (e.amount_minor ?? e.amount ?? 0), 0)
   const avgMinor = memberCount > 0 ? Math.round(totalMinor / memberCount) : 0
-  const recentExpenses = expenseList.slice(0, 5)
+  const recentExpenses = activeExpenses.slice(0, 5)
 
   return (
     <div className="space-y-6">

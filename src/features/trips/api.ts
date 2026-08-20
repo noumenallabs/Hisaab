@@ -183,9 +183,9 @@ export async function joinWithEmailAndCode(
     }
   }
   const { data, error } = await supabase.rpc("join_trip_with_email_and_code", {
-    p_email: email,
-    p_code: code,
-    p_name: name || null,
+    p_email: email.trim().toLowerCase(),
+    p_code: code.trim().toUpperCase(),
+    p_name: name?.trim() || null,
   } as never)
   if (error) throw error
   return data as any
