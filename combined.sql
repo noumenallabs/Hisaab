@@ -763,7 +763,7 @@ begin
 end $$;
 
 -- 8.5 get_trip_balances
-create or replace function public.get_trip_balances(p_trip_id uuid)
+create or replace function public.get_trip_balances(p_trip_id uuid, p_user_id uuid default null)
 returns table(
   user_id uuid,
   paid_minor bigint,
@@ -774,8 +774,6 @@ returns table(
 )
 language plpgsql security definer set search_path = public, pg_temp stable as $$
 begin
-  if auth.uid() is null then raise exception 'AUTH_REQUIRED'; end if;
-  if not public.is_trip_member(p_trip_id) then raise exception 'PERMISSION_DENIED'; end if;
 
   return query
   with members as (
@@ -1348,64 +1346,5 @@ end $$;
 
 revoke all on function public.get_trip_expenses_list(uuid, uuid, boolean) from public;
 grant execute on function public.get_trip_expenses_list(uuid, uuid, boolean) to anon, authenticated;
-
--- 4. get_trip_balances
-create or replace function public.get_trip_balances(p_trip_id uuid, p_user_id uuid default null)
-returns table(
-  user_id uuid,
-  paid_minor bigint,
-  owed_minor bigint,
-  sent_minor bigint,
-  received_minor bigint,
-  net_minor bigint
-)
-language plpgsql security definer set search_path = public, pg_temp stable as $$
-begin
-  return query
-  with members as (
-    select tm.user_id from public.trip_members tm where tm.trip_id = p_trip_id
-  ),
-  paid as (
-    select ep.user_id, coalesce(sum(ep.amount_paid_minor), 0)::bigint as total
-    from public.expense_payers ep
-    join public.expenses e on e.id = ep.expense_id
-    where e.trip_id = p_trip_id and e.deleted_at is null
-    group by ep.user_id
-  ),
-  owed as (
-    select es.user_id, coalesce(sum(es.amount_owed_minor), 0)::bigint as total
-    from public.expense_splits es
-    join public.expenses e on e.id = es.expense_id
-    where e.trip_id = p_trip_id and e.deleted_at is null
-    group by es.user_id
-  ),
-  sent as (
-    select s.from_user_id as user_id, coalesce(sum(s.amount_minor), 0)::bigint as total
-    from public.settlements s
-    where s.trip_id = p_trip_id
-    group by s.from_user_id
-  ),
-  received as (
-    select s.to_user_id as user_id, coalesce(sum(s.amount_minor), 0)::bigint as total
-    from public.settlements s
-    where s.trip_id = p_trip_id
-    group by s.to_user_id
-  )
-  select
-    m.user_id,
-    coalesce(p.total, 0)::bigint as paid_minor,
-    coalesce(o.total, 0)::bigint as owed_minor,
-    coalesce(sn.total, 0)::bigint as sent_minor,
-    coalesce(rc.total, 0)::bigint as received_minor,
-    (coalesce(p.total, 0) - coalesce(o.total, 0) + coalesce(sn.total, 0) - coalesce(rc.total, 0))::bigint as net_minor
-  from members m
-  left join paid p on p.user_id = m.user_id
-  left join owed o on o.user_id = m.user_id
-  left join sent sn on sn.user_id = m.user_id
-  left join received rc on rc.user_id = m.user_id;
-end $$;
-
-revoke all on function public.get_trip_balances(uuid, uuid) from public;
-grant execute on function public.get_trip_balances(uuid, uuid) to anon, authenticated;
 
 revoke update on public.profiles from authenticated, anon, public;
