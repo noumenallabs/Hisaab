@@ -1048,8 +1048,8 @@ grant execute on function public.revoke_trip_invite(uuid) to authenticated;
 revoke all on function public.resolve_invite_code(text) from public;
 grant execute on function public.resolve_invite_code(text) to authenticated, anon;
 
-revoke all on function public.join_trip_by_code(text) from public;
-grant execute on function public.join_trip_by_code(text) to authenticated;
+revoke all on function public.join_trip_by_code(text, uuid) from public;
+grant execute on function public.join_trip_by_code(text, uuid) to anon, authenticated;
 
 revoke all on function public.save_expense(jsonb) from public;
 grant execute on function public.save_expense(jsonb) to authenticated;
@@ -1060,8 +1060,8 @@ grant execute on function public.soft_delete_expense(uuid, uuid) to authenticate
 revoke all on function public.restore_expense(uuid, uuid) from public;
 grant execute on function public.restore_expense(uuid, uuid) to authenticated;
 
-revoke all on function public.get_trip_balances(uuid) from public;
-grant execute on function public.get_trip_balances(uuid) to authenticated;
+revoke all on function public.get_trip_balances(uuid, uuid) from public;
+grant execute on function public.get_trip_balances(uuid, uuid) to anon, authenticated;
 
 revoke all on function public.record_settlement(jsonb) from public;
 grant execute on function public.record_settlement(jsonb) to authenticated;
