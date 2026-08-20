@@ -133,11 +133,11 @@ export function InviteJoinPage() {
         )}
 
         {info && status === "preview" && (
-          <div className="rounded-xl border border-emerald-200 bg-emerald-50/70 p-3.5 flex items-center gap-3">
-            <CheckCircle2 className="text-emerald-600 shrink-0" size={20} />
+          <div className="flex items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50/70 p-3.5 dark:border-emerald-800/60 dark:bg-emerald-950/40">
+            <CheckCircle2 className="shrink-0 text-emerald-600 dark:text-emerald-400" size={20} />
             <div>
-              <p className="text-sm font-bold text-emerald-900">{info.trip_name}</p>
-              <p className="text-xs text-emerald-700">{info.destination}</p>
+              <p className="text-sm font-bold text-emerald-900 dark:text-emerald-200">{info.trip_name}</p>
+              <p className="text-xs text-emerald-700 dark:text-emerald-400">{info.destination}</p>
             </div>
           </div>
         )}

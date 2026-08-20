@@ -239,8 +239,8 @@ export function ExpenseFormPage() {
           <Link to={`/trips/${tripId}/expenses`} className="rounded-lg px-3 py-1.5 text-xs font-semibold text-ink-soft hover:bg-canvas">Cancel</Link>
         </div>
 
-      {isDirty && <p className="text-xs text-amber-700">Unsaved changes — you will be warned on leave.</p>}
-      {isArchived && <p role="alert" className="rounded-md bg-ink px-3 py-2 text-sm font-semibold text-white">Archived — read-only. No edits allowed.</p>}
+      {isDirty && <p className="text-xs text-amber-600 dark:text-amber-400 font-medium">Unsaved changes — you will be warned on leave.</p>}
+      {isArchived && <p role="alert" className="rounded-xl border border-slate-700/60 bg-slate-800 px-4 py-2.5 text-sm font-semibold text-slate-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200">Archived — read-only. No edits allowed.</p>}
 
       <label htmlFor="exp-desc" className="block text-xs font-semibold uppercase tracking-wider text-ink-soft">Description
         <input id="exp-desc" {...register("description")} className="mt-1 w-full min-h-11 rounded-xl border border-hair bg-surface px-3 py-3 text-sm focus:border-brand focus:ring-1 focus:ring-brand outline-none" placeholder="e.g. Beach dinner" aria-invalid={!!errors.description} />

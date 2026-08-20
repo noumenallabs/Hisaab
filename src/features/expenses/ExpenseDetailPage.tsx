@@ -134,7 +134,7 @@ export function ExpenseDetailPage() {
                     aria-label="View full receipt"
                   >
                     <img src={signedUrl} alt={`Receipt for ${exp.description}`} className="max-h-56 rounded-lg object-contain transition-transform group-hover:scale-105" />
-                    <span className="absolute bottom-2 right-2 rounded-md bg-ink/75 px-2 py-1 text-[11px] font-semibold text-white backdrop-blur-xs">
+                    <span className="absolute bottom-2 right-2 rounded-md bg-black/75 px-2 py-1 text-[11px] font-semibold text-white backdrop-blur-xs">
                       🔍 Tap to zoom
                     </span>
                   </button>
@@ -168,7 +168,7 @@ export function ExpenseDetailPage() {
             </ul>
           </div>
         </div>
-        {isArchived && <p role="alert" className="mt-4 rounded-md bg-ink px-3 py-2 text-sm font-semibold text-white">Archived — read-only.</p>}
+        {isArchived && <p role="alert" className="mt-4 rounded-xl border border-slate-700/60 bg-slate-800 px-4 py-2.5 text-sm font-semibold text-slate-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200">Archived — read-only.</p>}
         <div className="mt-4 rounded-lg border border-hair bg-canvas p-3">
           <p className="text-xs font-semibold">History</p>
           <p className="mt-1 text-xs text-ink-soft">Created {exp.created_at ? new Date(exp.created_at).toLocaleString() : "—"} by {exp.created_by ? nameOf(exp.created_by) : "—"}</p>

@@ -112,7 +112,7 @@ export function DailyBars({
             onMouseLeave={() => setActive(null)}
           >
             {on && (
-              <div className="absolute -top-8 z-10 whitespace-nowrap rounded-md bg-ink text-white text-[11px] font-medium tnum px-2 py-1 shadow-lg">
+              <div className="absolute -top-8 z-10 whitespace-nowrap rounded-md border border-slate-700/60 bg-slate-900 px-2 py-1 text-[11px] font-medium text-white shadow-lg dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 tnum">
                 {formatMinor(d.value, currency)}
               </div>
             )}

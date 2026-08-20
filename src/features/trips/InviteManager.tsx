@@ -84,7 +84,7 @@ export function InviteManager({ tripId }: { tripId: string }) {
       ) : (
         <ul className="mt-4 space-y-2" aria-label="Invite codes">
           {invites.map((inv) => (
-            <li key={inv.id} className={`flex flex-wrap items-center justify-between gap-3 rounded-lg border px-3 py-3 ${inv.is_active ? "border-emerald-200 bg-emerald-50/60" : "border-hair bg-canvas opacity-70"}`} title={inv.is_active ? "Active — share this code" : inv.revoked_at ? "Revoked" : new Date(inv.expires_at) < new Date() ? "Expired" : `Max uses reached (${inv.use_count}/${inv.max_uses})`}>
+            <li key={inv.id} className={`flex flex-wrap items-center justify-between gap-3 rounded-lg border px-3 py-3 ${inv.is_active ? "border-emerald-200 bg-emerald-50/60 dark:border-emerald-800/60 dark:bg-emerald-950/40" : "border-hair bg-canvas opacity-70"}`} title={inv.is_active ? "Active — share this code" : inv.revoked_at ? "Revoked" : new Date(inv.expires_at) < new Date() ? "Expired" : `Max uses reached (${inv.use_count}/${inv.max_uses})`}>
               <div>
                 <p className="flex items-center gap-2 font-mono text-sm font-bold tracking-[.16em]">
                   {inv.code}

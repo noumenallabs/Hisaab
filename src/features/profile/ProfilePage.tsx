@@ -156,10 +156,10 @@ export function ProfilePage() {
               aria-live="polite"
               className={`rounded-xl p-3 text-xs font-semibold ${
                 msg.kind === "error"
-                  ? "bg-red-50 text-owe border border-red-200"
+                  ? "border border-red-200 bg-red-50 text-owe dark:border-red-800/60 dark:bg-red-950/40 dark:text-red-300"
                   : msg.kind === "success"
-                  ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
-                  : "bg-canvas text-ink-soft border border-hair"
+                  ? "border border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-800/60 dark:bg-emerald-950/40 dark:text-emerald-300"
+                  : "border border-hair bg-canvas text-ink-soft"
               }`}
             >
               {msg.text}

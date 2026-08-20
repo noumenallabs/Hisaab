@@ -36,7 +36,7 @@ export function TripOverviewPage() {
           <div>
             <div className="flex items-center gap-2">
               <span className={`rounded-full px-2.5 py-0.5 text-xs font-bold uppercase tracking-wider ${
-                t.status === "active" ? "bg-emerald-100 text-emerald-800" : "bg-canvas text-ink-soft"
+                t.status === "active" ? "border border-emerald-200 bg-emerald-100 text-emerald-800 dark:border-emerald-800/60 dark:bg-emerald-950/60 dark:text-emerald-300" : "border border-hair bg-canvas text-ink-soft"
               }`}>
                 {t.status}
               </span>
@@ -61,7 +61,7 @@ export function TripOverviewPage() {
           )}
         </div>
         {isArchived && (
-          <p role="alert" className="mt-4 rounded-xl bg-ink px-4 py-2.5 text-sm font-semibold text-white">
+          <p role="alert" className="mt-4 rounded-xl border border-slate-700/60 bg-slate-800 px-4 py-2.5 text-sm font-semibold text-slate-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200">
             Archived trip — read-only mode.
           </p>
         )}

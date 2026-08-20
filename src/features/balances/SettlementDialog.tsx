@@ -135,7 +135,7 @@ export function SettlementDialog({
       aria-labelledby="settle-title"
     >
       <div
-        className="absolute inset-0 bg-ink/40"
+        className="absolute inset-0 bg-black/60 backdrop-blur-xs transition-opacity"
         onClick={() => {
           if (!submitting) onClose()
         }}

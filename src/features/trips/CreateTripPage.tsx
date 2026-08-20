@@ -134,7 +134,7 @@ function FlowShell({
           <ArrowLeft size={17} /> All trips
         </Link>
         <div className="mt-6 overflow-hidden rounded-xl border border-hair bg-surface shadow-[0_18px_50px_rgba(28,36,48,.09)]">
-          <div className="border-b border-hair bg-[#fbfcfe] p-7">
+          <div className="border-b border-hair bg-canvas/50 p-7">
             <p className="font-mono text-[11px] font-semibold tracking-[.14em] text-brand">
               {eyebrow}
             </p>

@@ -110,7 +110,7 @@ export function TripLayout() {
           )}
         </p>
         {trip?.status === "archived" && (
-          <div className="mt-3 rounded-md bg-ink px-3 py-2 text-sm font-semibold text-white">
+          <div className="mt-3 rounded-xl border border-slate-700/60 bg-slate-800 px-3.5 py-2 text-sm font-semibold text-slate-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200">
             Archived — read-only. No financial or membership changes allowed.
           </div>
         )}

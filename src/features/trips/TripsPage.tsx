@@ -81,8 +81,8 @@ export function TripsPage() {
                   <span
                     className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
                       t.status === "active"
-                        ? "bg-emerald-100 text-emerald-800"
-                        : "bg-canvas text-ink-faint"
+                        ? "border border-emerald-200 bg-emerald-100 text-emerald-800 dark:border-emerald-800/60 dark:bg-emerald-950/60 dark:text-emerald-300"
+                        : "border border-hair bg-canvas text-ink-faint"
                     }`}
                   >
                     {t.status}
