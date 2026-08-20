@@ -193,16 +193,17 @@ export function SettlementDialog({
             </option>
           ))}
         </select>
-        <label htmlFor="settle-ref" className="mt-3 block text-xs font-semibold">
+        <label htmlFor="settle-ref" className="mt-3 block text-xs font-semibold text-ink-soft">
           REFERENCE
         </label>
         <input
           id="settle-ref"
           value={reference}
           onChange={(e) => setReference(e.target.value)}
-          className="mt-1 w-full min-h-11 rounded-md border border-hair px-3 py-3 text-sm"
+          placeholder="e.g. UPI / Transaction ID"
+          className="mt-1 w-full min-h-11 rounded-xl border border-hair bg-surface px-3 py-3 text-sm text-ink outline-none focus:border-brand focus:ring-1 focus:ring-brand"
         />
-        <label htmlFor="settle-note" className="mt-3 block text-xs font-semibold">
+        <label htmlFor="settle-note" className="mt-3 block text-xs font-semibold text-ink-soft">
           NOTE
         </label>
         <textarea
@@ -210,7 +211,8 @@ export function SettlementDialog({
           value={note}
           onChange={(e) => setNote(e.target.value)}
           rows={2}
-          className="mt-1 w-full rounded-md border border-hair px-3 py-3 text-sm"
+          placeholder="Optional note..."
+          className="mt-1 w-full rounded-xl border border-hair bg-surface px-3 py-3 text-sm text-ink outline-none focus:border-brand focus:ring-1 focus:ring-brand"
         />
         {err && (
           <p role="alert" className="mt-2 rounded-md bg-owe-soft px-3 py-2 text-sm font-medium text-owe">

@@ -261,7 +261,7 @@ export function ExpensesPage() {
                         key={e.id}
                         to={`/trips/${tripId}/expenses/${e.id}`}
                         className={`flex items-center justify-between p-4 transition-colors hover:bg-canvas/60 ${
-                          isDel ? "opacity-60 bg-red-50/40" : ""
+                          isDel ? "opacity-60 bg-red-50/40 dark:bg-red-950/30" : ""
                         }`}
                       >
                         <div className="flex items-center gap-3.5 min-w-0">

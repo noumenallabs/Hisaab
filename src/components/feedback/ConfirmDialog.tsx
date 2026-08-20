@@ -101,7 +101,7 @@ export function ConfirmDialog({
             ref={cancelRef}
             onClick={onClose}
             disabled={!!pending}
-            className="min-h-11 rounded-md border border-hair px-4 text-sm font-semibold disabled:opacity-50"
+            className="min-h-11 rounded-xl border border-hair bg-surface px-4 text-sm font-semibold text-ink hover:bg-canvas disabled:opacity-50 transition-colors"
           >
             Cancel
           </button>
@@ -111,8 +111,8 @@ export function ConfirmDialog({
               const r = onConfirm()
               if (!(r instanceof Promise)) onClose()
             }}
-            className={`min-h-11 rounded-md px-4 text-sm font-bold text-white ${
-              danger ? "bg-owe hover:bg-[#c53c34]" : "bg-brand"
+            className={`min-h-11 rounded-xl px-5 text-sm font-bold text-white shadow-sm transition-colors ${
+              danger ? "bg-owe hover:bg-red-700" : "bg-brand hover:bg-blue-700"
             }`}
           >
             {confirmLabel}
