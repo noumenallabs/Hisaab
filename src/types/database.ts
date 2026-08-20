@@ -242,7 +242,13 @@ export interface Database {
         Returns: Json
       }
       get_trip_audit_logs: {
-        Args: { p_trip_id: string; p_user_id?: string | null; p_limit?: number }
+        Args: {
+          p_trip_id: string
+          p_user_id?: string | null
+          p_limit?: number
+          p_cursor_created_at?: string | null
+          p_cursor_id?: number | null
+        }
         Returns: Json
       }
     }

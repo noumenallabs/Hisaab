@@ -475,6 +475,7 @@ drop function if exists public.get_trip_expenses_list(uuid, uuid);
 drop function if exists public.get_trip_expenses_list(uuid, uuid, boolean);
 drop function if exists public.get_user_trips(uuid);
 drop function if exists public.get_trip_audit_logs(uuid, uuid, integer);
+drop function if exists public.get_trip_audit_logs(uuid, uuid, integer, timestamptz, bigint);
 drop function if exists public.is_platform_admin(uuid);
 
 -- ===========================================================================
@@ -1478,7 +1479,9 @@ end $$;
 create or replace function public.get_trip_audit_logs(
   p_trip_id uuid,
   p_user_id uuid default null,
-  p_limit int default 20
+  p_limit int default 20,
+  p_cursor_created_at timestamptz default null,
+  p_cursor_id bigint default null
 )
 returns jsonb
 language plpgsql
@@ -1515,8 +1518,13 @@ begin
   from (
     select * from public.audit_logs
     where trip_id = p_trip_id
+      and (
+        p_cursor_created_at is null
+        or created_at < p_cursor_created_at
+        or (created_at = p_cursor_created_at and id < p_cursor_id)
+      )
     order by created_at desc, id desc
-    limit coalesce(p_limit, 50)
+    limit coalesce(p_limit, 20)
   ) a;
 
   return coalesce(v_res, '[]'::jsonb);
@@ -1603,7 +1611,7 @@ grant execute on function public.get_trip_expenses_list(uuid, uuid, boolean) to 
 revoke all on function public.get_user_trips(uuid) from public;
 grant execute on function public.get_user_trips(uuid) to anon, authenticated;
 
-revoke all on function public.get_trip_audit_logs(uuid, uuid, int) from public;
-grant execute on function public.get_trip_audit_logs(uuid, uuid, int) to anon, authenticated;
+revoke all on function public.get_trip_audit_logs(uuid, uuid, int, timestamptz, bigint) from public;
+grant execute on function public.get_trip_audit_logs(uuid, uuid, int, timestamptz, bigint) to anon, authenticated;
 
 revoke update on public.profiles from authenticated, anon, public;

@@ -20,6 +20,8 @@ export async function fetchAudit(
       p_trip_id: tripId,
       p_user_id: customUserId,
       p_limit: limit,
+      p_cursor_created_at: cursor?.created_at ?? null,
+      p_cursor_id: cursor?.id ?? null,
     } as never)
     if (!rpcErr && rpcData && Array.isArray(rpcData)) {
       return rpcData as any[]

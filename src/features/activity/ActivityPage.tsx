@@ -53,7 +53,16 @@ export function ActivityPage() {
     [members]
   )
 
-  const pages = q.data?.pages.flat() ?? []
+  const rawPages = q.data?.pages.flat() ?? []
+  const pages = useMemo(() => {
+    const seen = new Set<string | number>()
+    return rawPages.filter((item: any) => {
+      if (!item || seen.has(item.id)) return false
+      seen.add(item.id)
+      return true
+    })
+  }, [rawPages])
+
   const filteredPages = useMemo(() => {
     if (filter === "all") return pages
     return pages.filter((a: any) => a.entity_type === filter)
