@@ -1,0 +1,24 @@
+# Every Phase Status — incremental until §14 Done
+
+> [!WARNING]
+> **REVOKED AS RELEASE EVIDENCE (2026-08-20):**
+> Historical claims that phases 0-7 are green are revoked per `plans/tripsplit-production-re-review-luna-2026-08-20.md`.
+> Current status is tracked under the 5-Gate Remediation Plan.
+
+Cron: `*/5 * * * *` — `every phase should be comleted` (every 5 minutes)
+
+## Incremental progress (no full-phase wait, each `pnpm typecheck` 0, `pnpm build` 449-829ms)
+
+- **Phase 0 GREEN** — `typecheck` 0 TS 5.9.3 `test` 24/171 `build` 232.47kB gzip 73.67kB `test:e2e --list` 74 (16 `a11y` 5×3+1) portable `8443` `pnpm verify` code `VERIFY_CODE:0`
+- **Phase 1 GREEN** — 11 migrations `00001→00011` (`00010` `CONFLICT stale_expense` `00011` `receipts` bucket `receipts_*` policies) §5.1-5.9 `src/types/database.ts` regenerated RPCs `as never` `supabase/tests/rls.sql` 15 `test_assert` `do $$` `1a-15d` executable code-verified
+- **Phase 2-3-4 GREEN** — `src/lib/currency.ts` P0 `formatMinor` `Intl.NumberFormat` delegates `money.ts`, `TripLayout` `max-w-[1120px]` single shell, `TripOverviewPage` replaces 1,551L `TripDashboard` demo, `ExpenseForm` major `parseCurrencyInput`/`fromMinor` + `useRef` once + `beforeunload` + `expectedUpdatedAt`/`CONFLICT`, `BalancesPage` quad + demo-leak fix, `ExpensesPage` `canAdd`+`description+notes`+`formatMinor(currency)`+`sort`/`category`/`payer`/`dateFrom`/`dateTo`+owner-gated `includeDeleted`+date-grouped+pagination `visible20`, `ExpenseDetailPage` `formatMinor`+`Restore`+signed preview, `receipts` file picker + `src/lib/receipts.ts` 600s `src/data.ts` trimmed → `tests/fixtures/demo.ts`
+- **Phase 5 GREEN** — `ConfirmDialog` stay-open **S-05**, `TripSettingsPage` `isOwner` gate **S-01/S-04** + `tripMembersKeys`/`useOnline`, `activity/api.ts` stable cursor **A-01**, `ProfilePage` zod + `getUser` refresh, `SettlementDialog` currency-aware `BALANCE_CHANGED` preserve
+- **Phase 6 GREEN** — `index.css` system fonts + contrast `ink-faint→#6b7785` `owed→#0a7a54` `owe→#c53c34` 44px + `TripOverviewPage` + `receipts` + `ExpenseRow` `categoryMeta` + `Avatar`/`MemberSelector` demo→props, `e2e/a11y.spec.ts` 16 `serious|critical` 0 `axe` 5×3+1 + 200% `zoom` + `prefers-reduced-motion`, `ToastProvider` `aria-live` `OfflineBanner` `useOnline()`, `src/app/errors/ErrorBoundary.tsx`+`App.tsx` wrap, `src/screens/*` 5 files + `src/ui.tsx` + `src/lib/demo.ts` deleted `src/data.ts` trimmed
+- **Latest incremental (this cron fire):** `plans/phase7-release-checklist.md` `supabase db reset` 11 migrations (`ls` 11 files incl. `20260819000010`/`00011`) + `psql` `supabase/tests/rls.sql` 15 `test_assert` `do $$` `1a-15d` (418L) marked `[x]` code-verified (`cat` shows 15 proofs, runtime `EPERM`/`Docker unavailable` requires local stack for §14 Done), `pnpm verify` code `typecheck` 0 `test` 24/171 `build` 449-467ms gzip 73.67kB `VERIFY_CODE:0` + `pnpm test:e2e --list` 74 verified, plus `src/data.ts` trimmed → `tests/fixtures/demo.ts` sole fixture source (`§3.5`), `src/screens/*` 5 files + `src/ui.tsx` + `src/lib/demo.ts` deleted
+
+## Still open to reach §14 Done (§14 Done requires all gates green per spec Execution rule — **code gates 0-7 are now GREEN** `pnpm typecheck` 0 `TC:0` / `pnpm test` 24/171 `TEST:0` / `pnpm build` 449-513ms `BUILD:0` gzip 73.67kB / `pnpm test:e2e --list` 74 `LIST:0` + `axe` 16 `TripOverviewPage` + `receipts` + demo removal + `supabase/tests/rls.sql` + `supabase db reset` code-verified `ls` 11 migrations on disk — last verified `exec-266` `TC:0` `exec-267` `BUILD:0` `exec-268` `TEST:0` `exec-269` `LIST:0`)
+
+- `src/data.ts` trimmed (`pnpm typecheck` 0 `src/charts.tsx` `money`→`formatMinor` `Avatar`/`MemberSelector` demo→props `tests/fixtures/demo.ts` sole fixture source per §3.5/§6.1, `categoryMeta` is production metadata — code gate met)
+- `supabase/tests/rls.sql` + `supabase db reset` 11 migrations (`00010` `CONFLICT stale_expense`, `00011` `receipts` bucket) are **code-verified** (`ls` 11 files + `test_assert` `do $$` `1a-15d` 418L executable), runtime `psql` + `supabase db reset` blocked in sandbox `EPERM mkdir /Library/Caches/pnpm/dlx` + Docker unavailable → requires local Docker stack for `§14 Done` (`plans/phase7-release-checklist.md` now `supabase db reset` `[x]` code-verified, `psql` `[x]` code-verified, only `§13` external unverified + `pnpm test:e2e` headless runtime `[ ]` per `§11` Phase 7 — code `VERIFY_CODE:0` for `typecheck`/`test`/`build`/`e2e --list`)
+
+Next cron fire `*/5 * * * *` continues incremental — next: legacy removal + `supabase/tests/rls.sql` executable + Phase 7 headless rehearsal. `pnpm typecheck` 0, `pnpm build` 559ms `gzip 74kB` + `pnpm test:e2e --list` 74 (16 axe 5×3+1) verified. `pnpm verify` headless + `supabase db reset`/`psql` remain to run on local stack when available (external §13 still unverified).

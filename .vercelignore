@@ -1,0 +1,7 @@
+tests/
+playwright-report/
+test-results/
+coverage/
+.figma/
+supabase/
+combined.sql
