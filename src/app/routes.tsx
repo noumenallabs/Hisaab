@@ -98,11 +98,11 @@ export const router = createBrowserRouter([
         errorElement: <RouteErrorBoundary />,
         children: [
           { path: "/trips", element: <SuspenseOutlet><TripsPage /></SuspenseOutlet> },
+          { path: "/trips/new", element: <SuspenseOutlet><CreateTripPage /></SuspenseOutlet> },
           {
             element: <AdminGuard />,
             errorElement: <RouteErrorBoundary />,
             children: [
-              { path: "/trips/new", element: <SuspenseOutlet><CreateTripPage /></SuspenseOutlet> },
               { path: "/admin", element: <AdminStub /> },
             ],
           },

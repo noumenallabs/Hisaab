@@ -9,10 +9,23 @@ export function useIsAdmin() {
     queryKey: ["isAdmin", user?.id],
     queryFn: async () => {
       if (!supabase || !user) return false
-      // 1) Check platform admin flag (most secure - DB source of truth)
-      const { data, error } = await supabase.from("profiles").select("is_platform_admin").eq("id", user.id).maybeSingle()
-      if (error) return false
-      return !!(data as any)?.is_platform_admin
+      // 1) Check platform admin flag
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("is_platform_admin")
+        .eq("id", user.id)
+        .maybeSingle()
+      if ((profile as any)?.is_platform_admin) return true
+
+      // 2) Check if user is a trip owner
+      const { data: ownership } = await supabase
+        .from("trip_members")
+        .select("role")
+        .eq("user_id", user.id)
+        .eq("role", "owner")
+        .limit(1)
+
+      return (ownership && ownership.length > 0) || false
     },
     enabled: !!user,
     staleTime: 60_000,
