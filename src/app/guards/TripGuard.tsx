@@ -9,7 +9,7 @@ export function TripGuard() {
   if (isLoading) return <FullPageSkeleton />
   if (error)
     return (
-      <main className="grid min-h-screen place-items-center bg-canvas p-6">
+      <main className="grid min-h-[100dvh] place-items-center bg-canvas p-6">
         <ErrorState
           message={(error as Error).message}
           onRetry={() => refetch()}
@@ -18,7 +18,7 @@ export function TripGuard() {
     )
   if (!trip)
     return (
-      <main className="grid min-h-screen place-items-center bg-canvas p-6 text-center">
+      <main className="grid min-h-[100dvh] place-items-center bg-canvas p-6 text-center">
         <h1 className="text-2xl font-bold">Trip not found</h1>
         <p className="mt-2 max-w-md text-sm leading-6 text-ink-soft">
           You don’t have access or it doesn’t exist.

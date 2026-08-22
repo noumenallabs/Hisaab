@@ -88,12 +88,12 @@ export function TripLayout() {
   const headerDestination = trip?.destination ?? ""
 
   return (
-    <div className="mx-auto flex min-h-screen max-w-6xl flex-col bg-canvas">
+    <div className="mx-auto flex min-h-[100dvh] max-w-6xl flex-col bg-canvas">
       <a href="#trip-content" className="skip-link">Skip to content</a>
       <header className="border-b border-hair bg-surface px-4 py-5 sm:px-8">
         <div className="flex items-center justify-between mb-2">
-          <Link to="/trips" className="inline-flex min-h-11 items-center gap-1.5 text-xs font-semibold text-ink-soft hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand rounded px-1 -ml-1" aria-label="Back to all trips">
-            <ArrowLeft size={14} /> All trips
+          <Link to="/trips" className="inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-ink-soft hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand rounded px-1 -ml-1 transition-colors" aria-label="Back to all trips">
+            <ArrowLeft size={16} /> All trips
           </Link>
           <div className="flex items-center gap-1.5 rounded-full border border-hair bg-canvas/60 px-2.5 py-1 text-xs font-medium text-ink-soft">
             <span className={`h-2 w-2 rounded-full ${online ? "bg-emerald-500 shadow-xs" : "bg-amber-500"}`} />
@@ -112,7 +112,7 @@ export function TripLayout() {
           )}
         </p>
         {trip?.status === "archived" && (
-          <div className="mt-3 rounded-xl border border-slate-700/60 bg-slate-800 px-3.5 py-2 text-sm font-semibold text-slate-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200">
+          <div className="mt-3 rounded-xl border border-hair bg-canvas/80 px-3.5 py-2 text-sm font-semibold text-ink-soft">
             Archived — read-only. No financial or membership changes allowed.
           </div>
         )}

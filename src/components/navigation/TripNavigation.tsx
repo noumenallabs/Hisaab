@@ -26,7 +26,7 @@ export function TripNavigation({
             to={to}
             end={!t.to}
             className={({ isActive }) =>
-              `inline-flex items-center gap-2 whitespace-nowrap border-b-2 px-4 py-3 text-sm font-semibold transition-all ${
+              `inline-flex items-center gap-2 whitespace-nowrap border-b-2 px-4 py-3 text-sm font-semibold transition-all rounded-t-lg focus-visible:outline-2 focus-visible:outline-brand focus-visible:outline-offset-2 ${
                 isActive
                   ? "border-brand text-brand font-bold"
                   : "border-transparent text-ink-soft hover:text-ink hover:border-hair"

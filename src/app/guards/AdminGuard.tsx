@@ -15,7 +15,7 @@ export function AdminGuard() {
   if (!supabase) return <Outlet />
   if (!isAdmin) {
     return (
-      <main className="grid min-h-screen place-items-center bg-canvas p-6 text-center">
+      <main className="grid min-h-[100dvh] place-items-center bg-canvas p-6 text-center">
         <div>
           <h1 className="text-2xl font-bold">Not an admin</h1>
           <p className="mt-2 max-w-md text-sm leading-6 text-ink-soft">

@@ -32,30 +32,40 @@ export function ToastProvider({ children }: { children: ReactNode }) {
             key={t.id}
             role={t.kind === "error" ? "alert" : "status"}
             aria-live={t.kind === "error" ? "assertive" : "polite"}
-            className={`pointer-events-auto flex items-center justify-between gap-3 rounded-xl px-4 py-3 text-sm font-medium shadow-2xl backdrop-blur-md transition-all ${
+            className={`pointer-events-auto flex items-center justify-between gap-3 rounded-2xl border px-4 py-3 text-sm font-semibold shadow-2xl backdrop-blur-xl transition-all ${
               t.kind === "error"
-                ? "border border-red-200 bg-red-600 text-white shadow-red-950/20 dark:border-red-800/80 dark:bg-red-950/90 dark:text-red-100"
+                ? "border-owe/40 bg-surface text-ink shadow-owe/10"
                 : t.kind === "success"
-                ? "border border-emerald-200 bg-emerald-700 text-white shadow-emerald-950/20 dark:border-emerald-800/80 dark:bg-emerald-950/90 dark:text-emerald-100"
-                : "border border-slate-700/40 bg-slate-900 text-white shadow-slate-950/30 dark:border-slate-700 dark:bg-slate-800/95 dark:text-slate-100"
+                ? "border-owed/40 bg-surface text-ink shadow-owed/10"
+                : "border-hair bg-surface text-ink shadow-2xs"
             }`}
           >
-            <div className="flex items-center gap-2.5 min-w-0">
-              {t.kind === "error" ? (
-                <AlertCircle className="h-4 w-4 shrink-0 text-red-100 dark:text-red-400" />
-              ) : t.kind === "success" ? (
-                <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-100 dark:text-emerald-400" />
-              ) : (
-                <Info className="h-4 w-4 shrink-0 text-blue-200 dark:text-blue-400" />
-              )}
-              <span className="truncate">{t.message}</span>
+            <div className="flex items-center gap-3 min-w-0">
+              <span
+                className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-xl ${
+                  t.kind === "error"
+                    ? "bg-owe/15 text-owe"
+                    : t.kind === "success"
+                    ? "bg-owed/15 text-owed"
+                    : "bg-brand/15 text-brand"
+                }`}
+              >
+                {t.kind === "error" ? (
+                  <AlertCircle className="h-4 w-4" />
+                ) : t.kind === "success" ? (
+                  <CheckCircle2 className="h-4 w-4" />
+                ) : (
+                  <Info className="h-4 w-4" />
+                )}
+              </span>
+              <span className="truncate text-ink">{t.message}</span>
             </div>
             <button
               onClick={() => setToasts((p) => p.filter((x) => x.id !== t.id))}
-              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg hover:bg-white/20 transition-colors"
+              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-ink-soft hover:bg-canvas hover:text-ink transition-colors"
               aria-label="Dismiss toast"
             >
-              <X className="h-4 w-4 opacity-80 hover:opacity-100" />
+              <X className="h-4 w-4 opacity-70 hover:opacity-100" />
             </button>
           </div>
         ))}

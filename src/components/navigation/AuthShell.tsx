@@ -1,5 +1,5 @@
 import { Link, NavLink, useLocation } from "react-router"
-import { ArrowLeft } from "lucide-react"
+import { ArrowLeft, ArrowRight } from "lucide-react"
 import { HissaabLogo } from "./HissaabLogo"
 import { ThemeToggle } from "./ThemeToggle"
 
@@ -24,7 +24,7 @@ export function AuthShell({
   const search = location.search
 
   return (
-    <main className="min-h-screen bg-canvas p-4 sm:grid sm:place-items-center py-8">
+    <main className="min-h-[100dvh] bg-canvas p-4 sm:grid sm:place-items-center py-8">
       <div className="w-full max-w-[480px]">
         {/* Top App Header Bar */}
         <div className="flex items-center justify-between pb-4">
@@ -49,9 +49,9 @@ export function AuthShell({
             <ThemeToggle />
             <Link
               to="/trips"
-              className="text-xs font-semibold text-brand hover:underline"
+              className="inline-flex items-center gap-1 text-xs font-semibold text-brand hover:underline"
             >
-              All trips →
+              All trips <ArrowRight size={13} />
             </Link>
           </div>
         </div>

@@ -32,7 +32,7 @@ function SuspenseOutlet({ children }: { children: React.ReactNode }) {
 
 function AdminStub() {
   return (
-    <main className="grid min-h-screen place-items-center bg-canvas p-6 text-center">
+    <main className="grid min-h-[100dvh] place-items-center bg-canvas p-6 text-center">
       <div>
         <p className="font-mono text-xs font-bold tracking-widest text-brand">
           PLATFORM ADMIN
@@ -49,7 +49,7 @@ function AdminStub() {
 
 function NotFound() {
   return (
-    <main className="grid min-h-screen place-items-center bg-canvas p-6 text-center">
+    <main className="grid min-h-[100dvh] place-items-center bg-canvas p-6 text-center">
       <div>
         <h1 className="text-3xl font-bold">404 — Not found</h1>
         <p className="mt-2 text-sm text-ink-soft">The page you requested does not exist.</p>

@@ -5,7 +5,8 @@ import { getSupabase } from "@/lib/supabase"
 import { useTripMembers } from "@/features/trips/useMembers"
 import { useExpenses } from "@/features/expenses/hooks"
 import { formatMinor } from "@/lib/currency"
-import { Skeleton } from "@/components/feedback/Skeleton"
+import { Skeleton, BalancesSkeleton } from "@/components/feedback/Skeleton"
+import { UserAvatar } from "@/components/feedback/UserAvatar"
 import { SettlementDialog } from "./SettlementDialog"
 import { CategoryBreakdown } from "./CategoryBreakdown"
 import { SettlementHistory } from "./SettlementHistory"
@@ -167,8 +168,7 @@ export function BalancesPage() {
     return Array.from(cats)
   }, [activeExpenses])
 
-  if (supabase && isLoading) return <Skeleton className="h-40" />
-  if (supabase && membersLoading) return <Skeleton className="h-40" />
+  if (supabase && (isLoading || membersLoading)) return <BalancesSkeleton />
   if (supabase && !membersLoading && members.length === 0)
     return (
       <div className="rounded-md bg-owe-soft p-4 text-sm text-owe" role="alert">
@@ -205,7 +205,7 @@ export function BalancesPage() {
       {isArchived && (
         <p
           role="alert"
-          className="rounded-xl border border-slate-700/60 bg-slate-800 px-4 py-2.5 text-sm font-semibold text-slate-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+          className="rounded-xl border border-hair bg-canvas/80 px-4 py-2.5 text-sm font-semibold text-ink-soft"
         >
           Archived — read-only. Settlements disabled.
         </p>
@@ -248,11 +248,21 @@ export function BalancesPage() {
                   className="rounded-2xl border border-hair bg-surface p-4 shadow-2xs transition-all hover:shadow-xs"
                 >
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className="flex h-7 w-7 items-center justify-center rounded-full bg-brand/10 text-xs font-bold text-brand">
-                        {(m.name ?? "?")[0].toUpperCase()}
-                      </span>
-                      <p className="text-sm font-bold text-ink">{m.name}</p>
+                    <div className="flex items-center gap-2.5">
+                      <UserAvatar
+                        name={m.name}
+                        id={m.id}
+                        isCurrentUser={m.id === user?.id}
+                        size="md"
+                      />
+                      <p className="text-sm font-bold text-ink">
+                        {m.name}
+                        {m.id === user?.id && (
+                          <span className="ml-1.5 rounded-md bg-brand/10 px-1.5 py-0.5 text-[10px] font-bold text-brand">
+                            You
+                          </span>
+                        )}
+                      </p>
                     </div>
                     <span
                       className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${
@@ -469,8 +479,10 @@ export function BalancesPage() {
                             })
                           }
                           className="shrink-0 min-h-9 rounded-xl bg-brand px-3.5 text-xs font-bold text-white shadow-2xs hover:bg-blue-700 transition-colors"
+                          title="Record payment to clear this balance"
+                          aria-label={`Record payment of ${formatMinor(t.amount, baseCurrency)}`}
                         >
-                          Settle
+                          Mark paid
                         </button>
                       )}
                     </li>

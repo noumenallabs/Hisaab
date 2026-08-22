@@ -21,7 +21,7 @@ export function JoinTripPage() {
     }
   }
   return (
-    <main className="min-h-screen bg-canvas p-4 sm:grid sm:place-items-center">
+    <main className="min-h-[100dvh] bg-canvas p-4 sm:grid sm:place-items-center">
       <section className="mx-auto w-full max-w-[520px] pt-5 sm:pt-0">
         <Link
           to="/trips"

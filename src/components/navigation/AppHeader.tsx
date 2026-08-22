@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router"
 import { useAuth } from "@/lib/auth"
 import { HissaabLogo } from "./HissaabLogo"
 import { ThemeToggle } from "./ThemeToggle"
+import { UserAvatar } from "@/components/feedback/UserAvatar"
 
 export function AppHeader() {
   const { user, signOut } = useAuth()
@@ -23,9 +24,12 @@ export function AppHeader() {
           className="flex items-center gap-2.5 rounded-xl border border-hair bg-surface px-3 py-1.5 hover:bg-canvas transition-colors shadow-2xs"
           aria-label="View profile"
         >
-          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-brand/10 text-xs font-bold text-brand">
-            {(user?.name ?? "?")[0].toUpperCase()}
-          </span>
+          <UserAvatar
+            name={user?.name ?? "?"}
+            id={user?.id}
+            isCurrentUser={true}
+            size="md"
+          />
           <span className="hidden text-left text-xs text-ink-soft sm:block">
             <b className="block text-ink">{user?.name}</b>
             <span className="text-[10px] text-ink-faint">{user?.email}</span>

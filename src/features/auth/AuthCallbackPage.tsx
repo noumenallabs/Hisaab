@@ -18,7 +18,7 @@ export function AuthCallbackPage() {
   }, [navigate, ret])
 
   return (
-    <main className="grid min-h-screen place-items-center bg-canvas">
+    <main className="grid min-h-[100dvh] place-items-center bg-canvas">
       <p className="text-sm text-ink-soft">Completing sign-in…</p>
     </main>
   )

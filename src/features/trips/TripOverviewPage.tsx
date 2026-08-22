@@ -7,9 +7,12 @@ import { formatMinor } from "@/lib/currency"
 import { Skeleton } from "@/components/feedback/Skeleton"
 import { computeGroupCategorySummary } from "@/features/balances/categoryMath"
 import { Plus, Receipt, Scale, Activity as ActivityIcon, Settings2, Users, ArrowRight } from "lucide-react"
+import { UserAvatar } from "@/components/feedback/UserAvatar"
+import { useAuth } from "@/lib/auth"
 
 export function TripOverviewPage() {
   const { tripId } = useParams()
+  const { user } = useAuth()
   const { data: trip, isLoading } = useTrip(tripId!)
   const { data: members } = useTripMembers(tripId ?? "")
   const { data: expenses } = useExpenses(tripId!)
@@ -63,37 +66,51 @@ export function TripOverviewPage() {
           )}
         </div>
         {isArchived && (
-          <p role="alert" className="mt-4 rounded-xl border border-slate-700/60 bg-slate-800 px-4 py-2.5 text-sm font-semibold text-slate-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200">
+          <p role="alert" className="mt-4 rounded-xl border border-hair bg-canvas/80 px-4 py-2.5 text-sm font-semibold text-ink-soft">
             Archived trip — read-only mode.
           </p>
         )}
       </div>
 
-      {/* Top Stat Cards */}
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <div className="rounded-2xl border border-hair bg-surface p-5 shadow-2xs">
-          <p className="text-xs font-bold uppercase tracking-wider text-ink-soft">Total Spending</p>
-          <p className="mt-2 font-mono text-2xl font-bold tracking-tight text-ink">
+      {/* Top Stat Cards with Asymmetric Hierarchy */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-12">
+        {/* Total Spending - Hero Feature Card (Spans 5 cols on lg) */}
+        <div className="rounded-2xl border border-brand/20 bg-gradient-to-br from-brand/5 via-surface to-surface p-6 shadow-2xs sm:col-span-2 lg:col-span-5">
+          <div className="flex items-center justify-between">
+            <p className="text-xs font-bold uppercase tracking-wider text-brand">Total Spending</p>
+            <span className="rounded-md bg-brand/10 px-2 py-0.5 text-[10px] font-bold text-brand">
+              {t.base_currency}
+            </span>
+          </div>
+          <p className="mt-3 font-mono text-3xl font-bold tracking-tight text-ink">
             {formatMinor(totalMinor, t.base_currency)}
           </p>
-          <p className="mt-1 text-[11px] text-ink-faint">Across all expenses</p>
+          <p className="mt-1 text-xs text-ink-soft">
+            Across {expenseCount} recorded transactions
+          </p>
         </div>
-        <div className="rounded-2xl border border-hair bg-surface p-5 shadow-2xs">
+
+        {/* Avg / Person (Spans 3 cols on lg) */}
+        <div className="rounded-2xl border border-hair bg-surface p-5 shadow-2xs lg:col-span-3">
           <p className="text-xs font-bold uppercase tracking-wider text-ink-soft">Avg / Person</p>
           <p className="mt-2 font-mono text-2xl font-bold tracking-tight text-ink">
             {formatMinor(avgMinor, t.base_currency)}
           </p>
           <p className="mt-1 text-[11px] text-ink-faint">For {memberCount} members</p>
         </div>
-        <div className="rounded-2xl border border-hair bg-surface p-5 shadow-2xs">
+
+        {/* Expenses Count (Spans 2 cols on lg) */}
+        <div className="rounded-2xl border border-hair bg-surface p-5 shadow-2xs lg:col-span-2">
           <p className="text-xs font-bold uppercase tracking-wider text-ink-soft">Expenses</p>
           <p className="mt-2 font-mono text-2xl font-bold tracking-tight text-ink">
             {expenseCount}
           </p>
-          <p className="mt-1 text-[11px] text-ink-faint">Transactions recorded</p>
+          <p className="mt-1 text-[11px] text-ink-faint">Total entries</p>
         </div>
-        <div className="rounded-2xl border border-hair bg-surface p-5 shadow-2xs">
-          <p className="text-xs font-bold uppercase tracking-wider text-ink-soft">Trip Members</p>
+
+        {/* Trip Members (Spans 2 cols on lg) */}
+        <div className="rounded-2xl border border-hair bg-surface p-5 shadow-2xs lg:col-span-2">
+          <p className="text-xs font-bold uppercase tracking-wider text-ink-soft">Members</p>
           <p className="mt-2 font-mono text-2xl font-bold tracking-tight text-ink">
             {memberCount}
           </p>
@@ -103,7 +120,7 @@ export function TripOverviewPage() {
 
       {/* 2-Column Desktop Section */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
-        {/* Left Column: Recent Expenses & Quick Shortcuts */}
+        {/* Left Column: Recent Expenses & Category Breakdown */}
         <div className="space-y-6 lg:col-span-8">
           <div className="rounded-2xl border border-hair bg-surface p-6 shadow-2xs">
             <div className="flex items-center justify-between">
@@ -143,8 +160,8 @@ export function TripOverviewPage() {
                   <h2 className="text-base font-bold tracking-tight">Spending by Category</h2>
                   <p className="text-xs text-ink-soft">Where your group budget went</p>
                 </div>
-                <Link to={`/trips/${tripId}/balances`} className="text-xs font-bold text-brand hover:underline">
-                  Detailed breakdown →
+                <Link to={`/trips/${tripId}/balances`} className="inline-flex items-center gap-1 text-xs font-bold text-brand hover:underline">
+                  Detailed breakdown <ArrowRight size={13} />
                 </Link>
               </div>
 
@@ -179,26 +196,6 @@ export function TripOverviewPage() {
               </div>
             </div>
           )}
-
-          {/* Navigation Quick Shortcuts */}
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-            <Link to={`/trips/${tripId}/expenses`} className="flex flex-col items-center justify-center rounded-xl border border-hair bg-surface p-4 text-center hover:bg-canvas transition-colors shadow-2xs">
-              <Receipt className="text-brand mb-1" size={20} />
-              <span className="text-xs font-bold">Expenses</span>
-            </Link>
-            <Link to={`/trips/${tripId}/balances`} className="flex flex-col items-center justify-center rounded-xl border border-hair bg-surface p-4 text-center hover:bg-canvas transition-colors shadow-2xs">
-              <Scale className="text-brand mb-1" size={20} />
-              <span className="text-xs font-bold">Balances</span>
-            </Link>
-            <Link to={`/trips/${tripId}/activity`} className="flex flex-col items-center justify-center rounded-xl border border-hair bg-surface p-4 text-center hover:bg-canvas transition-colors shadow-2xs">
-              <ActivityIcon className="text-brand mb-1" size={20} />
-              <span className="text-xs font-bold">Activity</span>
-            </Link>
-            <Link to={`/trips/${tripId}/settings`} className="flex flex-col items-center justify-center rounded-xl border border-hair bg-surface p-4 text-center hover:bg-canvas transition-colors shadow-2xs">
-              <Settings2 className="text-brand mb-1" size={20} />
-              <span className="text-xs font-bold">Settings</span>
-            </Link>
-          </div>
         </div>
 
         {/* Right Column: Group Members */}
@@ -211,19 +208,33 @@ export function TripOverviewPage() {
               </Link>
             </div>
             <ul className="mt-4 space-y-2">
-              {memberList.map((m: any) => (
-                <li key={m.user_id ?? m.id} className="flex items-center justify-between rounded-xl border border-hair/60 bg-canvas/30 px-3 py-2 text-sm">
-                  <div className="flex items-center gap-2">
-                    <span className="flex h-7 w-7 items-center justify-center rounded-full bg-brand/10 text-xs font-bold text-brand">
-                      {(m.name ?? "?")[0].toUpperCase()}
-                    </span>
-                    <div>
-                      <p className="font-semibold text-xs text-ink">{m.name}</p>
-                      <p className="text-[10px] text-ink-faint capitalize">{m.role ?? "member"}</p>
+              {memberList.map((m: any) => {
+                const uid = m.user_id ?? m.id
+                const isCurrent = uid === user?.id
+                return (
+                  <li key={uid} className="flex items-center justify-between rounded-xl border border-hair/60 bg-canvas/30 px-3 py-2 text-sm">
+                    <div className="flex items-center gap-2.5">
+                      <UserAvatar
+                        name={m.name}
+                        id={uid}
+                        isCurrentUser={isCurrent}
+                        size="md"
+                      />
+                      <div>
+                        <p className="font-semibold text-xs text-ink">
+                          {m.name}
+                          {isCurrent && (
+                            <span className="ml-1.5 rounded-md bg-brand/10 px-1.5 py-0.5 text-[10px] font-bold text-brand">
+                              You
+                            </span>
+                          )}
+                        </p>
+                        <p className="text-[10px] text-ink-faint capitalize">{m.role ?? "member"}</p>
+                      </div>
                     </div>
-                  </div>
-                </li>
-              ))}
+                  </li>
+                )
+              })}
             </ul>
           </div>
         </div>

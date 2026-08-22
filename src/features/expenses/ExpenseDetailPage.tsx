@@ -11,6 +11,7 @@ import { useState, useEffect } from "react"
 import { createPortal } from "react-dom"
 import { toUserMessage } from "@/lib/errors"
 import { getSignedReceiptUrl } from "@/lib/receipts"
+import { ArrowLeft } from "lucide-react"
 
 export function ExpenseDetailPage() {
   const { tripId, expenseId } = useParams()
@@ -67,7 +68,9 @@ export function ExpenseDetailPage() {
       <div className="p-6 text-center text-sm text-ink-soft" role="status">
         Expense not found. It may have been deleted or you lack access.
         <div className="mt-3">
-          <Link to={`/trips/${tripId}/expenses`} className="text-sm font-semibold text-brand">← Back to expenses</Link>
+          <Link to={`/trips/${tripId}/expenses`} className="inline-flex items-center gap-1 text-sm font-semibold text-brand hover:underline">
+            <ArrowLeft size={16} /> Back to expenses
+          </Link>
         </div>
       </div>
     )
@@ -106,8 +109,8 @@ export function ExpenseDetailPage() {
 
   return (
     <div className="space-y-4">
-      <Link to={`/trips/${tripId}/expenses`} className="text-sm font-semibold text-brand">
-        ← Back to expenses
+      <Link to={`/trips/${tripId}/expenses`} className="inline-flex items-center gap-1.5 text-sm font-semibold text-ink-soft hover:text-ink transition-colors">
+        <ArrowLeft size={16} /> Back to expenses
       </Link>
       <div className="rounded-xl border border-hair bg-surface p-6 shadow-sm">
         <h2 className="text-xl font-bold">{exp.description}</h2>
@@ -170,7 +173,7 @@ export function ExpenseDetailPage() {
             </ul>
           </div>
         </div>
-        {isArchived && <p role="alert" className="mt-4 rounded-xl border border-slate-700/60 bg-slate-800 px-4 py-2.5 text-sm font-semibold text-slate-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200">Archived — read-only.</p>}
+        {isArchived && <p role="alert" className="mt-4 rounded-xl border border-hair bg-canvas/80 px-4 py-2.5 text-sm font-semibold text-ink-soft">Archived — read-only.</p>}
         <div className="mt-4 rounded-lg border border-hair bg-canvas p-3">
           <p className="text-xs font-semibold">History</p>
           <p className="mt-1 text-xs text-ink-soft">Created {exp.created_at ? new Date(exp.created_at).toLocaleString() : "—"} by {exp.created_by ? nameOf(exp.created_by) : "—"}</p>

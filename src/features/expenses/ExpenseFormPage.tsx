@@ -11,8 +11,9 @@ import { useState, useRef, useEffect } from "react"
 import { allocateEqual, allocatePercent, allocateShares, money } from "./money"
 import { parseCurrencyInput, fromMinor, decimalsFor, formatMinor } from "@/lib/currency"
 import { uploadReceipt, validateReceiptFile } from "@/lib/receipts"
-
+import { FormSkeleton } from "@/components/feedback/Skeleton"
 import { useToast } from "@/components/feedback/ToastProvider"
+import { ArrowLeft } from "lucide-react"
 
 type Form = z.infer<typeof expenseSchema>
 
@@ -50,6 +51,7 @@ export function ExpenseFormPage() {
   const [payerInputs, setPayerInputs] = useState<{ userId: string; amountMinor: number }[]>([])
   const [localReceiptPreview, setLocalReceiptPreview] = useState<string | null>(null)
   const [isUploadingReceipt, setIsUploadingReceipt] = useState(false)
+  const [justReset, setJustReset] = useState(false)
 
   // initialize once when members load (avoids demo fallback leaking into real trip)
   const initializedRef = useRef(false)
@@ -282,6 +284,8 @@ export function ExpenseFormPage() {
           equalize()
         }
         shouldAddAnotherRef.current = false
+        setJustReset(true)
+        setTimeout(() => setJustReset(false), 1400)
         setTimeout(() => {
           document.getElementById("exp-desc")?.focus()
         }, 50)
@@ -298,7 +302,7 @@ export function ExpenseFormPage() {
     }
   }
 
-  if (expenseId && existingLoading) return <div className="mx-auto max-w-lg h-40 animate-pulse rounded-xl bg-hair/40" aria-label="Loading expense" />
+  if (expenseId && existingLoading) return <FormSkeleton />
 
   const perPersonAmount = selectedIds.length > 0 ? Math.round(amountMinor / selectedIds.length) : 0
 
@@ -308,7 +312,7 @@ export function ExpenseFormPage() {
         to={`/trips/${tripId}/expenses`}
         className="inline-flex items-center gap-1.5 text-xs font-semibold text-ink-soft hover:text-ink transition-colors"
       >
-        ← Back to expenses
+        <ArrowLeft size={14} /> Back to expenses
       </Link>
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-5 rounded-2xl border border-hair bg-surface p-6 shadow-sm" aria-labelledby="expense-form-title">
         <div className="flex items-center justify-between border-b border-hair pb-4">
@@ -320,10 +324,20 @@ export function ExpenseFormPage() {
         </div>
 
       {isDirty && <p className="text-xs text-amber-600 dark:text-amber-400 font-medium">Unsaved changes — you will be warned on leave.</p>}
-      {isArchived && <p role="alert" className="rounded-xl border border-slate-700/60 bg-slate-800 px-4 py-2.5 text-sm font-semibold text-slate-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200">Archived — read-only. No edits allowed.</p>}
+      {isArchived && <p role="alert" className="rounded-xl border border-hair bg-canvas/80 px-4 py-2.5 text-sm font-semibold text-ink-soft">Archived — read-only. No edits allowed.</p>}
 
       <label htmlFor="exp-desc" className="block text-xs font-semibold uppercase tracking-wider text-ink-soft">Description
-        <input id="exp-desc" {...register("description")} className="mt-1 w-full min-h-11 rounded-xl border border-hair bg-surface px-3 py-3 text-sm focus:border-brand focus:ring-1 focus:ring-brand outline-none" placeholder="e.g. Beach dinner" aria-invalid={!!errors.description} />
+        <input
+          id="exp-desc"
+          {...register("description")}
+          className={`mt-1 w-full min-h-11 rounded-xl border bg-surface px-3 py-3 text-sm outline-none transition-all duration-300 ${
+            justReset
+              ? "border-emerald-500 ring-2 ring-emerald-500/30 bg-emerald-50/20 dark:bg-emerald-950/20"
+              : "border-hair focus:border-brand focus:ring-1 focus:ring-brand"
+          }`}
+          placeholder="e.g. Beach dinner"
+          aria-invalid={!!errors.description}
+        />
         {errors.description && <span className="mt-1 block text-xs text-owe" role="alert">{errors.description.message}</span>}
       </label>
 

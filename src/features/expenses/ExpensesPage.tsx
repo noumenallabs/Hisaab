@@ -5,7 +5,7 @@ import { formatMinor } from "@/lib/currency"
 import { useTrip } from "@/features/trips/hooks"
 import { useTripMembers } from "@/features/trips/useMembers"
 import { Skeleton } from "@/components/feedback/Skeleton"
-import { Plus, Search, Download, Paperclip } from "lucide-react"
+import { Plus, Search, Download, Paperclip, Filter, X, ArrowRight } from "lucide-react"
 import { downloadExpensesCsv } from "./csvExport"
 import { useMemo, useState, useEffect } from "react"
 
@@ -28,6 +28,7 @@ export function ExpensesPage() {
   )
   const isOwner = !!(user?.id && (members as any[])?.some((m) => (m.user_id === user.id || m.id === user.id) && m.role === "owner"))
   const [showDeleted, setShowDeleted] = useState(false)
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
   const effectiveIncludeDeleted = isOwner && showDeleted
   const q = useExpenses(tripId!, { includeDeleted: effectiveIncludeDeleted })
   const supabase = getSupabase()
@@ -83,6 +84,9 @@ export function ExpensesPage() {
     )
   }
 
+  const hasActiveFilters = category !== "all" || payer !== "all" || dateFrom !== "" || dateTo !== "" || sortBy !== "newest" || query !== ""
+  const activeFiltersCount = (category !== "all" ? 1 : 0) + (payer !== "all" ? 1 : 0) + (dateFrom ? 1 : 0) + (dateTo ? 1 : 0) + (sortBy !== "newest" ? 1 : 0)
+
   return (
     <div className="space-y-5">
       {/* Header */}
@@ -119,24 +123,48 @@ export function ExpensesPage() {
         </div>
       </div>
 
-      {/* Desktop Filter Toolbar */}
+      {/* Filter Toolbar */}
       <div className="rounded-2xl border border-hair bg-surface p-4 shadow-2xs space-y-3">
-        <div className="relative">
-          <Search size={16} className="absolute left-3.5 top-3.5 text-ink-faint" />
-          <input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search description, notes, or items..."
-            className="w-full min-h-11 rounded-xl border border-hair bg-canvas/40 py-2 pl-10 pr-4 text-sm outline-none focus:border-brand focus:ring-1 focus:ring-brand"
-          />
+        <div className="flex items-center gap-2">
+          <div className="relative flex-1">
+            <Search size={16} className="absolute left-3.5 top-3.5 text-ink-faint" />
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search description, notes, or items..."
+              aria-label="Search expenses"
+              className="w-full min-h-11 rounded-xl border border-hair bg-canvas/40 py-2 pl-10 pr-4 text-sm outline-none focus:border-brand focus:ring-1 focus:ring-brand"
+            />
+          </div>
+
+          {/* Mobile Filter Toggle Button */}
+          <button
+            type="button"
+            onClick={() => setMobileFiltersOpen((p) => !p)}
+            className={`sm:hidden inline-flex min-h-11 items-center gap-1.5 rounded-xl border px-3 text-xs font-bold transition-colors ${
+              mobileFiltersOpen || activeFiltersCount > 0
+                ? "border-brand bg-brand/10 text-brand"
+                : "border-hair bg-surface text-ink-soft hover:bg-canvas"
+            }`}
+            aria-label="Toggle filter controls"
+          >
+            <Filter size={15} />
+            <span>Filters</span>
+            {activeFiltersCount > 0 && (
+              <span className="flex h-4.5 w-4.5 items-center justify-center rounded-full bg-brand text-[10px] font-bold text-white">
+                {activeFiltersCount}
+              </span>
+            )}
+          </button>
         </div>
 
-        {/* Filter Controls */}
-        <div className="flex flex-wrap items-center gap-2.5 pt-1 text-xs">
+        {/* Filter Controls (Collapsible on mobile, always visible on sm+) */}
+        <div className={`${mobileFiltersOpen ? "flex" : "hidden sm:flex"} flex-wrap items-center gap-2.5 pt-1 text-xs border-t border-hair/50 sm:border-0`}>
           {/* Category Dropdown */}
           <div className="flex items-center gap-1.5">
-            <span className="font-semibold text-ink-soft">Category:</span>
+            <label htmlFor="filter-category" className="font-semibold text-ink-soft">Category:</label>
             <select
+              id="filter-category"
               value={category}
               onChange={(e) => setCategory(e.target.value)}
               className="rounded-lg border border-hair bg-surface px-2.5 py-1.5 font-medium outline-none focus:border-brand"
@@ -153,8 +181,9 @@ export function ExpensesPage() {
 
           {/* Sort Dropdown */}
           <div className="flex items-center gap-1.5">
-            <span className="font-semibold text-ink-soft">Sort:</span>
+            <label htmlFor="filter-sort" className="font-semibold text-ink-soft">Sort:</label>
             <select
+              id="filter-sort"
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as any)}
               className="rounded-lg border border-hair bg-surface px-2.5 py-1.5 font-medium outline-none focus:border-brand"
@@ -168,8 +197,9 @@ export function ExpensesPage() {
 
           {/* Payer Dropdown */}
           <div className="flex items-center gap-1.5">
-            <span className="font-semibold text-ink-soft">Paid by:</span>
+            <label htmlFor="filter-payer" className="font-semibold text-ink-soft">Paid by:</label>
             <select
+              id="filter-payer"
               value={payer}
               onChange={(e) => setPayer(e.target.value)}
               className="rounded-lg border border-hair bg-surface px-2.5 py-1.5 font-medium outline-none focus:border-brand"
@@ -188,8 +218,9 @@ export function ExpensesPage() {
 
           {/* Date range inputs */}
           <div className="flex items-center gap-1">
-            <span className="font-semibold text-ink-soft">From:</span>
+            <label htmlFor="filter-date-from" className="font-semibold text-ink-soft">From:</label>
             <input
+              id="filter-date-from"
               type="date"
               value={dateFrom}
               onChange={(e) => setDateFrom(e.target.value)}
@@ -197,14 +228,32 @@ export function ExpensesPage() {
             />
           </div>
           <div className="flex items-center gap-1">
-            <span className="font-semibold text-ink-soft">To:</span>
+            <label htmlFor="filter-date-to" className="font-semibold text-ink-soft">To:</label>
             <input
+              id="filter-date-to"
               type="date"
               value={dateTo}
               onChange={(e) => setDateTo(e.target.value)}
               className="rounded-lg border border-hair bg-surface px-2 py-1 font-medium outline-none focus:border-brand"
             />
           </div>
+
+          {hasActiveFilters && (
+            <button
+              type="button"
+              onClick={() => {
+                setCategory("all")
+                setPayer("all")
+                setDateFrom("")
+                setDateTo("")
+                setSortBy("newest")
+                setQuery("")
+              }}
+              className="font-bold text-owe hover:underline text-xs"
+            >
+              Reset filters
+            </button>
+          )}
 
           {isOwner && (
             <label className="flex items-center gap-1.5 font-semibold text-ink-soft cursor-pointer ml-auto">
@@ -316,7 +365,9 @@ export function ExpensesPage() {
                           <p className="font-mono text-base font-bold text-ink">
                             {formatMinor(e.amount_minor ?? e.amount ?? 0, (trip as any)?.base_currency ?? "INR")}
                           </p>
-                          <span className="text-[11px] font-semibold text-brand">View details →</span>
+                          <span className="inline-flex items-center gap-0.5 text-[11px] font-semibold text-brand">
+                            View details <ArrowRight size={12} />
+                          </span>
                         </div>
                       </Link>
                     )

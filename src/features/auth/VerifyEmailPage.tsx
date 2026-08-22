@@ -1,5 +1,5 @@
 import { Link, useSearchParams } from "react-router"
-import { Mail } from "lucide-react"
+import { Mail, ArrowLeft } from "lucide-react"
 import { getSupabase } from "@/lib/supabase"
 import { validateReturnTo } from "@/app/routes"
 import { AuthShell } from "@/components/navigation/AuthShell"
@@ -57,9 +57,9 @@ export function VerifyEmailPage() {
         <p className="mt-6 text-xs">
           <Link
             to={ret ? `/sign-in?returnTo=${encodeURIComponent(ret)}` : "/sign-in"}
-            className="font-semibold text-brand hover:underline"
+            className="inline-flex items-center gap-1.5 font-semibold text-brand hover:underline"
           >
-            ← Back to sign in
+            <ArrowLeft size={14} /> Back to sign in
           </Link>
         </p>
       </div>

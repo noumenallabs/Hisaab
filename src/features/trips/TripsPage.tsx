@@ -82,6 +82,8 @@ export function TripsPage() {
                     className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
                       t.status === "active"
                         ? "border border-emerald-200 bg-emerald-100 text-emerald-800 dark:border-emerald-800/60 dark:bg-emerald-950/60 dark:text-emerald-300"
+                        : t.status === "settled"
+                        ? "border border-blue-200 bg-blue-100 text-blue-800 dark:border-blue-800/60 dark:bg-blue-950/60 dark:text-blue-300"
                         : "border border-hair bg-canvas text-ink-faint"
                     }`}
                   >

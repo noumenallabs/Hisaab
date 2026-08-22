@@ -4,7 +4,7 @@ import { resetSchema } from "./schemas"
 import { z } from "zod"
 import { Link } from "react-router"
 import { useAuth } from "@/lib/auth"
-import { Compass, Mail, ArrowRight, CheckCircle2 } from "lucide-react"
+import { Compass, Mail, ArrowRight, ArrowLeft, CheckCircle2 } from "lucide-react"
 import { useState } from "react"
 
 type Form = z.infer<typeof resetSchema>
@@ -86,8 +86,8 @@ export function ForgotPasswordPage() {
             Email reset link <ArrowRight size={17} />
           </button>
           <p className="text-center text-xs">
-            <Link to="/sign-in" className="font-semibold text-brand hover:underline">
-              ← Back to sign in
+            <Link to="/sign-in" className="inline-flex items-center gap-1.5 font-semibold text-brand hover:underline">
+              <ArrowLeft size={14} /> Back to sign in
             </Link>
           </p>
         </form>

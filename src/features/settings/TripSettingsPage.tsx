@@ -100,7 +100,11 @@ export function TripSettingsPage() {
         </div>
         {getSupabase() && !isArchived && isOwner && (
           <form onSubmit={handleAddMember} className="mt-4 flex flex-wrap items-center gap-2">
+            <label htmlFor="add-member-email" className="sr-only">
+              Member Email Address
+            </label>
             <input
+              id="add-member-email"
               type="email"
               value={addEmail}
               onChange={(e) => {
@@ -108,12 +112,18 @@ export function TripSettingsPage() {
                 setAddError(null)
               }}
               placeholder="user@example.com"
+              aria-label="Member email address"
               className="min-h-11 min-w-[200px] flex-1 rounded-md border border-hair bg-surface px-3 py-2 text-sm outline-none focus:border-brand"
               required
             />
+            <label htmlFor="add-member-role" className="sr-only">
+              Member Role
+            </label>
             <select
+              id="add-member-role"
               value={addRole}
               onChange={(e) => setAddRole(e.target.value as any)}
+              aria-label="Member role"
               className="min-h-11 rounded-md border border-hair bg-surface px-3 py-2 text-sm font-medium"
             >
               <option value="member">Member</option>
