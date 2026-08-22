@@ -26,3 +26,26 @@ export function useBalances(tripId: string) {
     enabled: !!tripId,
   })
 }
+
+export function useSettlements(tripId: string) {
+  return useQuery({
+    queryKey: ["settlements", tripId],
+    queryFn: async () => {
+      const supabase = getSupabase()
+      if (!supabase || !tripId) return []
+      const { data, error } = await supabase
+        .from("settlements")
+        .select("*")
+        .eq("trip_id", tripId)
+        .is("deleted_at", null)
+        .order("settled_at", { ascending: false })
+      if (error) {
+        console.warn("[useSettlements]", error.message)
+        return []
+      }
+      return data ?? []
+    },
+    enabled: !!tripId,
+  })
+}
+
