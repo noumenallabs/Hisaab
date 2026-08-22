@@ -875,8 +875,8 @@ begin
     'expense',
     v_exp,
     v_action,
-    jsonb_build_object('description', v_desc, 'amount_minor', v_amt, 'currency', v_cur, 'category', v_cat, 'expense_date', v_date),
-    array['description', 'amount_minor', 'category', 'expense_date'],
+    jsonb_build_object('description', v_desc, 'amount_minor', v_amt, 'currency', v_cur, 'category', v_cat, 'expense_date', v_date, 'payers', v_payers),
+    array['description', 'amount_minor', 'category', 'expense_date', 'payers'],
     v_request
   ) on conflict do nothing;
 

@@ -3,33 +3,10 @@ import { useActivity } from "./hooks"
 import { getSupabase } from "@/lib/supabase"
 import { Skeleton } from "@/components/feedback/Skeleton"
 import { useTripMembers } from "@/features/trips/useMembers"
+import { useExpenses } from "@/features/expenses/hooks"
+import { useTrip } from "@/features/trips/hooks"
+import { formatActivitySummary } from "./activitySummary"
 import { useState, useMemo } from "react"
-
-function humanSummary(a: any, name: string) {
-  if (a.action === "settle") return `${name} recorded a settlement`
-  if (a.action === "archive") return `${name} archived the trip`
-  if (a.action === "join") return `${name} joined the trip`
-  if (a.action === "role_change") return `${name} changed member role`
-  if (a.action === "remove") return `${name} removed a member`
-
-  if (a.entity_type === "expense") {
-    const desc = a.new_values?.description ? ` "${a.new_values.description}"` : " an expense"
-    if (a.action === "create") return `${name} recorded${desc}`
-    if (a.action === "update") return `${name} updated${desc}`
-    if (a.action === "soft_delete") return `${name} deleted${desc}`
-    if (a.action === "restore") return `${name} restored${desc}`
-  }
-
-  const map: Record<string, string> = {
-    create: "created",
-    update: "updated",
-    soft_delete: "deleted",
-    restore: "restored",
-  }
-  const act = map[a.action] ?? a.action
-  const entity = a.entity_type === "member" ? "member" : a.entity_type === "trip" ? "trip" : a.entity_type
-  return `${name} ${act} ${entity}`
-}
 
 function actionColor(action: string) {
   switch (action) {
@@ -55,12 +32,29 @@ export function ActivityPage() {
   const supabase = getSupabase()
   const q = useActivity(tripId!)
   const { data: members } = useTripMembers(tripId!)
+  const { data: expensesData } = useExpenses(tripId!, { includeDeleted: true })
+  const { data: trip } = useTrip(tripId!)
+  const baseCurrency = (trip as any)?.base_currency ?? "INR"
   const [filter, setFilter] = useState<"all" | "expense" | "settlement" | "member">("all")
 
   const memberMap = useMemo(
-    () => new Map((members as any ?? []).map((m: any) => [m.user_id ?? m.id, m.name ?? m.email ?? (m.user_id ?? m.id)?.slice(0, 8)])),
+    () =>
+      new Map<string, string>(
+        (members as any ?? []).map((m: any) => [
+          String(m.user_id ?? m.id),
+          String(m.name ?? m.email ?? (m.user_id ?? m.id)?.slice(0, 8)),
+        ])
+      ),
     [members]
   )
+
+  const expensesMap = useMemo(() => {
+    const map = new Map<string, any>()
+    for (const exp of (expensesData as any[] ?? [])) {
+      map.set(exp.id, exp)
+    }
+    return map
+  }, [expensesData])
 
   const rawPages = q.data?.pages.flat() ?? []
   const pages = useMemo(() => {
@@ -114,7 +108,7 @@ export function ActivityPage() {
             return (
               <div key={a.id} className="rounded-2xl border border-hair bg-surface p-4 shadow-2xs transition-all hover:shadow-xs">
                 <div className="flex items-start justify-between gap-2">
-                  <p className="text-sm font-semibold text-ink">{humanSummary(a, name)}</p>
+                  <p className="text-sm font-semibold text-ink">{formatActivitySummary(a, name, memberMap, expensesMap, baseCurrency)}</p>
                   <span className={`shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${actionColor(a.action)}`}>
                     {a.action.replace("_", " ")}
                   </span>

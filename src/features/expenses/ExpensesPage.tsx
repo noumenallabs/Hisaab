@@ -33,7 +33,7 @@ export function ExpensesPage() {
   const [query, setQuery] = useState("")
   const [sortBy, setSortBy] = useState<"newest" | "oldest" | "amount" | "updated">("newest")
   const [category, setCategory] = useState<string>("all")
-  const [visible, setVisible] = useState(20)
+  const [visible, setVisible] = useState(100)
   const [payer, setPayer] = useState<string>("all")
   const [dateFrom, setDateFrom] = useState("")
   const [dateTo, setDateTo] = useState("")
@@ -302,12 +302,18 @@ export function ExpensesPage() {
           })()}
 
           {sorted.length > visible && (
-            <div className="pt-2 text-center">
+            <div className="pt-2 flex flex-wrap justify-center gap-2">
               <button
-                onClick={() => setVisible((v) => v + 20)}
-                className="min-h-11 rounded-xl border border-hair bg-surface px-6 text-xs font-bold hover:bg-canvas shadow-2xs"
+                onClick={() => setVisible((v) => v + 50)}
+                className="min-h-11 rounded-xl border border-hair bg-surface px-5 text-xs font-bold hover:bg-canvas shadow-2xs"
               >
                 Load more ({sorted.length - visible} remaining)
+              </button>
+              <button
+                onClick={() => setVisible(sorted.length)}
+                className="min-h-11 rounded-xl border border-hair bg-surface px-5 text-xs font-bold text-brand hover:bg-canvas shadow-2xs"
+              >
+                Show all ({sorted.length})
               </button>
             </div>
           )}
