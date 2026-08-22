@@ -79,7 +79,7 @@ export function ExpensesPage() {
         <div>
           <h1 className="text-xl font-bold tracking-tight">Expenses</h1>
           <p className="text-xs text-ink-soft">
-            Showing {filtered.length} of {list.length} transactions
+            Showing {Math.min(visible, filtered.length)} of {filtered.length} {filtered.length !== list.length ? `filtered (${list.length} total)` : ""} transactions
           </p>
         </div>
         {canAdd ? (

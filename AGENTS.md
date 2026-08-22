@@ -67,7 +67,18 @@ pnpm format             # oxfmt (project formatter)
 <claude-mem-context>
 # Memory Context
 
-# [SplitPurse] recent context, 2026-08-20 11:16pm GMT+5:30
+# [SplitPurse] recent context, 2026-08-22 6:15pm GMT+5:30
 
-No previous sessions found.
+Legend: 🎯session 🔴bugfix 🟣feature 🔄refactor ✅change 🔵discovery ⚖️decision
+Format: ID TIME TYPE TITLE
+Fetch details: get_observations([IDs]) | Search: mem-search skill
+
+Stats: 3 obs (782t read) | 96,621t work | 99% savings
+
+### Aug 20, 2026
+2360 11:21p ⚖️ App name "Splitpurse" under consideration
+2362 " 🔵 SplitPurse has dual branding: "SplitPurse" in HTML, "TripSplit" in AppHeader and localStorage
+2363 " 🔵 Name collision check: TripSum taken; RoamSum, TallyAway, EvenTrip, RoveSum, OweAway appear clear
+
+Access 97k tokens of past work via get_observations([IDs]) or mem-search skill.
 </claude-mem-context>

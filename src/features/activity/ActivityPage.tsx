@@ -9,13 +9,22 @@ function humanSummary(a: any, name: string) {
   if (a.action === "settle") return `${name} recorded a settlement`
   if (a.action === "archive") return `${name} archived the trip`
   if (a.action === "join") return `${name} joined the trip`
+  if (a.action === "role_change") return `${name} changed member role`
+  if (a.action === "remove") return `${name} removed a member`
+
+  if (a.entity_type === "expense") {
+    const desc = a.new_values?.description ? ` "${a.new_values.description}"` : " an expense"
+    if (a.action === "create") return `${name} recorded${desc}`
+    if (a.action === "update") return `${name} updated${desc}`
+    if (a.action === "soft_delete") return `${name} deleted${desc}`
+    if (a.action === "restore") return `${name} restored${desc}`
+  }
+
   const map: Record<string, string> = {
     create: "created",
     update: "updated",
     soft_delete: "deleted",
     restore: "restored",
-    remove: "removed",
-    role_change: "changed role for",
   }
   const act = map[a.action] ?? a.action
   const entity = a.entity_type === "member" ? "member" : a.entity_type === "trip" ? "trip" : a.entity_type

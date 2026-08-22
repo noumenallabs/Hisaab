@@ -143,7 +143,9 @@ export function ExpenseDetailPage() {
             ) : <p className="text-xs text-ink-faint mt-1">Loading receipt preview…</p>}
           </div>
         )}
-        <div className="mt-2 text-xs text-ink-faint">Created by {exp.created_by?.slice(0, 8)} · {exp.created_at ?? ""}</div>
+        <div className="mt-2 text-xs text-ink-faint">
+          Created {exp.created_at ? new Date(exp.created_at).toLocaleString() : "—"} {exp.created_by ? `by ${nameOf(exp.created_by)}` : ""}
+        </div>
         <div className="mt-4 grid grid-cols-2 gap-4 text-sm">
           <div className="rounded-xl border border-hair bg-canvas/30 p-3">
             <b className="text-xs font-bold uppercase tracking-wider text-ink-soft">Payers</b>

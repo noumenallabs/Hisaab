@@ -188,6 +188,15 @@ export function ExpenseFormPage() {
     if (splitMode === "equal" && selectedIds.length) equalize()
   }, [amountMinor, selectedIds.length])
 
+  // sync single payer amount with total amount
+  useEffect(() => {
+    if (payerInputs.length === 1 && payerInputs[0].amountMinor !== amountMinor) {
+      const next = [{ userId: payerInputs[0].userId, amountMinor }]
+      setPayerInputs(next)
+      setValue("payers", next.map((x) => ({ userId: x.userId, amountPaidMinor: x.amountMinor })) as any, { shouldValidate: true })
+    }
+  }, [amountMinor, payerInputs.length])
+
   async function onSubmit(v: Form) {
     try {
       if (isArchived) throw new Error("Archived trips are read-only.")
@@ -301,9 +310,13 @@ export function ExpenseFormPage() {
               value={p.userId}
               onChange={(e) => {
                 const next = [...payerInputs]
-                next[i] = { ...next[i], userId: e.target.value }
+                const newUserId = e.target.value
+                next[i] = {
+                  userId: newUserId,
+                  amountMinor: payerInputs.length === 1 ? amountMinor : next[i].amountMinor,
+                }
                 setPayerInputs(next)
-                setValue("payers", next.map((x) => ({ userId: x.userId, amountPaidMinor: x.amountMinor })) as any)
+                setValue("payers", next.map((x) => ({ userId: x.userId, amountPaidMinor: x.amountMinor })) as any, { shouldValidate: true })
               }}
               className="flex-1 min-h-11 rounded-lg border border-hair bg-surface px-3 text-sm font-medium"
             >
