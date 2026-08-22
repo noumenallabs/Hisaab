@@ -207,6 +207,15 @@ export function ExpenseFormPage() {
     syncSplitsToForm([])
   }
 
+  function invertSelectedMembers() {
+    const allIds = members.map((m: any) => m.id)
+    const inverted = allIds.filter((id: string) => !selectedIds.includes(id))
+    setSelectedIds(inverted)
+    setPercentInputs(inverted.map(() => 0))
+    setShareInputs(inverted.map(() => 1))
+    if (splitMode === "equal") equalize(inverted)
+  }
+
   // init percent/shares when amount changes in equal mode
   useEffect(() => {
     if (splitMode === "equal" && selectedIds.length) equalize()
@@ -484,10 +493,28 @@ export function ExpenseFormPage() {
         <div className="space-y-2">
           <div className="flex items-center justify-between text-xs text-ink-soft">
             <span>Participants ({selectedIds.length} of {members.length})</span>
-            <div className="flex gap-2">
-              <button type="button" onClick={selectAllMembers} className="font-semibold text-brand hover:underline">Select all</button>
-              <span>·</span>
-              <button type="button" onClick={clearSelectedMembers} className="font-semibold text-ink-faint hover:underline">Clear</button>
+            <div className="flex items-center gap-1.5 text-[11px] font-bold">
+              <button
+                type="button"
+                onClick={selectAllMembers}
+                className="rounded-md border border-hair bg-surface px-2 py-0.5 text-brand shadow-2xs hover:bg-canvas transition-colors"
+              >
+                Select all
+              </button>
+              <button
+                type="button"
+                onClick={invertSelectedMembers}
+                className="rounded-md border border-hair bg-surface px-2 py-0.5 text-ink-soft shadow-2xs hover:bg-canvas transition-colors"
+              >
+                Invert
+              </button>
+              <button
+                type="button"
+                onClick={clearSelectedMembers}
+                className="rounded-md border border-hair bg-surface px-2 py-0.5 text-ink-faint shadow-2xs hover:bg-canvas transition-colors"
+              >
+                Clear
+              </button>
             </div>
           </div>
           <div className="flex flex-wrap gap-1.5">

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react"
 import { createPortal } from "react-dom"
 import { getSupabase } from "@/lib/supabase"
 import { formatMinor, parseCurrencyInput, fromMinor, decimalsFor } from "@/lib/currency"
+import { ArrowRight, ExternalLink } from "lucide-react"
 
 export function SettlementDialog({
   open,
@@ -152,10 +153,12 @@ export function SettlementDialog({
         <h2 id="settle-title" className="text-lg font-bold">
           Record settlement
         </h2>
-        <p className="mt-1 text-sm text-ink-soft">
-          {fromName ?? fromId.slice(0, 8)} → {toName ?? toId.slice(0, 8)} · Outstanding{" "}
-          {formatMinor(outstandingMinor, baseCurrency)}
-        </p>
+        <div className="mt-1 flex items-center gap-1.5 text-sm text-ink-soft">
+          <span>{fromName ?? fromId.slice(0, 8)}</span>
+          <ArrowRight size={14} className="text-brand shrink-0" />
+          <span>{toName ?? toId.slice(0, 8)}</span>
+          <span>· Outstanding {formatMinor(outstandingMinor, baseCurrency)}</span>
+        </div>
         <div className="mt-4 flex items-center justify-between">
           <label htmlFor="settle-amount" className="block text-xs font-bold uppercase tracking-wider text-ink-soft">
             Amount ({baseCurrency})
@@ -181,6 +184,27 @@ export function SettlementDialog({
         <p id="settle-hint" className="mt-1 text-xs text-ink-faint">
           Outstanding {formatMinor(outstandingMinor, baseCurrency)} · Recording {formatMinor(amountMinor, baseCurrency)}
         </p>
+
+        {/* Quick Payment Action for UPI */}
+        {method === "UPI" && amountMinor > 0 && (
+          <div className="mt-3 rounded-xl border border-brand/20 bg-brand-soft/40 p-3 text-xs">
+            <div className="flex items-center justify-between">
+              <span className="font-bold text-brand">Pay directly via UPI:</span>
+              <a
+                href={`upi://pay?pn=${encodeURIComponent(toName ?? "Member")}&am=${fromMinor(amountMinor, dec)}&cu=${baseCurrency}&tn=${encodeURIComponent(note || "Trip settlement")}`}
+                className="inline-flex items-center gap-1 rounded-lg bg-brand px-2.5 py-1 text-[11px] font-bold text-white shadow-2xs hover:bg-blue-700 transition-colors"
+                target="_blank"
+                rel="noreferrer"
+              >
+                Open UPI App <ExternalLink size={11} />
+              </a>
+            </div>
+            <p className="mt-1 text-[11px] text-ink-soft">
+              Opens GPay, PhonePe, or Paytm with {formatMinor(amountMinor, baseCurrency)} pre-filled.
+            </p>
+          </div>
+        )}
+
         <label htmlFor="settle-method" className="mt-3 block text-xs font-bold uppercase tracking-wider text-ink-soft">
           Payment Method
         </label>

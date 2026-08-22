@@ -7,7 +7,19 @@ export function formatActivitySummary(
   expensesMap: Map<string, any>,
   baseCurrency = "INR"
 ): string {
-  if (a.action === "settle") return `${actorName} recorded a settlement`
+  if (a.action === "settle" || a.entity_type === "settlement") {
+    const fromId = a.new_values?.from_user_id ?? a.diff?.from_user_id ?? a.from_user_id
+    const toId = a.new_values?.to_user_id ?? a.diff?.to_user_id ?? a.to_user_id
+    const fromName = fromId ? memberMap.get(fromId) ?? fromId.slice(0, 8) : null
+    const toName = toId ? memberMap.get(toId) ?? toId.slice(0, 8) : null
+    const amountMinor = Number(a.new_values?.amount_minor ?? a.diff?.amount_minor ?? a.amount_minor ?? 0)
+    const formattedAmount = amountMinor > 0 ? formatMinor(amountMinor, baseCurrency) : ""
+
+    if (fromName && toName) {
+      return `${fromName} paid ${formattedAmount} to ${toName} (settlement recorded by ${actorName})`
+    }
+    return `${actorName} recorded a settlement`
+  }
   if (a.action === "archive") return `${actorName} archived the trip`
   if (a.action === "join") return `${actorName} joined the trip`
   if (a.action === "role_change") return `${actorName} changed member role`
@@ -23,7 +35,15 @@ export function formatActivitySummary(
     const formattedAmount = formatMinor(amountMinor, currency)
 
     // Payers
-    const payers = (exp?.expense_payers ?? exp?.payers ?? a.new_values?.payers ?? []) as any[]
+    const payers = (
+      exp?.expense_payers ??
+      exp?.payers ??
+      a.new_values?.expense_payers ??
+      a.new_values?.payers ??
+      a.diff?.expense_payers ??
+      a.diff?.payers ??
+      []
+    ) as any[]
     const payerNames = payers
       .map((p: any) => memberMap.get(p.user_id ?? p.userId))
       .filter(Boolean) as string[]
@@ -40,7 +60,7 @@ export function formatActivitySummary(
       if (payerNames.length > 1) {
         return `${actorName} recorded "${desc}" (${formattedAmount} split paid by ${payerNames.join(", ")})`
       }
-      return `${actorName} recorded "${desc}" (${formattedAmount})`
+      return `${actorName} paid ${formattedAmount} for "${desc}"`
     }
 
     if (a.action === "update") return `${actorName} updated "${desc}"`
