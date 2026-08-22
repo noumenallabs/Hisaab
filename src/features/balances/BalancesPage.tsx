@@ -479,10 +479,10 @@ export function BalancesPage() {
                             })
                           }
                           className="shrink-0 min-h-9 rounded-xl bg-brand px-3.5 text-xs font-bold text-white shadow-2xs hover:bg-blue-700 transition-colors"
-                          title="Record payment to clear this balance"
-                          aria-label={`Record payment of ${formatMinor(t.amount, baseCurrency)}`}
+                          title="Record settlement to clear this debt"
+                          aria-label={`Settle ${formatMinor(t.amount, baseCurrency)}`}
                         >
-                          Mark paid
+                          Settle
                         </button>
                       )}
                     </li>
