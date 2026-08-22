@@ -10,9 +10,11 @@ import { SettlementDialog } from "./SettlementDialog"
 import { CategoryBreakdown } from "./CategoryBreakdown"
 import { SettlementHistory } from "./SettlementHistory"
 import { PairwiseBreakdownDialog } from "./PairwiseBreakdownDialog"
+import { ShareSummaryModal } from "./ShareSummaryModal"
 import { shareTripSummary } from "./shareSummary"
 import {
   computeCategoryDebts,
+  computeGroupCategorySummary,
   type ExpenseCategory,
   CATEGORY_META,
 } from "./categoryMath"
@@ -102,29 +104,68 @@ export function BalancesPage() {
     return currentTransfers
   }, [currentTransfers, debtFilter, user?.id])
 
-  async function handleShare() {
-    const activeExpenses = ((expensesData as any[]) ?? []).filter((e) => !e.deleted_at)
-    const totalMinor = activeExpenses.reduce((s: number, e: any) => s + (e.amount_minor ?? e.amount ?? 0), 0)
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false)
 
-    const shareTransfers = transfers.map((t) => ({
-      fromName: memberMap.get(t.fromId) ?? "Member",
-      toName: memberMap.get(t.toId) ?? "Member",
-      amountMinor: t.amount,
-    }))
+  const activeExpenses = useMemo(
+    () => ((expensesData as any[]) ?? []).filter((e: any) => !e.deleted_at),
+    [expensesData]
+  )
+  const totalTripMinor = useMemo(
+    () => activeExpenses.reduce((s: number, e: any) => s + (e.amount_minor ?? e.amount ?? 0), 0),
+    [activeExpenses]
+  )
 
-    const res = await shareTripSummary({
+  const groupCategorySummary = useMemo(
+    () => computeGroupCategorySummary(activeExpenses),
+    [activeExpenses]
+  )
+
+  const summaryCardOptions = useMemo(
+    () => ({
       tripName: (trip as any)?.name ?? "Trip",
       currency: baseCurrency,
-      totalMinor,
+      totalMinor: totalTripMinor,
       expenseCount: activeExpenses.length,
-      transfers: shareTransfers,
-      tripUrl: window.location.href,
-    })
+      memberCount: members.length,
+      destination: (trip as any)?.destination,
+      dates:
+        (trip as any)?.start_date && (trip as any)?.end_date
+          ? `${(trip as any).start_date} → ${(trip as any).end_date}`
+          : undefined,
+      transfers: transfers.map((t) => ({
+        fromName: memberMap.get(t.fromId) ?? "Member",
+        toName: memberMap.get(t.toId) ?? "Member",
+        amountMinor: t.amount,
+      })),
+      categories: groupCategorySummary.categories.map((c) => ({
+        label: c.label,
+        emoji: c.emoji,
+        totalMinor: c.totalMinor,
+        percentage: c.percentage,
+      })),
+    }),
+    [
+      trip,
+      baseCurrency,
+      totalTripMinor,
+      activeExpenses.length,
+      members.length,
+      transfers,
+      memberMap,
+      groupCategorySummary,
+    ]
+  )
 
-    if (res === "copied") {
-      toast("Summary copied to clipboard! Ready to paste.", "success")
+  const activeCategories = useMemo(() => {
+    const cats = new Set<ExpenseCategory>()
+    for (const exp of activeExpenses) {
+      const cat = exp.category as ExpenseCategory
+      if (cat && CATEGORY_META[cat]) {
+        cats.add(cat)
+      }
     }
-  }
+    return Array.from(cats)
+  }, [activeExpenses])
 
   if (supabase && isLoading) return <Skeleton className="h-40" />
   if (supabase && membersLoading) return <Skeleton className="h-40" />
@@ -153,7 +194,7 @@ export function BalancesPage() {
         </div>
         <button
           type="button"
-          onClick={handleShare}
+          onClick={() => setIsShareModalOpen(true)}
           className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-surface border border-hair px-4 text-xs font-bold text-ink shadow-2xs hover:bg-canvas transition-colors"
           aria-label="Share trip settlement summary"
         >
@@ -183,15 +224,19 @@ export function BalancesPage() {
         </p>
       )}
 
-      {/* 2-Column Grid */}
+      {/* 2-Column Responsive Layout */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
-        {/* Left Column: Member Positions */}
+        {/* Left Column: Net Position Summary Cards */}
         <div className="space-y-4 lg:col-span-7">
-          <h2 className="text-sm font-bold uppercase tracking-wider text-ink-soft">
-            Member Positions
-          </h2>
-          <div className="grid gap-3 sm:grid-cols-2">
-            {members.map((m: any) => {
+          <div className="flex items-center justify-between">
+            <h2 className="text-sm font-bold uppercase tracking-wider text-ink-soft">
+              Individual Positions ({members.length})
+            </h2>
+            <span className="text-xs text-ink-faint">All active expenses</span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {members.map((m) => {
               const r = rows[m.id] ?? { paid: 0, owed: 0, sent: 0, received: 0, net: 0 }
               const v = r.net
               const isPositive = v > 0
@@ -269,65 +314,85 @@ export function BalancesPage() {
         {/* Right Column: Simplified Transfers / Settle */}
         <div className="space-y-4 lg:col-span-5">
           <div className="rounded-2xl border border-hair bg-surface p-5 shadow-2xs sticky top-20">
-            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-hair/50 pb-3">
+            {/* Header Title + My Debts toggle */}
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-hair/40 pb-3">
               <div>
                 <h2 className="text-sm font-bold uppercase tracking-wider text-ink">
-                  {settleCategory === "all"
-                    ? "Simplified Settlements"
-                    : `${CATEGORY_META[settleCategory]?.emoji} ${CATEGORY_META[settleCategory]?.label}`}
+                  Simplified Settlements
                 </h2>
                 <p className="mt-0.5 text-xs text-ink-faint">
                   {settleCategory === "all"
                     ? "Optimized payment paths to clear all debts"
-                    : `Debts calculated exclusively for ${CATEGORY_META[settleCategory]?.label}`}
+                    : `Debts calculated for ${CATEGORY_META[settleCategory]?.emoji} ${CATEGORY_META[settleCategory]?.label}`}
                 </p>
               </div>
 
-              <div className="flex flex-wrap items-center gap-2">
-                <select
-                  value={settleCategory}
-                  onChange={(e) => setSettleCategory(e.target.value as any)}
-                  className="min-h-8 rounded-lg border border-hair bg-canvas px-2 text-xs font-semibold text-ink outline-none focus:border-brand"
-                  aria-label="Filter settlements by category"
-                >
-                  <option value="all">🌐 All Categories</option>
-                  <option value="accommodation">🏨 Stay & Lodging</option>
-                  <option value="food">🍕 Food & Dining</option>
-                  <option value="transport">🚕 Transport & Fuel</option>
-                  <option value="tickets">🎟️ Tickets & Activities</option>
-                  <option value="shopping">🛍️ Shopping</option>
-                  <option value="other">📦 Other / Misc</option>
-                </select>
-
-                {/* My Debts vs All Filter */}
-                {user?.id && currentTransfers.length > 0 && (
-                  <div className="flex rounded-lg border border-hair bg-canvas p-0.5 text-xs font-semibold">
-                    <button
-                      type="button"
-                      onClick={() => setDebtFilter("all")}
-                      className={`rounded-md px-2 py-0.5 transition-colors ${
-                        debtFilter === "all"
-                          ? "bg-surface text-brand shadow-2xs font-bold"
-                          : "text-ink-soft"
-                      }`}
-                    >
-                      All ({currentTransfers.length})
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setDebtFilter("mine")}
-                      className={`rounded-md px-2 py-0.5 transition-colors ${
-                        debtFilter === "mine"
-                          ? "bg-surface text-brand shadow-2xs font-bold"
-                          : "text-ink-soft"
-                      }`}
-                    >
-                      My debts
-                    </button>
-                  </div>
-                )}
-              </div>
+              {/* My Debts vs All Filter */}
+              {user?.id && currentTransfers.length > 0 && (
+                <div className="flex rounded-xl border border-hair bg-canvas p-0.5 text-xs font-semibold">
+                  <button
+                    type="button"
+                    onClick={() => setDebtFilter("all")}
+                    className={`rounded-lg px-2.5 py-1 transition-colors ${
+                      debtFilter === "all"
+                        ? "bg-surface text-brand shadow-2xs font-bold"
+                        : "text-ink-soft"
+                    }`}
+                  >
+                    All
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setDebtFilter("mine")}
+                    className={`rounded-lg px-2.5 py-1 transition-colors ${
+                      debtFilter === "mine"
+                        ? "bg-surface text-brand shadow-2xs font-bold"
+                        : "text-ink-soft"
+                    }`}
+                  >
+                    My debts
+                  </button>
+                </div>
+              )}
             </div>
+
+            {/* Category Filter Pills Ribbon */}
+            {activeCategories.length > 0 && (
+              <div className="pt-3 pb-1 border-b border-hair/40">
+                <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none -mx-1 px-1">
+                  <button
+                    type="button"
+                    onClick={() => setSettleCategory("all")}
+                    className={`inline-flex items-center gap-1 shrink-0 rounded-xl px-3 py-1.5 text-xs font-bold transition-all ${
+                      settleCategory === "all"
+                        ? "bg-brand text-white shadow-xs"
+                        : "border border-hair bg-canvas/60 text-ink-soft hover:bg-canvas hover:text-ink"
+                    }`}
+                  >
+                    <span>🌐</span> All
+                  </button>
+                  {activeCategories.map((cat) => {
+                    const meta = CATEGORY_META[cat]
+                    const isSelected = settleCategory === cat
+                    return (
+                      <button
+                        key={cat}
+                        type="button"
+                        onClick={() => setSettleCategory(cat)}
+                        className={`inline-flex items-center gap-1.5 shrink-0 rounded-xl px-3 py-1.5 text-xs font-bold transition-all ${
+                          isSelected
+                            ? "bg-brand text-white shadow-xs"
+                            : "border border-hair bg-canvas/60 text-ink-soft hover:bg-canvas hover:text-ink"
+                        }`}
+                      >
+                        <span>{meta.emoji}</span>
+                        <span>{meta.label.split(" ")[0]}</span>
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
 
             {currentTransfers.length === 0 ? (
               <div className="mt-6 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-center dark:border-emerald-800/60 dark:bg-emerald-950/40">
@@ -469,6 +534,13 @@ export function BalancesPage() {
           baseCurrency={baseCurrency}
         />
       )}
+
+      {/* Share Summary Image & Text Snapshot Dialog */}
+      <ShareSummaryModal
+        open={isShareModalOpen}
+        onClose={() => setIsShareModalOpen(false)}
+        opts={summaryCardOptions}
+      />
     </div>
   )
 }
