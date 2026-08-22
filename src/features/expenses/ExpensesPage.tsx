@@ -5,7 +5,8 @@ import { formatMinor } from "@/lib/currency"
 import { useTrip } from "@/features/trips/hooks"
 import { useTripMembers } from "@/features/trips/useMembers"
 import { Skeleton } from "@/components/feedback/Skeleton"
-import { Plus, Search } from "lucide-react"
+import { Plus, Search, Download, Paperclip } from "lucide-react"
+import { downloadExpensesCsv } from "./csvExport"
 import { useMemo, useState, useEffect } from "react"
 
 import { useAuth } from "@/lib/auth"
@@ -17,10 +18,10 @@ export function ExpensesPage() {
   const { data: members } = useTripMembers(tripId ?? "")
   const memberMap = useMemo(
     () =>
-      new Map(
+      new Map<string, string>(
         ((members as any[]) ?? []).map((m: any) => [
-          m.user_id ?? m.id,
-          m.name ?? m.email ?? (m.user_id ?? m.id)?.slice(0, 8),
+          String(m.user_id ?? m.id),
+          String(m.name ?? m.email ?? (m.user_id ?? m.id)?.slice(0, 8)),
         ])
       ),
     [members]
@@ -72,6 +73,16 @@ export function ExpensesPage() {
   const isArchived = (trip as any)?.status === "archived"
   const isSettled = (trip as any)?.status === "settled"
   const canAdd = !isArchived && !isSettled
+
+  function handleExportCsv() {
+    downloadExpensesCsv(
+      filtered,
+      memberMap,
+      (trip as any)?.name ?? "Trip",
+      (trip as any)?.base_currency ?? "INR"
+    )
+  }
+
   return (
     <div className="space-y-5">
       {/* Header */}
@@ -82,18 +93,30 @@ export function ExpensesPage() {
             Showing {Math.min(visible, filtered.length)} of {filtered.length} {filtered.length !== list.length ? `filtered (${list.length} total)` : ""} transactions
           </p>
         </div>
-        {canAdd ? (
-          <Link
-            to={`/trips/${tripId}/expenses/new`}
-            className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-brand px-4 py-2 text-sm font-bold text-white shadow-sm hover:bg-blue-700 transition-colors"
-          >
-            <Plus size={16} /> Add expense
-          </Link>
-        ) : (
-          <span className="text-xs text-ink-faint" role="status">
-            {isArchived ? "Archived — read-only" : "Settled — no new expenses"}
-          </span>
-        )}
+        <div className="flex items-center gap-2">
+          {list.length > 0 && (
+            <button
+              type="button"
+              onClick={handleExportCsv}
+              className="inline-flex min-h-11 items-center gap-1.5 rounded-xl border border-hair bg-surface px-3.5 text-xs font-bold text-ink shadow-2xs hover:bg-canvas transition-colors"
+              aria-label="Export expenses as CSV"
+            >
+              <Download size={15} className="text-brand" /> Export CSV
+            </button>
+          )}
+          {canAdd ? (
+            <Link
+              to={`/trips/${tripId}/expenses/new`}
+              className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-brand px-4 py-2 text-sm font-bold text-white shadow-sm hover:bg-blue-700 transition-colors"
+            >
+              <Plus size={16} /> Add expense
+            </Link>
+          ) : (
+            <span className="text-xs text-ink-faint" role="status">
+              {isArchived ? "Archived — read-only" : "Settled — no new expenses"}
+            </span>
+          )}
+        </div>
       </div>
 
       {/* Desktop Filter Toolbar */}
@@ -278,7 +301,9 @@ export function ExpensesPage() {
                                 </span>
                               )}
                               {e.receipt_path && (
-                                <span className="text-xs" title="Has receipt">📎</span>
+                                <span className="inline-flex items-center gap-1 rounded-md border border-hair bg-canvas px-1.5 py-0.5 text-[10px] font-semibold text-ink-soft" title="Receipt attached">
+                                  <Paperclip size={10} className="text-brand" /> Receipt
+                                </span>
                               )}
                             </div>
                             <p className="text-xs text-ink-soft mt-0.5 truncate">

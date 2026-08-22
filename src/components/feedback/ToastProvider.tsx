@@ -3,10 +3,10 @@ import { CheckCircle2, AlertCircle, Info, X } from "lucide-react"
 
 type Toast = { id: number; message: string; kind: "info" | "success" | "error" }
 const Ctx = createContext<{ toast: (m: string, kind?: Toast["kind"]) => void } | null>(null)
+const defaultToastCtx = { toast: (_m: string, _kind?: any) => {} }
 export function useToast() {
   const v = useContext(Ctx)
-  if (!v) throw new Error("no toast")
-  return v
+  return v ?? defaultToastCtx
 }
 
 export function ToastProvider({ children }: { children: ReactNode }) {

@@ -5,6 +5,7 @@ import { useExpenses } from "@/features/expenses/hooks"
 import { getSupabase } from "@/lib/supabase"
 import { formatMinor } from "@/lib/currency"
 import { Skeleton } from "@/components/feedback/Skeleton"
+import { computeGroupCategorySummary } from "@/features/balances/categoryMath"
 import { Plus, Receipt, Scale, Activity as ActivityIcon, Settings2, Users, ArrowRight } from "lucide-react"
 
 export function TripOverviewPage() {
@@ -133,6 +134,51 @@ export function TripOverviewPage() {
               </ul>
             )}
           </div>
+
+          {/* Category Spending Breakdown */}
+          {activeExpenses.length > 0 && (
+            <div className="rounded-2xl border border-hair bg-surface p-6 shadow-2xs">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-base font-bold tracking-tight">Spending by Category</h2>
+                  <p className="text-xs text-ink-soft">Where your group budget went</p>
+                </div>
+                <Link to={`/trips/${tripId}/balances`} className="text-xs font-bold text-brand hover:underline">
+                  Detailed breakdown →
+                </Link>
+              </div>
+
+              {/* Progress Distribution Bar */}
+              <div className="mt-4 flex h-3 w-full overflow-hidden rounded-full bg-canvas border border-hair/50">
+                {computeGroupCategorySummary(activeExpenses).categories.filter((c) => c.totalMinor > 0).map((c) => (
+                  <div
+                    key={c.category}
+                    className={`${c.color} transition-all`}
+                    style={{ width: `${c.percentage}%` }}
+                    title={`${c.label}: ${c.percentage.toFixed(1)}%`}
+                  />
+                ))}
+              </div>
+
+              {/* Category Pills Grid */}
+              <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                {computeGroupCategorySummary(activeExpenses).categories.filter((c) => c.totalMinor > 0).map((c) => (
+                  <div
+                    key={c.category}
+                    className="rounded-xl border border-hair bg-canvas/30 p-3 text-xs"
+                  >
+                    <div className="flex items-center justify-between text-ink-soft">
+                      <span className="font-semibold text-ink">{c.emoji} {c.label}</span>
+                      <span className="font-bold text-brand">{c.percentage.toFixed(0)}%</span>
+                    </div>
+                    <p className="mt-1.5 font-mono text-sm font-bold text-ink">
+                      {formatMinor(c.totalMinor, t.base_currency)}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Navigation Quick Shortcuts */}
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">

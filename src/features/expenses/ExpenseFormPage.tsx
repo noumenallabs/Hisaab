@@ -12,6 +12,8 @@ import { allocateEqual, allocatePercent, allocateShares, money } from "./money"
 import { parseCurrencyInput, fromMinor, decimalsFor, formatMinor } from "@/lib/currency"
 import { uploadReceipt, validateReceiptFile } from "@/lib/receipts"
 
+import { useToast } from "@/components/feedback/ToastProvider"
+
 type Form = z.infer<typeof expenseSchema>
 
 const CATEGORIES: { id: "food" | "transport" | "accommodation" | "tickets" | "shopping" | "other"; label: string; icon: string }[] = [
@@ -26,6 +28,7 @@ const CATEGORIES: { id: "food" | "transport" | "accommodation" | "tickets" | "sh
 export function ExpenseFormPage() {
   const { tripId, expenseId } = useParams()
   const navigate = useNavigate()
+  const { toast } = useToast()
   const save = useSaveExpense(tripId!)
   const { data: tripMembers } = useTripMembers(tripId!)
   const { data: trip } = useTrip(tripId!)
@@ -37,6 +40,8 @@ export function ExpenseFormPage() {
   const isArchived = trip?.status === "archived"
   const baseCurrency = (trip as any)?.base_currency ?? "INR"
   const requestIdRef = useRef(crypto.randomUUID())
+  const shouldAddAnotherRef = useRef(false)
+  const draftKey = `tripsplit:draft:${tripId}`
   const [splitMode, setSplitMode] = useState<"equal" | "exact" | "percent" | "shares">("equal")
   const [amountStr, setAmountStr] = useState("10.00")
   const [percentInputs, setPercentInputs] = useState<number[]>([])
@@ -57,13 +62,30 @@ export function ExpenseFormPage() {
     const ids = members.map((m: any) => m.id)
     setSelectedIds(ids)
     const firstId = members[0]?.id
-    setPayerInputs([{ userId: firstId, amountMinor: 1000 }])
+
+    let restoredDraft: any = null
+    try {
+      const rawDraft = localStorage.getItem(draftKey)
+      if (rawDraft) restoredDraft = JSON.parse(rawDraft)
+    } catch {}
+
+    const initAmount = restoredDraft?.amountStr || "10.00"
+    const initMinor = parseCurrencyInput(initAmount, baseCurrency) ?? 1000
+    setAmountStr(initAmount)
+    setPayerInputs([{ userId: firstId, amountMinor: initMinor }])
     setPercentInputs(ids.map(() => 0))
     setShareInputs(ids.map(() => 1))
-    const alloc = allocateEqual(1000, ids.length)
-    setValue("payers", [{ userId: firstId, amountPaidMinor: 1000 }] as any)
+    const alloc = allocateEqual(initMinor, ids.length)
+    setValue("payers", [{ userId: firstId, amountPaidMinor: initMinor }] as any)
     setValue("splits", ids.map((id, i) => ({ userId: id, amountOwedMinor: alloc[i] })) as any)
-  }, [membersLoading, members.length, expenseId])
+
+    if (restoredDraft) {
+      if (restoredDraft.description) setValue("description", restoredDraft.description)
+      if (restoredDraft.category) setValue("category", restoredDraft.category)
+      if (restoredDraft.notes) setValue("notes", restoredDraft.notes)
+      if (restoredDraft.expenseDate) setValue("expenseDate", restoredDraft.expenseDate)
+    }
+  }, [membersLoading, members.length, expenseId, draftKey, baseCurrency])
 
   const {
     register,
@@ -197,6 +219,27 @@ export function ExpenseFormPage() {
     }
   }, [amountMinor, payerInputs.length])
 
+  // auto-save draft on input change
+  const currentDesc = watch("description")
+  const currentNotes = watch("notes")
+  const currentDate = watch("expenseDate")
+  useEffect(() => {
+    if (expenseId) return
+    if (!currentDesc && !currentNotes && amountStr === "10.00") return
+    try {
+      localStorage.setItem(
+        draftKey,
+        JSON.stringify({
+          description: currentDesc,
+          notes: currentNotes,
+          category: currentCategory,
+          expenseDate: currentDate,
+          amountStr,
+        })
+      )
+    } catch {}
+  }, [currentDesc, currentNotes, currentCategory, currentDate, amountStr, expenseId, draftKey])
+
   async function onSubmit(v: Form) {
     try {
       if (isArchived) throw new Error("Archived trips are read-only.")
@@ -216,7 +259,35 @@ export function ExpenseFormPage() {
         splits: (watch("splits") as any) ?? [],
         requestId: requestIdRef.current,
       } as any)
-      navigate(`/trips/${tripId}/expenses`)
+
+      try {
+        localStorage.removeItem(draftKey)
+      } catch {}
+
+      if (shouldAddAnotherRef.current) {
+        requestIdRef.current = crypto.randomUUID()
+        toast(`Saved "${v.description}"! Ready for next expense.`, "success")
+        setValue("description", "" as any, { shouldDirty: false })
+        setValue("notes", "" as any, { shouldDirty: false })
+        setValue("receiptPath", null as any, { shouldDirty: false })
+        setLocalReceiptPreview(null)
+        setAmountStr("10.00")
+        const initialMinor = parseCurrencyInput("10.00", baseCurrency) ?? 1000
+        setValue("amountMinor", initialMinor as any)
+        if (payerInputs.length === 1) {
+          setPayerInputs([{ userId: payerInputs[0].userId, amountMinor: initialMinor }])
+          setValue("payers", [{ userId: payerInputs[0].userId, amountPaidMinor: initialMinor }] as any)
+        }
+        if (splitMode === "equal") {
+          equalize()
+        }
+        shouldAddAnotherRef.current = false
+        setTimeout(() => {
+          document.getElementById("exp-desc")?.focus()
+        }, 50)
+      } else {
+        navigate(`/trips/${tripId}/expenses`)
+      }
     } catch (e: any) {
       const msg = String(e.message ?? "")
       if (msg.includes("CONFLICT stale_expense") || msg.includes("CONFLICT")) {
@@ -570,13 +641,38 @@ export function ExpenseFormPage() {
 
       {err && <p className="text-sm font-semibold text-owe" role="alert">{err}</p>}
       
-      <button
-        disabled={isSubmitting || isArchived || existingLoading}
-        aria-disabled={isArchived}
-        className="flex min-h-12 w-full items-center justify-center rounded-xl bg-brand text-sm font-bold text-white shadow-sm hover:bg-blue-700 disabled:opacity-50 transition-colors"
-      >
-        {isSubmitting ? "Saving…" : expenseId ? "Save changes" : "Save expense"}
-      </button>
+      <div className="flex flex-col sm:flex-row gap-2.5">
+        <button
+          type="submit"
+          onClick={() => {
+            shouldAddAnotherRef.current = false
+          }}
+          disabled={isSubmitting || isArchived || existingLoading}
+          aria-disabled={isArchived}
+          className="flex-1 flex min-h-12 items-center justify-center rounded-xl bg-brand text-sm font-bold text-white shadow-sm hover:bg-blue-700 disabled:opacity-50 transition-colors"
+        >
+          {isSubmitting && !shouldAddAnotherRef.current
+            ? "Saving…"
+            : expenseId
+            ? "Save changes"
+            : "Save expense"}
+        </button>
+        {!expenseId && (
+          <button
+            type="submit"
+            onClick={() => {
+              shouldAddAnotherRef.current = true
+            }}
+            disabled={isSubmitting || isArchived || existingLoading}
+            aria-disabled={isArchived}
+            className="flex-1 flex min-h-12 items-center justify-center rounded-xl border border-hair bg-surface text-sm font-bold text-ink shadow-2xs hover:bg-canvas disabled:opacity-50 transition-colors"
+          >
+            {isSubmitting && shouldAddAnotherRef.current
+              ? "Saving…"
+              : "+ Save & add another"}
+          </button>
+        )}
+      </div>
     </form>
     </div>
   )
