@@ -13,6 +13,7 @@ export function SettlementDialog({
   toName,
   outstandingMinor,
   currency = "INR",
+  defaultNote,
   onSuccess,
 }: {
   open: boolean
@@ -24,6 +25,7 @@ export function SettlementDialog({
   toName?: string
   outstandingMinor: number
   currency?: string
+  defaultNote?: string
   onSuccess?: () => void
 }) {
   const baseCurrency = currency
@@ -32,7 +34,7 @@ export function SettlementDialog({
   const [amountStr, setAmountStr] = useState(String(fromMinor(outstandingMinor, dec)))
   const [method, setMethod] = useState("UPI")
   const [reference, setReference] = useState("")
-  const [note, setNote] = useState("")
+  const [note, setNote] = useState(defaultNote ?? "")
   const [submitting, setSubmitting] = useState(false)
   const requestIdRef = useRef(crypto.randomUUID())
   const amountInputRef = useRef<HTMLInputElement>(null)
@@ -43,11 +45,12 @@ export function SettlementDialog({
     if (open) {
       setAmountStr(String(fromMinor(outstandingMinor, dec)))
       setErr(null)
+      setNote(defaultNote ?? "")
       requestIdRef.current = crypto.randomUUID()
       prevFocus.current = document.activeElement as HTMLElement | null
       setTimeout(() => amountInputRef.current?.focus(), 0)
     }
-  }, [open, outstandingMinor, dec])
+  }, [open, outstandingMinor, dec, defaultNote])
 
   useEffect(() => {
     if (!open) return

@@ -1,3 +1,5 @@
+import { simplifyDebts } from "./balanceMath"
+
 export type ExpenseCategory =
   | "food"
   | "transport"
@@ -243,3 +245,50 @@ export function computePairwiseLedger(
     netPairwiseMinor,
   }
 }
+
+export function computeCategoryDebts(
+  expenses: any[],
+  category: ExpenseCategory | "all"
+): {
+  transfers: { fromId: string; toId: string; amount: number }[]
+  net: Record<string, number>
+} {
+  const activeExpenses = (expenses ?? []).filter((e) => !e.deleted_at && !e.deleted)
+  const targetExpenses =
+    category === "all"
+      ? activeExpenses
+      : activeExpenses.filter((e) => (e.category ?? "other") === category)
+
+  const paidMap = new Map<string, number>()
+  const owedMap = new Map<string, number>()
+  const allUserIds = new Set<string>()
+
+  for (const exp of targetExpenses) {
+    const payers = (exp.expense_payers ?? exp.payers ?? []) as any[]
+    for (const p of payers) {
+      const uid = String(p.user_id ?? p.userId)
+      const amt = Number(p.amount_paid_minor ?? p.amountPaidMinor ?? p.amount ?? 0)
+      paidMap.set(uid, (paidMap.get(uid) ?? 0) + amt)
+      allUserIds.add(uid)
+    }
+
+    const splits = (exp.expense_splits ?? exp.splits ?? []) as any[]
+    for (const s of splits) {
+      const uid = String(s.user_id ?? s.userId)
+      const amt = Number(s.amount_owed_minor ?? s.amountOwedMinor ?? s.amount ?? 0)
+      owedMap.set(uid, (owedMap.get(uid) ?? 0) + amt)
+      allUserIds.add(uid)
+    }
+  }
+
+  const net: Record<string, number> = {}
+  for (const uid of allUserIds) {
+    const p = paidMap.get(uid) ?? 0
+    const o = owedMap.get(uid) ?? 0
+    net[uid] = p - o
+  }
+
+  const transfers = simplifyDebts(net)
+  return { transfers, net }
+}
+

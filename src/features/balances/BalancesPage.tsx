@@ -11,12 +11,17 @@ import { CategoryBreakdown } from "./CategoryBreakdown"
 import { SettlementHistory } from "./SettlementHistory"
 import { PairwiseBreakdownDialog } from "./PairwiseBreakdownDialog"
 import { shareTripSummary } from "./shareSummary"
+import {
+  computeCategoryDebts,
+  type ExpenseCategory,
+  CATEGORY_META,
+} from "./categoryMath"
 import { useToast } from "@/components/feedback/ToastProvider"
 import { useState, useMemo } from "react"
 import { useAuth } from "@/lib/auth"
 import { useTrip } from "@/features/trips/hooks"
 import { queryClient } from "@/lib/queryClient"
-import { Share2, Info, Check } from "lucide-react"
+import { Share2, Info, Check, Filter } from "lucide-react"
 
 export function BalancesPage() {
   const { tripId } = useParams()
@@ -33,8 +38,14 @@ export function BalancesPage() {
   const isSettled = (trip as any)?.status === "settled"
   const baseCurrency = (trip as any)?.base_currency ?? "INR"
 
-  const [settle, setSettle] = useState<{ fromId: string; toId: string; amount: number } | null>(null)
+  const [settle, setSettle] = useState<{
+    fromId: string
+    toId: string
+    amount: number
+    categoryLabel?: string
+  } | null>(null)
   const [debtFilter, setDebtFilter] = useState<"all" | "mine">("all")
+  const [settleCategory, setSettleCategory] = useState<ExpenseCategory | "all">("all")
   const [pairwisePair, setPairwisePair] = useState<{
     fromId: string
     toId: string
@@ -75,12 +86,21 @@ export function BalancesPage() {
     transfers = simplifyDebts(net)
   }
 
+  const categorySettlements = useMemo(() => {
+    if (settleCategory === "all") {
+      return { transfers, net }
+    }
+    return computeCategoryDebts(expensesData ?? [], settleCategory)
+  }, [settleCategory, transfers, net, expensesData])
+
+  const currentTransfers = categorySettlements.transfers
+
   const visibleTransfers = useMemo(() => {
     if (debtFilter === "mine" && user?.id) {
-      return transfers.filter((t) => t.fromId === user.id || t.toId === user.id)
+      return currentTransfers.filter((t) => t.fromId === user.id || t.toId === user.id)
     }
-    return transfers
-  }, [transfers, debtFilter, user?.id])
+    return currentTransfers
+  }, [currentTransfers, debtFilter, user?.id])
 
   async function handleShare() {
     const activeExpenses = ((expensesData as any[]) ?? []).filter((e) => !e.deleted_at)
@@ -249,53 +269,80 @@ export function BalancesPage() {
         {/* Right Column: Simplified Transfers / Settle */}
         <div className="space-y-4 lg:col-span-5">
           <div className="rounded-2xl border border-hair bg-surface p-5 shadow-2xs sticky top-20">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-hair/50 pb-3">
               <div>
-                <h2 className="text-sm font-bold uppercase tracking-wider text-ink-soft">
-                  Simplified Settlements
+                <h2 className="text-sm font-bold uppercase tracking-wider text-ink">
+                  {settleCategory === "all"
+                    ? "Simplified Settlements"
+                    : `${CATEGORY_META[settleCategory]?.emoji} ${CATEGORY_META[settleCategory]?.label}`}
                 </h2>
                 <p className="mt-0.5 text-xs text-ink-faint">
-                  Optimized payment paths to clear all debts
+                  {settleCategory === "all"
+                    ? "Optimized payment paths to clear all debts"
+                    : `Debts calculated exclusively for ${CATEGORY_META[settleCategory]?.label}`}
                 </p>
               </div>
 
-              {/* My Debts vs All Filter */}
-              {user?.id && transfers.length > 0 && (
-                <div className="flex rounded-xl border border-hair bg-canvas p-0.5 text-xs font-semibold">
-                  <button
-                    type="button"
-                    onClick={() => setDebtFilter("all")}
-                    className={`rounded-lg px-2.5 py-1 transition-colors ${
-                      debtFilter === "all" ? "bg-surface text-brand shadow-2xs font-bold" : "text-ink-soft"
-                    }`}
-                  >
-                    All ({transfers.length})
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setDebtFilter("mine")}
-                    className={`rounded-lg px-2.5 py-1 transition-colors ${
-                      debtFilter === "mine" ? "bg-surface text-brand shadow-2xs font-bold" : "text-ink-soft"
-                    }`}
-                  >
-                    My debts
-                  </button>
-                </div>
-              )}
+              <div className="flex flex-wrap items-center gap-2">
+                <select
+                  value={settleCategory}
+                  onChange={(e) => setSettleCategory(e.target.value as any)}
+                  className="min-h-8 rounded-lg border border-hair bg-canvas px-2 text-xs font-semibold text-ink outline-none focus:border-brand"
+                  aria-label="Filter settlements by category"
+                >
+                  <option value="all">🌐 All Categories</option>
+                  <option value="accommodation">🏨 Stay & Lodging</option>
+                  <option value="food">🍕 Food & Dining</option>
+                  <option value="transport">🚕 Transport & Fuel</option>
+                  <option value="tickets">🎟️ Tickets & Activities</option>
+                  <option value="shopping">🛍️ Shopping</option>
+                  <option value="other">📦 Other / Misc</option>
+                </select>
+
+                {/* My Debts vs All Filter */}
+                {user?.id && currentTransfers.length > 0 && (
+                  <div className="flex rounded-lg border border-hair bg-canvas p-0.5 text-xs font-semibold">
+                    <button
+                      type="button"
+                      onClick={() => setDebtFilter("all")}
+                      className={`rounded-md px-2 py-0.5 transition-colors ${
+                        debtFilter === "all"
+                          ? "bg-surface text-brand shadow-2xs font-bold"
+                          : "text-ink-soft"
+                      }`}
+                    >
+                      All ({currentTransfers.length})
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setDebtFilter("mine")}
+                      className={`rounded-md px-2 py-0.5 transition-colors ${
+                        debtFilter === "mine"
+                          ? "bg-surface text-brand shadow-2xs font-bold"
+                          : "text-ink-soft"
+                      }`}
+                    >
+                      My debts
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
 
-            {transfers.length === 0 ? (
+            {currentTransfers.length === 0 ? (
               <div className="mt-6 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-center dark:border-emerald-800/60 dark:bg-emerald-950/40">
                 <p className="text-sm font-bold text-emerald-800 dark:text-emerald-300">
                   🎉 All settled up!
                 </p>
                 <p className="mt-1 text-xs text-emerald-600 dark:text-emerald-400">
-                  No outstanding transfers required in this trip.
+                  {settleCategory === "all"
+                    ? "No outstanding transfers required in this trip."
+                    : `No outstanding debts for ${CATEGORY_META[settleCategory]?.label}.`}
                 </p>
               </div>
             ) : visibleTransfers.length === 0 ? (
               <div className="mt-6 rounded-xl border border-dashed border-hair bg-canvas/30 p-4 text-center text-xs text-ink-soft">
-                You have no outstanding debts to pay or collect in this trip.
+                You have no outstanding debts in this category.
               </div>
             ) : (
               <ul className="mt-4 space-y-2.5">
@@ -345,7 +392,17 @@ export function BalancesPage() {
                       </div>
                       {canSettle && (
                         <button
-                          onClick={() => setSettle(t)}
+                          onClick={() =>
+                            setSettle({
+                              fromId: t.fromId,
+                              toId: t.toId,
+                              amount: t.amount,
+                              categoryLabel:
+                                settleCategory !== "all"
+                                  ? `${CATEGORY_META[settleCategory]?.emoji} ${CATEGORY_META[settleCategory]?.label}`
+                                  : undefined,
+                            })
+                          }
                           className="shrink-0 min-h-9 rounded-xl bg-brand px-3.5 text-xs font-bold text-white shadow-2xs hover:bg-blue-700 transition-colors"
                         >
                           Settle
@@ -387,6 +444,7 @@ export function BalancesPage() {
           toName={memberMap.get(settle.toId)}
           outstandingMinor={settle.amount}
           currency={baseCurrency}
+          defaultNote={settle.categoryLabel ? `Settlement for ${settle.categoryLabel}` : undefined}
           onSuccess={() => {
             queryClient.invalidateQueries({ queryKey: ["balances", tripId] })
             queryClient.invalidateQueries({ queryKey: ["expenses", tripId] })
