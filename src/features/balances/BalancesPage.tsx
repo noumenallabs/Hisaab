@@ -13,6 +13,8 @@ import { SettlementHistory } from "./SettlementHistory"
 import { PairwiseBreakdownDialog } from "./PairwiseBreakdownDialog"
 import { ShareSummaryModal } from "./ShareSummaryModal"
 import { shareTripSummary } from "./shareSummary"
+import { DailyBreakdown } from "./DailyBreakdown"
+import { computeDayDebts, computeDayTimeline } from "./dayMath"
 import {
   computeCategoryDebts,
   computeGroupCategorySummary,
@@ -24,7 +26,7 @@ import { useState, useMemo } from "react"
 import { useAuth } from "@/lib/auth"
 import { useTrip } from "@/features/trips/hooks"
 import { queryClient } from "@/lib/queryClient"
-import { Share2, Info, Check, Filter } from "lucide-react"
+import { Share2, Info, Check, Filter, Calendar } from "lucide-react"
 
 export function BalancesPage() {
   const { tripId } = useParams()
@@ -46,9 +48,12 @@ export function BalancesPage() {
     toId: string
     amount: number
     categoryLabel?: string
+    dayLabel?: string
   } | null>(null)
+  const [settleViewMode, setSettleViewMode] = useState<"total" | "day" | "category">("total")
   const [debtFilter, setDebtFilter] = useState<"all" | "mine">("all")
   const [settleCategory, setSettleCategory] = useState<ExpenseCategory | "all">("all")
+  const [settleDate, setSettleDate] = useState<string>("all")
   const [pairwisePair, setPairwisePair] = useState<{
     fromId: string
     toId: string
@@ -96,7 +101,27 @@ export function BalancesPage() {
     return computeCategoryDebts(expensesData ?? [], settleCategory)
   }, [settleCategory, transfers, net, expensesData])
 
-  const currentTransfers = categorySettlements.transfers
+  const dayTimeline = useMemo(
+    () => computeDayTimeline(expensesData ?? [], (trip as any)?.start_date),
+    [expensesData, trip]
+  )
+
+  const daySettlements = useMemo(() => {
+    if (settleDate === "all") {
+      return { transfers, net }
+    }
+    return computeDayDebts(expensesData ?? [], settleDate)
+  }, [settleDate, transfers, net, expensesData])
+
+  const currentTransfers = useMemo(() => {
+    if (settleViewMode === "category") {
+      return categorySettlements.transfers
+    }
+    if (settleViewMode === "day") {
+      return daySettlements.transfers
+    }
+    return transfers
+  }, [settleViewMode, categorySettlements.transfers, daySettlements.transfers, transfers])
 
   const visibleTransfers = useMemo(() => {
     if (debtFilter === "mine" && user?.id) {
@@ -331,8 +356,14 @@ export function BalancesPage() {
                   Simplified Settlements
                 </h2>
                 <p className="mt-0.5 text-xs text-ink-faint">
-                  {settleCategory === "all"
+                  {settleViewMode === "total"
                     ? "Optimized payment paths to clear all debts"
+                    : settleViewMode === "day"
+                    ? settleDate === "all"
+                      ? "Combined debt settlement across all days"
+                      : `Isolated debts for ${dayTimeline.find((d) => d.date === settleDate)?.label ?? settleDate}`
+                    : settleCategory === "all"
+                    ? "Combined category debt settlement"
                     : `Debts calculated for ${CATEGORY_META[settleCategory]?.emoji} ${CATEGORY_META[settleCategory]?.label}`}
                 </p>
               </div>
@@ -366,9 +397,85 @@ export function BalancesPage() {
               )}
             </div>
 
-            {/* Category Filter Pills Ribbon */}
-            {activeCategories.length > 0 && (
-              <div className="pt-3 pb-1 border-b border-hair/40">
+            {/* View Mode Switcher: Total / By Day / By Category */}
+            <div className="pt-3 pb-2 border-b border-hair/40">
+              <div className="flex items-center gap-1 rounded-xl bg-canvas p-1 text-xs font-semibold">
+                <button
+                  type="button"
+                  onClick={() => setSettleViewMode("total")}
+                  className={`flex-1 py-1.5 rounded-lg text-center transition-all ${
+                    settleViewMode === "total"
+                      ? "bg-surface text-brand shadow-2xs font-bold"
+                      : "text-ink-soft hover:text-ink"
+                  }`}
+                >
+                  🌐 Overall
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSettleViewMode("day")}
+                  className={`flex-1 py-1.5 rounded-lg text-center transition-all ${
+                    settleViewMode === "day"
+                      ? "bg-surface text-brand shadow-2xs font-bold"
+                      : "text-ink-soft hover:text-ink"
+                  }`}
+                >
+                  📅 By Day ({dayTimeline.length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSettleViewMode("category")}
+                  className={`flex-1 py-1.5 rounded-lg text-center transition-all ${
+                    settleViewMode === "category"
+                      ? "bg-surface text-brand shadow-2xs font-bold"
+                      : "text-ink-soft hover:text-ink"
+                  }`}
+                >
+                  🏷️ By Category
+                </button>
+              </div>
+            </div>
+
+            {/* Day Filter Pills Ribbon (when in Day mode) */}
+            {settleViewMode === "day" && dayTimeline.length > 0 && (
+              <div className="pt-2 pb-1 border-b border-hair/40">
+                <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none -mx-1 px-1">
+                  <button
+                    type="button"
+                    onClick={() => setSettleDate("all")}
+                    className={`inline-flex items-center gap-1 shrink-0 rounded-xl px-3 py-1.5 text-xs font-bold transition-all ${
+                      settleDate === "all"
+                        ? "bg-brand text-white shadow-xs"
+                        : "border border-hair bg-canvas/60 text-ink-soft hover:bg-canvas hover:text-ink"
+                    }`}
+                  >
+                    <span>🌐</span> All Days
+                  </button>
+                  {dayTimeline.map((day) => {
+                    const isSelected = settleDate === day.date
+                    return (
+                      <button
+                        key={day.date}
+                        type="button"
+                        onClick={() => setSettleDate(day.date)}
+                        className={`inline-flex items-center gap-1.5 shrink-0 rounded-xl px-3 py-1.5 text-xs font-bold transition-all ${
+                          isSelected
+                            ? "bg-brand text-white shadow-xs"
+                            : "border border-hair bg-canvas/60 text-ink-soft hover:bg-canvas hover:text-ink"
+                        }`}
+                      >
+                        <span>D{day.dayNumber}</span>
+                        <span className="font-normal opacity-90">{day.date.slice(5)}</span>
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Category Filter Pills Ribbon (when in Category mode) */}
+            {settleViewMode === "category" && activeCategories.length > 0 && (
+              <div className="pt-2 pb-1 border-b border-hair/40">
                 <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none -mx-1 px-1">
                   <button
                     type="button"
@@ -467,17 +574,22 @@ export function BalancesPage() {
                       </div>
                       {canSettle && (
                         <button
-                          onClick={() =>
+                          onClick={() => {
+                            const dayObj = settleDate !== "all" ? dayTimeline.find((d) => d.date === settleDate) : null
                             setSettle({
                               fromId: t.fromId,
                               toId: t.toId,
                               amount: t.amount,
+                              dayLabel:
+                                settleViewMode === "day" && dayObj
+                                  ? `${dayObj.label} settlement`
+                                  : undefined,
                               categoryLabel:
-                                settleCategory !== "all"
+                                settleViewMode === "category" && settleCategory !== "all"
                                   ? `${CATEGORY_META[settleCategory]?.emoji} ${CATEGORY_META[settleCategory]?.label}`
                                   : undefined,
                             })
-                          }
+                          }}
                           className="shrink-0 min-h-9 rounded-xl bg-brand px-3.5 text-xs font-bold text-white shadow-2xs hover:bg-blue-700 transition-colors"
                           title="Record settlement to clear this debt"
                           aria-label={`Settle ${formatMinor(t.amount, baseCurrency)}`}
@@ -493,6 +605,22 @@ export function BalancesPage() {
           </div>
         </div>
       </div>
+
+      {/* Day-Wise Settlement Timeline Section */}
+      <DailyBreakdown
+        timeline={dayTimeline}
+        currency={baseCurrency}
+        memberMap={memberMap}
+        currentUserId={user?.id}
+        onSettle={(t) =>
+          setSettle({
+            fromId: t.fromId,
+            toId: t.toId,
+            amount: t.amount,
+            dayLabel: t.dayLabel,
+          })
+        }
+      />
 
       {/* Category-Level Breakdown Section */}
       <CategoryBreakdown
@@ -521,7 +649,13 @@ export function BalancesPage() {
           toName={memberMap.get(settle.toId)}
           outstandingMinor={settle.amount}
           currency={baseCurrency}
-          defaultNote={settle.categoryLabel ? `Settlement for ${settle.categoryLabel}` : undefined}
+          defaultNote={
+            settle.dayLabel
+              ? settle.dayLabel
+              : settle.categoryLabel
+              ? `Settlement for ${settle.categoryLabel}`
+              : undefined
+          }
           onSuccess={() => {
             queryClient.invalidateQueries({ queryKey: ["balances", tripId] })
             queryClient.invalidateQueries({ queryKey: ["expenses", tripId] })
