@@ -22,7 +22,17 @@ export function VerifyEmailPage() {
         data: { user },
       } = await supabase.auth.getUser()
       if (user?.email) {
-        await supabase.auth.resend({ type: "signup", email: user.email })
+        const redirectUrl =
+          window.location.origin +
+          "/auth/callback" +
+          (ret ? `?returnTo=${encodeURIComponent(ret)}` : "")
+        await supabase.auth.resend({
+          type: "signup",
+          email: user.email,
+          options: {
+            emailRedirectTo: redirectUrl,
+          },
+        })
         setResent(true)
       }
     } catch {} finally {

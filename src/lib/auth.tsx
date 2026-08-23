@@ -18,7 +18,7 @@ type AuthContextValue = {
   loading: boolean
   isDemo: boolean
   signIn: (email: string, password: string) => Promise<void>
-  signUp: (name: string, email: string, password: string) => Promise<void>
+  signUp: (name: string, email: string, password: string, returnTo?: string) => Promise<void>
   signOut: () => Promise<void>
   sendReset: (email: string) => Promise<void>
   signInWithGoogle: (returnTo?: string) => Promise<void>
@@ -104,7 +104,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     })
     if (error) throw error
   }
-  async function signUp(name: string, email: string, password: string) {
+  async function signUp(name: string, email: string, password: string, returnTo?: string) {
     if (isDemo) {
       const next = { id: "demo-user", email, name: name || "Traveler" }
       localStorage.setItem(demoKey, JSON.stringify(next))
@@ -112,10 +112,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return
     }
     const supabase = getSupabase()!
+    const redirectUrl =
+      window.location.origin +
+      "/auth/callback" +
+      (returnTo ? `?returnTo=${encodeURIComponent(returnTo)}` : "")
     const { error } = await supabase.auth.signUp({
       email,
       password,
-      options: { data: { name } },
+      options: {
+        data: { name },
+        emailRedirectTo: redirectUrl,
+      },
     })
     if (error) throw error
   }

@@ -27,7 +27,7 @@ export function SignUpPage() {
   async function onSubmit(v: Form) {
     try {
       setErr(null)
-      await signUp(v.name, v.email, v.password)
+      await signUp(v.name, v.email, v.password, ret ?? undefined)
       navigate(ret ? `/verify-email?returnTo=${encodeURIComponent(ret)}` : "/verify-email")
     } catch (e: any) {
       setErr(e.message)
