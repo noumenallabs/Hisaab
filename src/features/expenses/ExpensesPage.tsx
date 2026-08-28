@@ -39,7 +39,6 @@ export function ExpensesPage() {
   const [payer, setPayer] = useState<string>("all")
   const [dateFrom, setDateFrom] = useState("")
   const [dateTo, setDateTo] = useState("")
-  if (!supabase) return <div className="p-6 text-center text-sm text-ink-soft" role="alert">Supabase not configured — check env.</div>
   const list = (q.data as any[] ?? [])
   const filtered = useMemo(
     () =>
@@ -70,6 +69,8 @@ export function ExpensesPage() {
     })
     return arr
   }, [filtered, sortBy])
+
+  if (!supabase) return <div className="p-6 text-center text-sm text-ink-soft" role="alert">Supabase not configured — check env.</div>
   if (q.isLoading) return <Skeleton className="h-40" />
   const isArchived = (trip as any)?.status === "archived"
   const isSettled = (trip as any)?.status === "settled"

@@ -58,22 +58,6 @@ export function ActivityPage() {
     }
     return map
   }, [expenses])
-
-  if (!getSupabase()) {
-    return (
-      <div className="space-y-4">
-        <h2 className="text-lg font-bold">Activity log</h2>
-        <div className="rounded-xl border border-hair bg-surface p-6 text-sm text-ink-soft">
-          Activity log is available when connected to Supabase backend.
-        </div>
-      </div>
-    )
-  }
-
-  if (q.isLoading) {
-    return <Skeleton className="h-48 rounded-xl" />
-  }
-
   const rawPages = (q.data?.pages?.flat() ?? []) as any[]
   const pages = useMemo(() => {
     const seen = new Set<string | number>()
@@ -93,6 +77,21 @@ export function ActivityPage() {
       return true
     })
   }, [pages, filter])
+
+  if (!getSupabase()) {
+    return (
+      <div className="space-y-4">
+        <h2 className="text-lg font-bold">Activity log</h2>
+        <div className="rounded-xl border border-hair bg-surface p-6 text-sm text-ink-soft">
+          Activity log is available when connected to Supabase backend.
+        </div>
+      </div>
+    )
+  }
+
+  if (q.isLoading) {
+    return <Skeleton className="h-48 rounded-xl" />
+  }
 
   return (
     <div className="space-y-6">
