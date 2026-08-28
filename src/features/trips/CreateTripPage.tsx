@@ -18,8 +18,10 @@ export function CreateTripPage() {
   const {
     register,
     handleSubmit,
+    trigger,
     formState: { errors, isSubmitting },
   } = useForm<Form>({
+    mode: "onChange",
     resolver: zodResolver(tripSchema),
     defaultValues: {
       baseCurrency: "INR",
@@ -76,7 +78,15 @@ export function CreateTripPage() {
         <div className="grid grid-cols-2 gap-3">
           <label className="block text-xs font-semibold text-ink-soft">
             START DATE
-            <input type="date" {...register("startDate")} className={input} />
+            <input
+              type="date"
+              {...register("startDate", {
+                onChange: () => {
+                  trigger("endDate")
+                },
+              })}
+              className={input}
+            />
             {errors.startDate && (
               <span className="text-xs text-owe">
                 {errors.startDate.message}
@@ -85,7 +95,15 @@ export function CreateTripPage() {
           </label>
           <label className="block text-xs font-semibold text-ink-soft">
             END DATE
-            <input type="date" {...register("endDate")} className={input} />
+            <input
+              type="date"
+              {...register("endDate", {
+                onChange: () => {
+                  trigger("startDate")
+                },
+              })}
+              className={input}
+            />
             {errors.endDate && (
               <span className="text-xs text-owe">{errors.endDate.message}</span>
             )}

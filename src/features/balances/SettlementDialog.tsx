@@ -169,7 +169,10 @@ export function SettlementDialog({
           </label>
           <button
             type="button"
-            onClick={() => setAmountStr(String(fromMinor(outstandingMinor, dec)))}
+            onClick={() => {
+              setAmountStr(String(fromMinor(outstandingMinor, dec)))
+              if (err) setErr(null)
+            }}
             className="text-xs font-semibold text-brand hover:underline"
           >
             Full amount: {formatMinor(outstandingMinor, baseCurrency)}
@@ -179,7 +182,10 @@ export function SettlementDialog({
           ref={amountInputRef}
           id="settle-amount"
           value={amountStr}
-          onChange={(e) => setAmountStr(e.target.value)}
+          onChange={(e) => {
+            setAmountStr(e.target.value)
+            if (err) setErr(null)
+          }}
           placeholder={dec === 0 ? "e.g. 1250" : "e.g. 1250.50"}
           className="mt-1 w-full min-h-11 rounded-xl border border-hair bg-surface px-3 py-3 text-base font-semibold tabular-nums outline-none focus:border-brand focus:ring-1 focus:ring-brand"
           aria-describedby="settle-hint"

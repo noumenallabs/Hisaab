@@ -28,6 +28,7 @@ describe("allocateEqual exhaustive", () => {
 describe("allocatePercent exhaustive", () => {
   it("splits 100.00 exactly", () => { expect(allocatePercent(10000, [25,25,25,25])!.reduce((a,b)=>a+b,0)).toBe(10000) })
   it("rejects 99.99", () => { expect(allocatePercent(10000, [33.33,33.33,33.33])).toBeNull() })
+  it("rejects negative percents even if sum is 100", () => { expect(allocatePercent(10000, [-10, 110])).toBeNull() })
   it("handles 0 percent for some", () => {
     const r = allocatePercent(1000, [0,100,0])
     expect(r).not.toBeNull()
@@ -42,7 +43,10 @@ describe("allocateShares exhaustive", () => {
     expect(r![0]).toBeLessThan(r![1])
     expect(r!.reduce((a,b)=>a+b,0)).toBe(1000)
   })
-  it("negative shares treated as positive? totalShares <=0 null", () => { expect(allocateShares(1000,[-1,1])).toBeNull() })
+  it("negative shares rejected even if sum > 0", () => {
+    expect(allocateShares(1000, [-1, 1])).toBeNull()
+    expect(allocateShares(1000, [-1, 2])).toBeNull()
+  })
 })
 
 describe("allocateExact exhaustive", () => {

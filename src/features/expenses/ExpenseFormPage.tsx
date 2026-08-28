@@ -40,11 +40,14 @@ export function ExpenseFormPage() {
   const membersLoading = !tripMembers
   const isArchived = trip?.status === "archived"
   const baseCurrency = (trip as any)?.base_currency ?? "INR"
+  const dec = decimalsFor(baseCurrency)
+  const defaultAmountStr = dec === 0 ? "10" : "10.00"
+  const defaultAmountMinor = parseCurrencyInput(defaultAmountStr, baseCurrency) ?? (dec === 0 ? 10 : 1000)
   const requestIdRef = useRef(crypto.randomUUID())
   const shouldAddAnotherRef = useRef(false)
   const draftKey = `tripsplit:draft:${tripId}`
   const [splitMode, setSplitMode] = useState<"equal" | "exact" | "percent" | "shares">("equal")
-  const [amountStr, setAmountStr] = useState("10.00")
+  const [amountStr, setAmountStr] = useState(defaultAmountStr)
   const [percentInputs, setPercentInputs] = useState<number[]>([])
   const [shareInputs, setShareInputs] = useState<number[]>([])
   const [selectedIds, setSelectedIds] = useState<string[]>([])
@@ -71,13 +74,16 @@ export function ExpenseFormPage() {
       if (rawDraft) restoredDraft = JSON.parse(rawDraft)
     } catch {}
 
-    const initAmount = restoredDraft?.amountStr || "10.00"
-    const initMinor = parseCurrencyInput(initAmount, baseCurrency) ?? 1000
+    const curDec = decimalsFor(baseCurrency)
+    const fallbackAmount = curDec === 0 ? "10" : "10.00"
+    const initAmount = restoredDraft?.amountStr || fallbackAmount
+    const initMinor = parseCurrencyInput(initAmount, baseCurrency) ?? (curDec === 0 ? 10 : 1000)
     setAmountStr(initAmount)
     setPayerInputs([{ userId: firstId, amountMinor: initMinor }])
     setPercentInputs(ids.map(() => 0))
     setShareInputs(ids.map(() => 1))
     const alloc = allocateEqual(initMinor, ids.length)
+    setValue("amountMinor", initMinor as any)
     setValue("payers", [{ userId: firstId, amountPaidMinor: initMinor }] as any)
     setValue("splits", ids.map((id, i) => ({ userId: id, amountOwedMinor: alloc[i] })) as any)
 
@@ -95,15 +101,17 @@ export function ExpenseFormPage() {
     watch,
     setValue,
     reset,
+    clearErrors,
     formState: { errors, isSubmitting, isDirty },
   } = useForm<Form>({
+    mode: "onChange",
     resolver: zodResolver(expenseSchema),
     defaultValues: {
       tripId: tripId!,
       currency: baseCurrency,
       category: "food",
       expenseDate: new Date().toISOString().slice(0, 10),
-      amountMinor: 1000,
+      amountMinor: defaultAmountMinor,
       payers: payerInputs.map((p) => ({ userId: p.userId, amountPaidMinor: p.amountMinor })),
       splits: selectedIds.map((id) => ({ userId: id, amountOwedMinor: 500 })),
       requestId: requestIdRef.current,
@@ -155,19 +163,63 @@ export function ExpenseFormPage() {
     return () => window.removeEventListener("beforeunload", h)
   }, [isDirty])
 
-  const dec = decimalsFor(baseCurrency)
   const watchedSplits = watch("splits") as any[] | undefined
   const amountMinor = parseCurrencyInput(amountStr, baseCurrency) ?? 0
   const totalPaid = payerInputs.reduce((s, p) => s + p.amountMinor, 0)
   const totalAllocatedMinor = (watchedSplits ?? []).reduce((s: number, v: any) => s + (Number(v.amountOwedMinor) || 0), 0)
 
   function syncSplitsToForm(next: { userId: string; amountOwedMinor: number }[]) {
-    setValue("splits", next as any, { shouldValidate: true })
+    setValue("splits", next as any, { shouldDirty: true, shouldValidate: true })
+    const newTotal = next.reduce((s, v) => s + (Number(v.amountOwedMinor) || 0), 0)
+    if (newTotal === amountMinor) {
+      clearErrors("splits")
+    }
   }
 
   function equalize(ids = selectedIds) {
     const alloc = allocateEqual(amountMinor, ids.length)
-    syncSplitsToForm(ids.map((id, i) => ({ userId: id, amountOwedMinor: alloc[i] })))
+    syncSplitsToForm(ids.map((id, i) => ({ userId: id, amountOwedMinor: alloc[i] ?? 0 })))
+  }
+
+  function switchSplitMode(nextMode: "equal" | "exact" | "percent" | "shares") {
+    setSplitMode(nextMode)
+    if (nextMode === "equal") {
+      equalize(selectedIds)
+    } else if (nextMode === "exact") {
+      const alloc = allocateEqual(amountMinor, selectedIds.length)
+      const nextSplits = selectedIds.map((id, i) => ({
+        userId: id,
+        amountOwedMinor: alloc[i] ?? 0,
+      }))
+      syncSplitsToForm(nextSplits)
+    } else if (nextMode === "percent") {
+      let nextPercents = [...percentInputs]
+      const sum = nextPercents.reduce((a, b) => a + b, 0)
+      if (nextPercents.length !== selectedIds.length || Math.abs(sum - 100) > 0.001) {
+        if (selectedIds.length > 0) {
+          const basePct = Math.floor(100 / selectedIds.length)
+          const remPct = 100 - basePct * selectedIds.length
+          nextPercents = selectedIds.map((_, i) => basePct + (i < remPct ? 1 : 0))
+        } else {
+          nextPercents = []
+        }
+        setPercentInputs(nextPercents)
+      }
+      const alloc = allocatePercent(amountMinor, nextPercents)
+      if (alloc) {
+        syncSplitsToForm(selectedIds.map((id, i) => ({ userId: id, amountOwedMinor: alloc[i] })))
+      }
+    } else if (nextMode === "shares") {
+      let nextShares = [...shareInputs]
+      if (nextShares.length !== selectedIds.length || nextShares.some((s) => s <= 0)) {
+        nextShares = selectedIds.map(() => 1)
+        setShareInputs(nextShares)
+      }
+      const alloc = allocateShares(amountMinor, nextShares)
+      if (alloc) {
+        syncSplitsToForm(selectedIds.map((id, i) => ({ userId: id, amountOwedMinor: alloc[i] })))
+      }
+    }
   }
 
   function handlePercentChange(idx: number, val: number) {
@@ -175,7 +227,12 @@ export function ExpenseFormPage() {
     next[idx] = val
     setPercentInputs(next)
     const alloc = allocatePercent(amountMinor, next)
-    if (alloc) syncSplitsToForm(selectedIds.map((id, i) => ({ userId: id, amountOwedMinor: alloc[i] })))
+    if (alloc) {
+      syncSplitsToForm(selectedIds.map((id, i) => ({ userId: id, amountOwedMinor: alloc[i] })))
+    } else {
+      const raw = next.map((p) => Math.round((amountMinor * (p || 0)) / 100))
+      syncSplitsToForm(selectedIds.map((id, i) => ({ userId: id, amountOwedMinor: raw[i] })))
+    }
   }
 
   function handleSharesChange(idx: number, val: number) {
@@ -183,43 +240,83 @@ export function ExpenseFormPage() {
     next[idx] = val
     setShareInputs(next)
     const alloc = allocateShares(amountMinor, next)
-    if (alloc) syncSplitsToForm(selectedIds.map((id, i) => ({ userId: id, amountOwedMinor: alloc[i] })))
+    if (alloc) {
+      syncSplitsToForm(selectedIds.map((id, i) => ({ userId: id, amountOwedMinor: alloc[i] })))
+    } else {
+      syncSplitsToForm(selectedIds.map((id) => ({ userId: id, amountOwedMinor: 0 })))
+    }
+  }
+
+  function applyParticipantSelection(nextIds: string[]) {
+    setSelectedIds(nextIds)
+    if (nextIds.length === 0) {
+      setPercentInputs([])
+      setShareInputs([])
+      syncSplitsToForm([])
+      return
+    }
+
+    if (splitMode === "equal") {
+      setPercentInputs(nextIds.map(() => 0))
+      setShareInputs(nextIds.map(() => 1))
+      equalize(nextIds)
+    } else if (splitMode === "shares") {
+      const nextShares = nextIds.map((id) => {
+        const prevIdx = selectedIds.indexOf(id)
+        return prevIdx !== -1 && shareInputs[prevIdx] !== undefined ? shareInputs[prevIdx] : 1
+      })
+      setShareInputs(nextShares)
+      const alloc = allocateShares(amountMinor, nextShares)
+      if (alloc) {
+        syncSplitsToForm(nextIds.map((id, i) => ({ userId: id, amountOwedMinor: alloc[i] })))
+      }
+    } else if (splitMode === "percent") {
+      const nextPercents = nextIds.map((id) => {
+        const prevIdx = selectedIds.indexOf(id)
+        return prevIdx !== -1 && percentInputs[prevIdx] !== undefined ? percentInputs[prevIdx] : 0
+      })
+      setPercentInputs(nextPercents)
+      const alloc = allocatePercent(amountMinor, nextPercents)
+      if (alloc) {
+        syncSplitsToForm(nextIds.map((id, i) => ({ userId: id, amountOwedMinor: alloc[i] })))
+      }
+    } else if (splitMode === "exact") {
+      const curSplits = (watch("splits") as any[]) ?? []
+      const nextSplits = nextIds.map((id) => {
+        const existingSplit = curSplits.find((s) => s.userId === id)
+        return {
+          userId: id,
+          amountOwedMinor: existingSplit?.amountOwedMinor ?? 0,
+        }
+      })
+      syncSplitsToForm(nextSplits)
+    }
   }
 
   function toggleParticipant(id: string) {
     const next = selectedIds.includes(id) ? selectedIds.filter((x) => x !== id) : [...selectedIds, id]
-    setSelectedIds(next)
-    setPercentInputs(next.map(() => 0))
-    setShareInputs(next.map(() => 1))
-    equalize(next)
+    applyParticipantSelection(next)
   }
 
   function selectAllMembers() {
     const allIds = members.map((m: any) => m.id)
-    setSelectedIds(allIds)
-    setPercentInputs(allIds.map(() => 0))
-    setShareInputs(allIds.map(() => 1))
-    equalize(allIds)
+    applyParticipantSelection(allIds)
   }
 
   function clearSelectedMembers() {
-    setSelectedIds([])
-    syncSplitsToForm([])
+    applyParticipantSelection([])
   }
 
   function invertSelectedMembers() {
     const allIds = members.map((m: any) => m.id)
     const inverted = allIds.filter((id: string) => !selectedIds.includes(id))
-    setSelectedIds(inverted)
-    setPercentInputs(inverted.map(() => 0))
-    setShareInputs(inverted.map(() => 1))
-    if (splitMode === "equal") equalize(inverted)
+    applyParticipantSelection(inverted)
   }
 
   // init percent/shares when amount changes in equal mode
   useEffect(() => {
     if (splitMode === "equal" && selectedIds.length) equalize()
-  }, [amountMinor, selectedIds.length])
+  }, [amountMinor, selectedIds.length, splitMode])
 
   // sync single payer amount with total amount
   useEffect(() => {
@@ -230,13 +327,28 @@ export function ExpenseFormPage() {
     }
   }, [amountMinor, payerInputs.length])
 
+  // clear payer and split errors when totals match exactly
+  useEffect(() => {
+    if (totalPaid === amountMinor && errors.payers) {
+      clearErrors("payers")
+    }
+  }, [totalPaid, amountMinor, errors.payers, clearErrors])
+
+  useEffect(() => {
+    if (totalAllocatedMinor === amountMinor && errors.splits) {
+      clearErrors("splits")
+    }
+  }, [totalAllocatedMinor, amountMinor, errors.splits, clearErrors])
+
   // auto-save draft on input change
   const currentDesc = watch("description")
   const currentNotes = watch("notes")
   const currentDate = watch("expenseDate")
   useEffect(() => {
     if (expenseId) return
-    if (!currentDesc && !currentNotes && amountStr === "10.00") return
+    const curDec = decimalsFor(baseCurrency)
+    const defaultAmount = curDec === 0 ? "10" : "10.00"
+    if (!currentDesc && !currentNotes && amountStr === defaultAmount) return
     try {
       localStorage.setItem(
         draftKey,
@@ -249,7 +361,7 @@ export function ExpenseFormPage() {
         })
       )
     } catch {}
-  }, [currentDesc, currentNotes, currentCategory, currentDate, amountStr, expenseId, draftKey])
+  }, [currentDesc, currentNotes, currentCategory, currentDate, amountStr, expenseId, draftKey, baseCurrency])
 
   async function onSubmit(v: Form) {
     try {
@@ -282,12 +394,14 @@ export function ExpenseFormPage() {
         setValue("notes", "" as any, { shouldDirty: false })
         setValue("receiptPath", null as any, { shouldDirty: false })
         setLocalReceiptPreview(null)
-        setAmountStr("10.00")
-        const initialMinor = parseCurrencyInput("10.00", baseCurrency) ?? 1000
-        setValue("amountMinor", initialMinor as any)
+        const curDec = decimalsFor(baseCurrency)
+        const resetAmountStr = curDec === 0 ? "10" : "10.00"
+        const resetAmountMinor = parseCurrencyInput(resetAmountStr, baseCurrency) ?? (curDec === 0 ? 10 : 1000)
+        setAmountStr(resetAmountStr)
+        setValue("amountMinor", resetAmountMinor as any)
         if (payerInputs.length === 1) {
-          setPayerInputs([{ userId: payerInputs[0].userId, amountMinor: initialMinor }])
-          setValue("payers", [{ userId: payerInputs[0].userId, amountPaidMinor: initialMinor }] as any)
+          setPayerInputs([{ userId: payerInputs[0].userId, amountMinor: resetAmountMinor }])
+          setValue("payers", [{ userId: payerInputs[0].userId, amountPaidMinor: resetAmountMinor }] as any)
         }
         if (splitMode === "equal") {
           equalize()
@@ -352,7 +466,47 @@ export function ExpenseFormPage() {
 
       <div className="grid grid-cols-2 gap-3">
         <label htmlFor="exp-amount" className="block text-xs font-semibold uppercase tracking-wider text-ink-soft">Amount ({baseCurrency})
-          <input id="exp-amount" value={amountStr} onChange={(e) => { setAmountStr(e.target.value); const minor = parseCurrencyInput(e.target.value, baseCurrency); if (minor !== null) setValue("amountMinor", minor as any, { shouldValidate: true }) }} placeholder={dec === 0 ? "1200" : "1250.50"} className="mt-1 w-full min-h-11 rounded-xl border border-hair bg-surface px-3 py-3 text-base font-semibold tabular-nums focus:border-brand focus:ring-1 focus:ring-brand outline-none" aria-describedby="exp-amount-hint" inputMode="decimal" />
+          <input
+            id="exp-amount"
+            value={amountStr}
+            onChange={(e) => {
+              const newStr = e.target.value
+              setAmountStr(newStr)
+              const minor = parseCurrencyInput(newStr, baseCurrency)
+              if (minor !== null) {
+                setValue("amountMinor", minor as any, { shouldValidate: true, shouldDirty: true })
+                if (payerInputs.length === 1) {
+                  const nextPayers = [{ userId: payerInputs[0].userId, amountMinor: minor }]
+                  setPayerInputs(nextPayers)
+                  setValue("payers", nextPayers.map((x) => ({ userId: x.userId, amountPaidMinor: x.amountMinor })) as any, { shouldValidate: true, shouldDirty: true })
+                  clearErrors("payers")
+                }
+                if (splitMode === "equal") {
+                  const alloc = allocateEqual(minor, selectedIds.length)
+                  syncSplitsToForm(selectedIds.map((id, i) => ({ userId: id, amountOwedMinor: alloc[i] ?? 0 })))
+                } else if (splitMode === "percent") {
+                  const alloc = allocatePercent(minor, percentInputs)
+                  if (alloc) {
+                    syncSplitsToForm(selectedIds.map((id, i) => ({ userId: id, amountOwedMinor: alloc[i] })))
+                  } else {
+                    const raw = percentInputs.map((p) => Math.round((minor * (p || 0)) / 100))
+                    syncSplitsToForm(selectedIds.map((id, i) => ({ userId: id, amountOwedMinor: raw[i] })))
+                  }
+                } else if (splitMode === "shares") {
+                  const alloc = allocateShares(minor, shareInputs)
+                  if (alloc) {
+                    syncSplitsToForm(selectedIds.map((id, i) => ({ userId: id, amountOwedMinor: alloc[i] })))
+                  } else {
+                    syncSplitsToForm(selectedIds.map((id) => ({ userId: id, amountOwedMinor: 0 })))
+                  }
+                }
+              }
+            }}
+            placeholder={dec === 0 ? "1200" : "1250.50"}
+            className="mt-1 w-full min-h-11 rounded-xl border border-hair bg-surface px-3 py-3 text-base font-semibold tabular-nums focus:border-brand focus:ring-1 focus:ring-brand outline-none"
+            aria-describedby="exp-amount-hint"
+            inputMode="decimal"
+          />
           <span id="exp-amount-hint" className="mt-1 block text-[11px] font-normal text-ink-faint">Preview: {formatMinor(amountMinor, baseCurrency)}</span>
           {errors.amountMinor && <span className="text-xs text-owe" role="alert">{errors.amountMinor.message}</span>}
         </label>
@@ -428,7 +582,12 @@ export function ExpenseFormPage() {
                 const next = [...payerInputs]
                 next[i] = { ...next[i], amountMinor: minor ?? 0 }
                 setPayerInputs(next)
-                setValue("payers", next.map((x) => ({ userId: x.userId, amountPaidMinor: x.amountMinor })) as any)
+                const nextPayers = next.map((x) => ({ userId: x.userId, amountPaidMinor: x.amountMinor }))
+                setValue("payers", nextPayers as any, { shouldDirty: true })
+                const newTotalPaid = next.reduce((s, p) => s + p.amountMinor, 0)
+                if (newTotalPaid === amountMinor) {
+                  clearErrors("payers")
+                }
               }}
               className="w-32 min-h-11 rounded-lg border border-hair bg-surface px-3 text-sm font-semibold tabular-nums"
               aria-label={`Payer amount for ${members.find((m: any) => m.id === p.userId)?.name ?? p.userId}`}
@@ -438,7 +597,12 @@ export function ExpenseFormPage() {
                 type="button"
                 onClick={() => {
                   const next = payerInputs.filter((_, idx) => idx !== i)
-                  setPayerInputs(next.length ? next : [{ userId: members[0].id, amountMinor: amountMinor }])
+                  const updated = next.length ? next : [{ userId: members[0].id, amountMinor: amountMinor }]
+                  setPayerInputs(updated)
+                  setValue("payers", updated.map((x) => ({ userId: x.userId, amountPaidMinor: x.amountMinor })) as any, { shouldDirty: true })
+                  if (updated.reduce((s, p) => s + p.amountMinor, 0) === amountMinor) {
+                    clearErrors("payers")
+                  }
                 }}
                 className="min-h-11 w-8 text-ink-faint hover:text-owe font-bold"
               >
@@ -454,7 +618,11 @@ export function ExpenseFormPage() {
         >
           + Add multiple payers
         </button>
-        {errors.payers && <p className="text-xs text-owe" role="alert">{(errors.payers as any).message}</p>}
+        {errors.payers && totalPaid !== amountMinor && (
+          <p className="text-xs text-owe" role="alert">
+            {(errors.payers as any).message ?? "Payer sum must equal total"}
+          </p>
+        )}
       </div>
 
       {/* Split Section */}
@@ -473,12 +641,7 @@ export function ExpenseFormPage() {
               <button
                 key={m}
                 type="button"
-                onClick={() => {
-                  setSplitMode(m)
-                  if (m === "equal") equalize()
-                  if (m === "percent") setPercentInputs(selectedIds.map(() => 0))
-                  if (m === "shares") setShareInputs(selectedIds.map(() => 1))
-                }}
+                onClick={() => switchSplitMode(m)}
                 className={`min-h-8 rounded-lg px-2.5 text-xs font-semibold capitalize transition-colors ${
                   splitMode === m ? "bg-brand text-white" : "bg-surface text-ink-soft hover:bg-hair"
                 }`}
@@ -612,7 +775,11 @@ export function ExpenseFormPage() {
             <span className="text-owe font-semibold">({formatMinor(amountMinor - totalAllocatedMinor, baseCurrency)} remaining)</span>
           )}
         </p>
-        {errors.splits && <p className="text-xs text-owe" role="alert">{(errors.splits as any).message}</p>}
+        {errors.splits && totalAllocatedMinor !== amountMinor && (
+          <p className="text-xs text-owe" role="alert">
+            {(errors.splits as any).message ?? "Split sum must equal total"}
+          </p>
+        )}
       </div>
 
       {/* Receipt Upload & Preview */}

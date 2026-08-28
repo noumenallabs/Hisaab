@@ -91,7 +91,11 @@ export function ProfilePage() {
           <label className="block text-xs font-bold uppercase tracking-wider text-ink-soft">
             Display Name
             <input
-              {...register("name")}
+              {...register("name", {
+                onChange: () => {
+                  if (msg) setMsg(null)
+                },
+              })}
               aria-invalid={!!errors.name}
               aria-describedby={errors.name ? "name-error" : undefined}
               maxLength={60}

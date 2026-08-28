@@ -1,3 +1,4 @@
+import { useState } from "react"
 import { describe, it, expect, vi } from "vitest"
 import { render, screen } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
@@ -134,5 +135,32 @@ describe("CurrencyInput Component", () => {
     const input = screen.getByRole("textbox")
     await user.type(input, "1,250.50")
     expect(onChange).toHaveBeenLastCalledWith(125050)
+  })
+
+  it("does not prematurely wipe intermediate tokens like leading dot or trailing dot in controlled usage", async () => {
+    const user = userEvent.setup()
+    function ControlledParent() {
+      const [val, setVal] = useState<number | null>(null)
+      return <CurrencyInput valueMinor={val} onChange={setVal} currency="INR" />
+    }
+    render(<ControlledParent />)
+    const input = screen.getByRole("textbox") as HTMLInputElement
+
+    // User types "."
+    await user.type(input, ".")
+    expect(input.value).toBe(".")
+
+    // User types "5" -> .5 (50 minor)
+    await user.type(input, "5")
+    expect(input.value).toBe(".5")
+
+    // Clear and type "10."
+    await user.clear(input)
+    await user.type(input, "10.")
+    expect(input.value).toBe("10.")
+
+    // Continue typing "75" -> 10.75 (1075 minor)
+    await user.type(input, "75")
+    expect(input.value).toBe("10.75")
   })
 })

@@ -26,4 +26,26 @@ describe("SettlementDialog", () => {
     const { container } = render(<SettlementDialog open={false} tripId="t1" fromId="u1" toId="u2" outstandingMinor={100} onClose={vi.fn()} />)
     expect(container.innerHTML).toBe("")
   })
+  it("clears error message reactively when user modifies amount input or clicks full amount", async () => {
+    const user = userEvent.setup()
+    render(<SettlementDialog open tripId="t1" fromId="u1" toId="u2" outstandingMinor={500} onClose={vi.fn()} />)
+    const amount = screen.getByLabelText(/AMOUNT/i) as HTMLInputElement
+    await user.clear(amount)
+    await user.type(amount, "1000")
+    await user.click(screen.getByText(/Confirm/))
+    expect(await screen.findByText(/exceeds outstanding/)).toBeInTheDocument()
+
+    // Type into amount input
+    await user.type(amount, "0")
+    expect(screen.queryByText(/exceeds outstanding/)).not.toBeInTheDocument()
+
+    // Trigger error again
+    await user.click(screen.getByText(/Confirm/))
+    expect(await screen.findByText(/exceeds outstanding/)).toBeInTheDocument()
+
+    // Click full amount button
+    const fullAmountBtn = screen.getByRole("button", { name: /Full amount:/i })
+    await user.click(fullAmountBtn)
+    expect(screen.queryByText(/exceeds outstanding/)).not.toBeInTheDocument()
+  })
 })

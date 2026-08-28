@@ -39,13 +39,13 @@ export function CurrencyInput({
 
   // Synchronize internal text with incoming valueMinor when updated externally
   useEffect(() => {
-    if (valueMinor == null) {
-      if (text !== "") setText("")
-      return
-    }
     const currentParsed = parseCurrencyInput(text, currency)
     if (currentParsed !== valueMinor) {
-      setText(String(fromMinor(valueMinor, effectiveDecimals)))
+      if (valueMinor == null) {
+        if (text !== "") setText("")
+      } else {
+        setText(String(fromMinor(valueMinor, effectiveDecimals)))
+      }
     }
   }, [valueMinor, currency, effectiveDecimals])
 

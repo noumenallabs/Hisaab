@@ -22,8 +22,12 @@ export function SignUpPage() {
   const {
     register,
     handleSubmit,
+    trigger,
     formState: { errors, isSubmitting },
-  } = useForm<Form>({ resolver: zodResolver(signUpSchema) })
+  } = useForm<Form>({
+    mode: "onChange",
+    resolver: zodResolver(signUpSchema),
+  })
   async function onSubmit(v: Form) {
     try {
       setErr(null)
@@ -73,7 +77,11 @@ export function SignUpPage() {
             />
             <input
               type="password"
-              {...register("password")}
+              {...register("password", {
+                onChange: () => {
+                  trigger("confirm")
+                },
+              })}
               className="w-full min-h-11 rounded-xl border border-hair bg-surface py-2.5 pl-10 pr-3 text-sm outline-none focus:border-brand focus:ring-1 focus:ring-brand"
             />
           </div>

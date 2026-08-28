@@ -71,6 +71,7 @@ export function allocatePercent(
   percents: number[],
 ): number[] | null {
   if (!percents.length) return null
+  if (percents.some((p) => p < 0)) return null
   const sum = percents.reduce((a, b) => a + b, 0)
   if (Math.abs(sum - 100) > 0.001) return null
   const raw = percents.map((p) => (totalMinor * p) / 100)
@@ -89,6 +90,7 @@ export function allocateShares(
   shares: number[],
 ): number[] | null {
   if (!shares.length) return null
+  if (shares.some((s) => s < 0)) return null
   const totalShares = shares.reduce((a, b) => a + b, 0)
   if (totalShares <= 0) return null
   const raw = shares.map((s) => (totalMinor * s) / totalShares)
