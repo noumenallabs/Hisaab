@@ -541,19 +541,21 @@ export function BalancesPage() {
                   return (
                     <li
                       key={i}
-                      className="flex items-center justify-between rounded-xl border border-hair bg-canvas/30 p-3 text-sm"
+                      className="flex items-center justify-between rounded-xl border border-hair bg-canvas/30 p-3 text-sm shadow-2xs"
                     >
                       <div className="min-w-0 pr-2">
-                        <p className="text-xs font-semibold text-ink">
-                          <span className="font-bold text-red-600 dark:text-red-400">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <UserAvatar id={t.fromId} name={fromMemberName} size="xs" />
+                          <span className="font-bold text-xs text-red-600 dark:text-red-400">
                             {fromMemberName}
-                          </span>{" "}
-                          pays{" "}
-                          <span className="font-bold text-emerald-600 dark:text-emerald-400">
+                          </span>
+                          <span className="text-[11px] text-ink-soft font-medium">pays</span>
+                          <UserAvatar id={t.toId} name={toMemberName} size="xs" />
+                          <span className="font-bold text-xs text-emerald-600 dark:text-emerald-400">
                             {toMemberName}
                           </span>
-                        </p>
-                        <p className="mt-0.5 font-mono text-sm font-bold text-ink">
+                        </div>
+                        <p className="mt-1 font-mono text-sm font-bold text-ink tnum">
                           {formatMinor(t.amount, baseCurrency)}
                         </p>
                         <button

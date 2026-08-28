@@ -194,19 +194,21 @@ export function DailyBreakdown({
                               key={idx}
                               className="flex items-center justify-between rounded-xl border border-hair/60 bg-surface p-3 text-xs shadow-2xs"
                             >
-                              <div className="flex items-center gap-2 min-w-0">
-                                <span className="font-semibold text-ink">
+                              <div className="flex items-center gap-1.5 min-w-0 flex-wrap">
+                                <UserAvatar id={t.fromId} name={fromName} size="xs" />
+                                <span className="font-bold text-xs text-red-600 dark:text-red-400">
                                   {fromName} {isFromMe && "(You)"}
                                 </span>
                                 <span className="text-ink-soft text-[11px]">pays</span>
-                                <ArrowRight size={12} className="text-brand shrink-0" />
-                                <span className="font-semibold text-ink">
+                                <ArrowRight size={11} className="text-ink-faint shrink-0" />
+                                <UserAvatar id={t.toId} name={toName} size="xs" />
+                                <span className="font-bold text-xs text-emerald-600 dark:text-emerald-400">
                                   {toName} {isToMe && "(You)"}
                                 </span>
                               </div>
 
                               <div className="flex items-center gap-3 shrink-0 ml-3">
-                                <span className="font-mono text-xs font-bold text-ink">
+                                <span className="font-mono text-xs font-bold text-ink tnum">
                                   {formatMinor(t.amount, currency)}
                                 </span>
                                 <button

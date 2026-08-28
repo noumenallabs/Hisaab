@@ -70,7 +70,7 @@ export function ExpensesPage() {
     })
     return arr
   }, [filtered, sortBy])
-  if (supabase && q.isLoading) return <Skeleton className="h-40" />
+  if (q.isLoading) return <Skeleton className="h-40" />
   const isArchived = (trip as any)?.status === "archived"
   const isSettled = (trip as any)?.status === "settled"
   const canAdd = !isArchived && !isSettled
@@ -270,34 +270,48 @@ export function ExpensesPage() {
       </div>
 
       {sorted.length === 0 && list.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-hair bg-surface p-12 text-center" role="status">
-          <p className="text-base font-bold">No expenses recorded yet</p>
-          <p className="mt-1 text-xs text-ink-soft">Add your first expense to calculate splits and group balances.</p>
+        <div className="rounded-2xl border border-dashed border-hair bg-surface p-12 text-center shadow-2xs space-y-3" role="status">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-soft/60 text-2xl border border-brand/20">
+            💸
+          </div>
+          <div>
+            <p className="text-base font-bold text-ink">No expenses recorded yet</p>
+            <p className="mt-1 text-xs text-ink-soft max-w-sm mx-auto">Add your first expense to calculate splits and group balances automatically.</p>
+          </div>
           {canAdd && (
-            <Link
-              to={`/trips/${tripId}/expenses/new`}
-              className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-xl bg-brand px-5 text-sm font-bold text-white hover:bg-blue-700 shadow-sm"
-            >
-              <Plus size={16} /> Add expense
-            </Link>
+            <div className="pt-2">
+              <Link
+                to={`/trips/${tripId}/expenses/new`}
+                className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-brand px-5 text-sm font-bold text-white hover:bg-blue-700 shadow-2xs transition-colors"
+              >
+                <Plus size={16} /> Add first expense
+              </Link>
+            </div>
           )}
         </div>
       ) : sorted.length === 0 ? (
-        <div className="rounded-2xl border border-hair bg-surface p-10 text-center" role="status">
-          <p className="text-base font-bold">No matching expenses</p>
-          <p className="mt-1 text-xs text-ink-soft">No expenses matched your filter criteria.</p>
-          <button
-            onClick={() => {
-              setQuery("")
-              setCategory("all")
-              setPayer("all")
-              setDateFrom("")
-              setDateTo("")
-            }}
-            className="mt-4 min-h-10 rounded-xl border border-hair px-4 text-xs font-semibold hover:bg-canvas"
-          >
-            Clear all filters
-          </button>
+        <div className="rounded-2xl border border-hair bg-surface p-10 text-center shadow-2xs space-y-3" role="status">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-canvas text-xl border border-hair">
+            🔍
+          </div>
+          <div>
+            <p className="text-base font-bold text-ink">No matching expenses</p>
+            <p className="mt-1 text-xs text-ink-soft">No expenses matched your filter criteria.</p>
+          </div>
+          <div className="pt-1">
+            <button
+              onClick={() => {
+                setQuery("")
+                setCategory("all")
+                setPayer("all")
+                setDateFrom("")
+                setDateTo("")
+              }}
+              className="min-h-10 rounded-xl border border-hair bg-canvas/60 px-4 text-xs font-bold text-ink hover:bg-canvas transition-colors shadow-2xs"
+            >
+              Clear all filters
+            </button>
+          </div>
         </div>
       ) : (
         <div className="space-y-4">

@@ -1,15 +1,80 @@
-import { parseCurrencyInput, toMinor } from "@/features/expenses/money"
+import React, { useState, useEffect } from "react"
+import { decimalsFor, fromMinor, parseCurrencyInput } from "@/lib/currency"
 
-export function CurrencyInput({ valueMinor, onChange, currency = "INR", decimals = 0 }: { valueMinor: number; onChange: (minor: number | null) => void; currency?: string; decimals?: number }) {
-  function handle(e: React.ChangeEvent<HTMLInputElement>) {
-    const parsed = parseCurrencyInput(e.target.value, decimals)
+export type CurrencyInputProps = {
+  valueMinor?: number | null
+  onChange: (minor: number | null) => void
+  currency?: string
+  decimals?: number
+  disabled?: boolean
+  className?: string
+  placeholder?: string
+  id?: string
+  name?: string
+  "aria-label"?: string
+  "aria-describedby"?: string
+  "aria-invalid"?: boolean
+}
+
+export function CurrencyInput({
+  valueMinor,
+  onChange,
+  currency = "INR",
+  decimals,
+  disabled = false,
+  className = "",
+  placeholder = "0",
+  id,
+  name,
+  "aria-label": ariaLabel,
+  "aria-describedby": ariaDescribedby,
+  "aria-invalid": ariaInvalid,
+}: CurrencyInputProps) {
+  const effectiveDecimals = decimals ?? decimalsFor(currency)
+
+  const [text, setText] = useState<string>(() => {
+    if (valueMinor == null) return ""
+    return String(fromMinor(valueMinor, effectiveDecimals))
+  })
+
+  // Synchronize internal text with incoming valueMinor when updated externally
+  useEffect(() => {
+    if (valueMinor == null) {
+      if (text !== "") setText("")
+      return
+    }
+    const currentParsed = parseCurrencyInput(text, currency)
+    if (currentParsed !== valueMinor) {
+      setText(String(fromMinor(valueMinor, effectiveDecimals)))
+    }
+  }, [valueMinor, currency, effectiveDecimals])
+
+  function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const val = e.target.value
+    setText(val)
+    const parsed = parseCurrencyInput(val, currency)
     onChange(parsed)
   }
-  const display = (valueMinor / Math.pow(10, decimals)).toString()
+
   return (
-    <div className="relative">
-      <span className="absolute left-3 top-3 text-xs font-semibold text-ink-faint">{currency}</span>
-      <input defaultValue={display} onChange={handle} placeholder="0" className="w-full rounded-md border border-hair bg-surface py-3 pl-12 pr-3 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand-soft" />
+    <div className={`relative flex items-center ${className}`}>
+      <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-ink-faint select-none">
+        {currency}
+      </span>
+      <input
+        id={id}
+        name={name}
+        type="text"
+        inputMode="decimal"
+        disabled={disabled}
+        value={text}
+        onChange={handleChange}
+        placeholder={placeholder}
+        className="w-full rounded-xl border border-hair bg-surface py-2.5 pl-12 pr-3 text-sm font-semibold tabular-nums outline-none transition-colors focus:border-brand focus:ring-1 focus:ring-brand disabled:cursor-not-allowed disabled:opacity-50"
+        aria-label={ariaLabel}
+        aria-describedby={ariaDescribedby}
+        aria-invalid={ariaInvalid}
+      />
     </div>
   )
 }

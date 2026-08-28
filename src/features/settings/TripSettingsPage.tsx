@@ -12,6 +12,7 @@ import { useAuth } from "@/lib/auth"
 import { useQueryClient } from "@tanstack/react-query"
 import { useOnline } from "@/lib/network"
 import { tripMembersKeys } from "@/features/trips/useMembers"
+import { UserAvatar } from "@/components/feedback/UserAvatar"
 
 export function TripSettingsPage() {
   const { tripId } = useParams()
@@ -80,10 +81,10 @@ export function TripSettingsPage() {
   return (
     <div className="space-y-6">
       <h2 className="text-lg font-bold">Trip settings</h2>
-      <div className="rounded-xl border border-hair bg-surface p-6">
-        <h3 className="font-semibold">{trip?.name ?? "Trip"}</h3>
-        <p className="text-sm text-ink-soft">
-          {trip?.destination} · {trip?.base_currency} · {trip?.status}
+      <div className="rounded-2xl border border-hair bg-surface p-6 shadow-2xs">
+        <h3 className="font-bold text-base text-ink">{trip?.name ?? "Trip"}</h3>
+        <p className="text-xs text-ink-soft mt-0.5 capitalize">
+          {trip?.destination} · {trip?.base_currency} · <span className="font-semibold text-brand">{trip?.status}</span>
         </p>
         {!getSupabase() && (
           <p className="mt-3 text-xs text-ink-faint">
@@ -92,11 +93,11 @@ export function TripSettingsPage() {
           </p>
         )}
       </div>
-      {getSupabase() && !isArchived && isOwner ? <InviteManager tripId={tripId!} /> : getSupabase() && isArchived ? <p className="rounded-lg border border-hair bg-canvas p-4 text-sm text-ink-soft" role="status">Archived — invite codes are read-only. Existing codes remain visible but no new codes can be generated.</p> : getSupabase() && !isArchived && !isOwner ? <p className="rounded-lg border border-hair bg-canvas p-4 text-sm text-ink-soft" role="status">Only owners can generate or revoke invite codes.</p> : null}
+      {getSupabase() && !isArchived && isOwner ? <InviteManager tripId={tripId!} /> : getSupabase() && isArchived ? <p className="rounded-2xl border border-hair bg-canvas p-4 text-sm text-ink-soft" role="status">Archived — invite codes are read-only. Existing codes remain visible but no new codes can be generated.</p> : getSupabase() && !isArchived && !isOwner ? <p className="rounded-2xl border border-hair bg-canvas p-4 text-sm text-ink-soft" role="status">Only owners can generate or revoke invite codes.</p> : null}
 
-      <section className="rounded-xl border border-hair bg-surface p-6">
+      <section className="rounded-2xl border border-hair bg-surface p-6 shadow-2xs">
         <div className="flex items-center justify-between">
-          <h3 className="font-semibold">Members ({members.length})</h3>
+          <h3 className="font-bold text-sm uppercase tracking-wider text-ink">Members ({members.length})</h3>
         </div>
         {getSupabase() && !isArchived && isOwner && (
           <form onSubmit={handleAddMember} className="mt-4 flex flex-wrap items-center gap-2">
@@ -113,7 +114,7 @@ export function TripSettingsPage() {
               }}
               placeholder="user@example.com"
               aria-label="Member email address"
-              className="min-h-11 min-w-[200px] flex-1 rounded-md border border-hair bg-surface px-3 py-2 text-sm outline-none focus:border-brand"
+              className="min-h-11 min-w-[200px] flex-1 rounded-xl border border-hair bg-surface px-3 py-2 text-sm outline-none focus:border-brand"
               required
             />
             <label htmlFor="add-member-role" className="sr-only">
@@ -124,7 +125,7 @@ export function TripSettingsPage() {
               value={addRole}
               onChange={(e) => setAddRole(e.target.value as any)}
               aria-label="Member role"
-              className="min-h-11 rounded-md border border-hair bg-surface px-3 py-2 text-sm font-medium"
+              className="min-h-11 rounded-xl border border-hair bg-surface px-3 py-2 text-sm font-medium"
             >
               <option value="member">Member</option>
               <option value="owner">Owner</option>
@@ -132,7 +133,7 @@ export function TripSettingsPage() {
             <button
               type="submit"
               disabled={isAdding || !online || !addEmail.trim()}
-              className="min-h-11 rounded-md bg-brand px-4 text-sm font-bold text-white hover:bg-blue-700 disabled:opacity-50"
+              className="min-h-11 rounded-xl bg-brand px-4 text-sm font-bold text-white hover:bg-blue-700 disabled:opacity-50 transition-colors shadow-2xs"
             >
               {isAdding ? "Adding…" : "Add member"}
             </button>
@@ -141,15 +142,29 @@ export function TripSettingsPage() {
         {addError && <p role="alert" className="mt-2 text-xs font-semibold text-owe">{addError}</p>}
         {members.length === 0 && <p className="mt-3 text-sm text-ink-soft">Loading members…</p>}
         {members.length === 1 && <p className="mt-3 text-xs text-ink-soft">Only admin (you) is a member. Add members directly by email or invite them via invite code.</p>}
-        <ul className="mt-3 space-y-2">
+        <ul className="mt-4 space-y-2.5">
           {(members as any[]).map((m: any) => {
             const uid = m.user_id ?? m.id
             const role = m.role ?? "member"
+            const isCurrentUser = uid === user?.id
             return (
-            <li key={uid} className="flex items-center justify-between rounded-lg border border-hair px-3 py-2 text-sm">
-              <span>{m.name} · {role} <span className="text-xs text-ink-faint">· {m.email ?? uid.slice(0,8)}</span></span>
+            <li key={uid} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-hair bg-canvas/30 p-3.5 text-sm shadow-2xs">
+              <div className="flex items-center gap-3">
+                <UserAvatar id={uid} name={m.name} isCurrentUser={isCurrentUser} size="md" />
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold text-ink">{m.name}</span>
+                    <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
+                      role === "owner" ? "border border-amber-200 bg-amber-100 text-amber-800 dark:border-amber-800/60 dark:bg-amber-950/60 dark:text-amber-300" : "border border-hair bg-surface text-ink-soft"
+                    }`}>
+                      {role}
+                    </span>
+                  </div>
+                  <span className="text-xs text-ink-faint">{m.email ?? uid.slice(0, 8)}</span>
+                </div>
+              </div>
               {getSupabase() && !isArchived && isOwner && (
-                <span className="flex gap-2">
+                <div className="flex items-center gap-2">
                   <button
                     onClick={() =>
                       act(
@@ -162,7 +177,7 @@ export function TripSettingsPage() {
                         "Role updated",
                       )
                     }
-                    className="min-h-11 rounded border px-2 text-xs"
+                    className="min-h-9 rounded-lg border border-hair bg-surface px-3 text-xs font-semibold text-ink hover:bg-canvas transition-colors"
                     aria-label={role === "owner" ? "Change to member" : "Promote to owner"}
                     disabled={roleUnresolved || !online}
                   >
@@ -170,13 +185,13 @@ export function TripSettingsPage() {
                   </button>
                   <button
                     onClick={() => setConfirm(uid)}
-                    className="min-h-11 rounded border px-2 text-xs"
+                    className="min-h-9 rounded-lg border border-owe/20 bg-owe-soft px-3 text-xs font-bold text-owe hover:bg-owe hover:text-white transition-colors"
                     aria-label={`Remove ${m.name}`}
                     disabled={roleUnresolved || !online}
                   >
                     Remove
                   </button>
-                </span>
+                </div>
               )}
             </li>
             )

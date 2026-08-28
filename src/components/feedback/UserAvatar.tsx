@@ -18,35 +18,43 @@ function hashString(str: string): number {
 }
 
 export function UserAvatar({
-  name = "?",
+  name,
   id,
+  avatar,
   isCurrentUser = false,
   size = "md",
+  className = "",
 }: {
   name?: string
   id?: string
+  avatar?: string
   isCurrentUser?: boolean
-  size?: "sm" | "md" | "lg"
+  size?: "xs" | "sm" | "md" | "lg" | "xl"
+  className?: string
 }) {
-  const seed = id || name
+  const displayName = name || (id ? id.replace(/^u_/, "") : "?")
+  const seed = id || displayName
   const paletteIndex = hashString(seed) % AVATAR_PALETTES.length
   const palette = AVATAR_PALETTES[paletteIndex]
 
   const sizeClasses = {
+    xs: "h-5 w-5 text-[9px]",
     sm: "h-6 w-6 text-[10px]",
     md: "h-7 w-7 text-xs",
     lg: "h-9 w-9 text-sm",
+    xl: "h-16 w-16 text-xl font-extrabold",
   }[size]
 
-  const initial = (name.trim()[0] || "?").toUpperCase()
+  const initial = avatar || (displayName.trim()[0] || "?").toUpperCase()
+  const titleText = isCurrentUser ? `${displayName} (You)` : displayName
 
   return (
     <span
       className={`relative inline-flex shrink-0 items-center justify-center rounded-full font-bold border transition-all ${sizeClasses} ${palette} ${
         isCurrentUser ? "ring-2 ring-brand ring-offset-1 ring-offset-surface shadow-2xs" : ""
-      }`}
-      title={isCurrentUser ? `${name} (You)` : name}
-      aria-label={name}
+      } ${className}`}
+      title={titleText}
+      aria-label={displayName}
     >
       {initial}
     </span>

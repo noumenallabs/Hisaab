@@ -11,6 +11,7 @@ import { toUserMessage } from "@/lib/errors"
 
 import { Link } from "react-router"
 import { ArrowLeft } from "lucide-react"
+import { UserAvatar } from "@/components/feedback/UserAvatar"
 
 const profileSchema = z.object({
   name: z.string().trim().min(1, "Name is required").max(60, "Name must be 60 characters or fewer"),
@@ -65,7 +66,7 @@ export function ProfilePage() {
   }
 
   return (
-    <div className="mx-auto max-w-lg space-y-4">
+    <div className="space-y-6 max-w-2xl mx-auto">
       <Link
         to="/trips"
         className="inline-flex items-center gap-1.5 text-xs font-semibold text-ink-soft hover:text-ink transition-colors"
@@ -74,9 +75,12 @@ export function ProfilePage() {
       </Link>
       <div className="rounded-2xl border border-hair bg-surface p-6 sm:p-8 shadow-xs">
         <div className="flex items-center gap-4 border-b border-hair pb-6">
-          <span className="flex h-16 w-16 items-center justify-center rounded-2xl bg-brand text-2xl font-bold text-white shadow-sm">
-            {(user?.name ?? "?")[0].toUpperCase()}
-          </span>
+          <UserAvatar
+            id={user?.id}
+            name={user?.name ?? "?"}
+            isCurrentUser
+            size="xl"
+          />
           <div>
             <h1 className="text-xl font-bold tracking-tight text-ink">{user?.name}</h1>
             <p className="text-xs text-ink-soft">{user?.email}</p>

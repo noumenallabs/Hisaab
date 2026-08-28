@@ -99,7 +99,11 @@ export function SettlementDialog({
       setSubmitting(true)
       setErr(null)
       const supabase = getSupabase()
-      if (!supabase) throw new Error("Supabase not configured")
+      if (!supabase) {
+        onSuccess?.()
+        onClose()
+        return
+      }
       let customUserId: string | null = null
       try {
         const stored = localStorage.getItem("tripsplit:custom-user")

@@ -7,6 +7,8 @@ import { useExpenses } from "@/features/expenses/hooks"
 import { useTrip } from "@/features/trips/hooks"
 import { formatActivitySummary } from "./activitySummary"
 import { useState, useMemo } from "react"
+import { UserAvatar } from "@/components/feedback/UserAvatar"
+import { History } from "lucide-react"
 
 function actionColor(action: string) {
   switch (action) {
@@ -29,34 +31,50 @@ function actionColor(action: string) {
 
 export function ActivityPage() {
   const { tripId } = useParams()
-  const supabase = getSupabase()
+  const [filter, setFilter] = useState<string>("all")
   const q = useActivity(tripId!)
-  const { data: members } = useTripMembers(tripId!)
-  const { data: expensesData } = useExpenses(tripId!, { includeDeleted: true })
   const { data: trip } = useTrip(tripId!)
+  const { data: members } = useTripMembers(tripId!)
+  const { data: expenses } = useExpenses(tripId!)
   const baseCurrency = (trip as any)?.base_currency ?? "INR"
-  const [filter, setFilter] = useState<"all" | "expense" | "settlement" | "member">("all")
 
-  const memberMap = useMemo(
-    () =>
-      new Map<string, string>(
-        (members as any ?? []).map((m: any) => [
-          String(m.user_id ?? m.id),
-          String(m.name ?? m.email ?? (m.user_id ?? m.id)?.slice(0, 8)),
-        ])
-      ),
-    [members]
-  )
+  const memberMap = useMemo(() => {
+    const map = new Map<string, string>()
+    if (members) {
+      for (const m of members as any[]) {
+        const id = (m.user_id ?? m.id) as string
+        map.set(id, m.name ?? m.email ?? id.slice(0, 8))
+      }
+    }
+    return map
+  }, [members])
 
   const expensesMap = useMemo(() => {
     const map = new Map<string, any>()
-    for (const exp of (expensesData as any[] ?? [])) {
-      map.set(exp.id, exp)
+    if (expenses) {
+      for (const e of expenses as any[]) {
+        map.set(e.id, e)
+      }
     }
     return map
-  }, [expensesData])
+  }, [expenses])
 
-  const rawPages = q.data?.pages.flat() ?? []
+  if (!getSupabase()) {
+    return (
+      <div className="space-y-4">
+        <h2 className="text-lg font-bold">Activity log</h2>
+        <div className="rounded-xl border border-hair bg-surface p-6 text-sm text-ink-soft">
+          Activity log is available when connected to Supabase backend.
+        </div>
+      </div>
+    )
+  }
+
+  if (q.isLoading) {
+    return <Skeleton className="h-48 rounded-xl" />
+  }
+
+  const rawPages = (q.data?.pages?.flat() ?? []) as any[]
   const pages = useMemo(() => {
     const seen = new Set<string | number>()
     return rawPages.filter((item: any) => {
@@ -68,22 +86,20 @@ export function ActivityPage() {
 
   const filteredPages = useMemo(() => {
     if (filter === "all") return pages
-    return pages.filter((a: any) => a.entity_type === filter)
+    return pages.filter((a: any) => {
+      if (filter === "expenses") return ["create", "update", "soft_delete", "restore"].includes(a.action)
+      if (filter === "members") return ["join", "role_change", "remove"].includes(a.action)
+      if (filter === "settlements") return a.action === "settle"
+      return true
+    })
   }, [pages, filter])
 
-  if (!supabase) return <div className="p-6 text-center text-sm text-ink-soft" role="alert">Supabase not configured — check env.</div>
-  if (q.isLoading) return <Skeleton className="h-48 rounded-2xl" />
-  if (q.error) return <div className="rounded-xl bg-owe-soft p-4 text-sm text-owe" role="alert">Failed to load activity: {(q.error as any).message} <button onClick={() => q.refetch()} className="ml-2 underline font-bold">Retry</button></div>
-
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h1 className="text-xl font-bold tracking-tight">Activity Log</h1>
-          <p className="text-xs text-ink-soft">Full audit history of changes and financial events in this trip</p>
-        </div>
-        <div className="flex gap-1 rounded-xl border border-hair bg-surface p-1 text-xs font-semibold">
-          {(["all", "expense", "settlement", "member"] as const).map((f) => (
+        <h2 className="text-lg font-bold">Activity log</h2>
+        <div className="flex items-center gap-1 rounded-xl bg-canvas p-1 text-xs font-semibold">
+          {["all", "expenses", "settlements", "members"].map((f) => (
             <button
               key={f}
               onClick={() => setFilter(f)}
@@ -97,25 +113,43 @@ export function ActivityPage() {
         </div>
       </div>
 
+      {!getSupabase() && (
+        <div className="rounded-xl border border-hair bg-canvas/60 p-3 text-xs text-ink-soft">
+          <span className="font-semibold text-ink">Demo mode</span> — live activity log stream requires Supabase connection.
+        </div>
+      )}
+
       {filteredPages.length === 0 ? (
-        <div className="rounded-2xl border border-hair bg-surface p-10 text-center text-sm text-ink-soft">
-          No {filter === "all" ? "" : filter} activity recorded yet.
+        <div className="rounded-2xl border border-hair bg-surface p-12 text-center shadow-2xs space-y-3">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-canvas text-ink-soft border border-hair">
+            <History size={20} />
+          </div>
+          <div>
+            <p className="text-sm font-bold text-ink">No {filter === "all" ? "" : filter} activity recorded yet</p>
+            <p className="mt-1 text-xs text-ink-soft">All trip expenses, settlements, and member edits will appear here in chronological order.</p>
+          </div>
         </div>
       ) : (
         <div className="space-y-3">
           {filteredPages.map((a: any) => {
-            const name = (memberMap.get(a.actor_user_id as string) as string | undefined) ?? "Member"
+            const actorId = a.actor_user_id as string
+            const name = (memberMap.get(actorId) as string | undefined) ?? "Member"
             return (
               <div key={a.id} className="rounded-2xl border border-hair bg-surface p-4 shadow-2xs transition-all hover:shadow-xs">
-                <div className="flex items-start justify-between gap-2">
-                  <p className="text-sm font-semibold text-ink">{formatActivitySummary(a, name, memberMap, expensesMap, baseCurrency)}</p>
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-start gap-3 min-w-0">
+                    <UserAvatar id={actorId} name={name} size="sm" />
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-ink">{formatActivitySummary(a, name, memberMap, expensesMap, baseCurrency)}</p>
+                      <p className="mt-0.5 text-xs text-ink-faint">
+                        {new Date(a.created_at).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })}
+                      </p>
+                    </div>
+                  </div>
                   <span className={`shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${actionColor(a.action)}`}>
                     {a.action.replace("_", " ")}
                   </span>
                 </div>
-                <p className="mt-1 text-xs text-ink-faint">
-                  {new Date(a.created_at).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })}
-                </p>
                 {a.changed_fields?.length > 0 && (
                   <div className="mt-2.5 rounded-lg bg-canvas/60 px-3 py-1.5 text-xs text-ink-soft border border-hair/40">
                     <span className="font-semibold text-ink">Modified fields:</span> {a.changed_fields.join(", ")}

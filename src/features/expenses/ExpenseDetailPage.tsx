@@ -12,6 +12,8 @@ import { createPortal } from "react-dom"
 import { toUserMessage } from "@/lib/errors"
 import { getSignedReceiptUrl } from "@/lib/receipts"
 import { ArrowLeft } from "lucide-react"
+import { UserAvatar } from "@/components/feedback/UserAvatar"
+import { CATEGORY_META } from "@/features/balances/categoryMath"
 
 export function ExpenseDetailPage() {
   const { tripId, expenseId } = useParams()
@@ -56,7 +58,6 @@ export function ExpenseDetailPage() {
   if (isLoadingDetail) {
     return <div className="h-40 animate-pulse rounded-xl bg-hair/40" aria-label="Loading expense" />
   }
-  if (!supabase) return <div className="p-6 text-center text-sm text-ink-soft" role="alert">Supabase not configured — check env.</div>
   let exp: any = realExp
 
   function nameOf(id: string) {
@@ -114,10 +115,15 @@ export function ExpenseDetailPage() {
       </Link>
       <div className="rounded-xl border border-hair bg-surface p-6 shadow-sm">
         <h2 className="text-xl font-bold">{exp.description}</h2>
-        <p className="text-sm text-ink-soft">
-          {exp.category} · {exp.expense_date ?? exp.date} {exp.currency ? `· ${exp.currency}` : ""}
-        </p>
-        <p className="mt-3 font-mono text-xl font-bold tracking-tight">{formatMinor(amountMinor, currency)}</p>
+        <div className="flex items-center gap-2 mt-1.5">
+          <span className="rounded-full bg-brand-soft px-2.5 py-0.5 text-xs font-semibold text-brand">
+            {CATEGORY_META[exp.category as keyof typeof CATEGORY_META]?.emoji ?? "📦"} {exp.category}
+          </span>
+          <span className="text-xs text-ink-soft">
+            {exp.expense_date ? new Date(exp.expense_date).toLocaleDateString(undefined, { dateStyle: "medium" }) : "—"}
+          </span>
+        </div>
+        <p className="mt-4 font-mono text-2xl font-bold tracking-tight text-ink tnum">{formatMinor(amountMinor, currency)}</p>
         <p className="mt-1 text-xs text-ink-faint">Updated {exp.updated_at ? new Date(exp.updated_at).toLocaleString() : "—"} {exp.updated_by ? `by ${nameOf(exp.updated_by)}` : ""}</p>
         {exp.notes && <p className="mt-3 text-sm leading-6 text-ink-soft bg-canvas/50 p-3 rounded-lg border border-hair/50">{exp.notes}</p>}
         {exp.receipt_path && (
@@ -149,27 +155,39 @@ export function ExpenseDetailPage() {
         <div className="mt-2 text-xs text-ink-faint">
           Created {exp.created_at ? new Date(exp.created_at).toLocaleString() : "—"} {exp.created_by ? `by ${nameOf(exp.created_by)}` : ""}
         </div>
-        <div className="mt-4 grid grid-cols-2 gap-4 text-sm">
-          <div className="rounded-xl border border-hair bg-canvas/30 p-3">
+        <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+          <div className="rounded-xl border border-hair bg-canvas/30 p-4 shadow-2xs">
             <b className="text-xs font-bold uppercase tracking-wider text-ink-soft">Payers</b>
-            <ul className="mt-2 space-y-1 text-sm font-medium">
-              {payers.map((p: any) => (
-                <li key={p.user_id ?? p.userId} className="flex justify-between">
-                  <span>{nameOf(p.user_id ?? p.userId)}</span>
-                  <span className="font-mono text-ink">{formatMinor(p.amount_paid_minor ?? p.amount ?? p.amountPaidMinor ?? 0, currency)}</span>
-                </li>
-              ))}
+            <ul className="mt-3 space-y-2 text-sm font-medium">
+              {payers.map((p: any) => {
+                const uid = p.user_id ?? p.userId
+                return (
+                  <li key={uid} className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <UserAvatar id={uid} name={nameOf(uid)} size="xs" />
+                      <span className="font-semibold text-ink">{nameOf(uid)}</span>
+                    </div>
+                    <span className="font-mono text-ink font-bold tnum">{formatMinor(p.amount_paid_minor ?? p.amount ?? p.amountPaidMinor ?? 0, currency)}</span>
+                  </li>
+                )
+              })}
             </ul>
           </div>
-          <div className="rounded-xl border border-hair bg-canvas/30 p-3">
+          <div className="rounded-xl border border-hair bg-canvas/30 p-4 shadow-2xs">
             <b className="text-xs font-bold uppercase tracking-wider text-ink-soft">Splits</b>
-            <ul className="mt-2 space-y-1 text-sm font-medium">
-              {splits.map((s: any) => (
-                <li key={s.user_id ?? s.userId} className="flex justify-between">
-                  <span>{nameOf(s.user_id ?? s.userId)}</span>
-                  <span className="font-mono text-ink">{formatMinor(s.amount_owed_minor ?? s.amount ?? s.amountOwedMinor ?? 0, currency)}</span>
-                </li>
-              ))}
+            <ul className="mt-3 space-y-2 text-sm font-medium">
+              {splits.map((s: any) => {
+                const uid = s.user_id ?? s.userId
+                return (
+                  <li key={uid} className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <UserAvatar id={uid} name={nameOf(uid)} size="xs" />
+                      <span className="font-semibold text-ink">{nameOf(uid)}</span>
+                    </div>
+                    <span className="font-mono text-ink font-bold tnum">{formatMinor(s.amount_owed_minor ?? s.amount ?? s.amountOwedMinor ?? 0, currency)}</span>
+                  </li>
+                )
+              })}
             </ul>
           </div>
         </div>

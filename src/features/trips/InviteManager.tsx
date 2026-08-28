@@ -59,53 +59,100 @@ export function InviteManager({ tripId }: { tripId: string }) {
   const active = invites?.filter((i) => i.is_active) ?? []
 
   return (
-    <section className="rounded-xl border border-hair bg-surface p-6" aria-labelledby="invite-heading">
-      <h3 id="invite-heading" className="font-semibold">Invite codes</h3>
-      <p className="mt-1 text-xs leading-5 text-ink-soft">
-        This is the <b className="text-ink">sign-in for everyone else</b>. Share an active code — they join at <code className="rounded bg-canvas px-1 py-0.5 font-mono text-xs">/join/:code</code> without creating an account. Revoking disables old links instantly.
-      </p>
-      <div className="mt-4 flex flex-wrap items-end gap-2 rounded-lg bg-canvas p-3">
-        <label className="text-xs font-semibold">Expires in <input value={expiry} onChange={(e) => setExpiry(e.target.value)} inputMode="numeric" className="ml-1 w-16 rounded border border-hair px-2 py-1.5 text-sm" aria-label="Expires in days" /> days</label>
-        <label className="text-xs font-semibold">Max uses <input value={maxUses} onChange={(e) => setMaxUses(e.target.value)} placeholder="∞" inputMode="numeric" className="ml-1 w-16 rounded border border-hair px-2 py-1.5 text-sm" aria-label="Max uses (empty unlimited)" /></label>
+    <section className="rounded-2xl border border-hair bg-surface p-6 shadow-2xs space-y-4" aria-labelledby="invite-heading">
+      <div>
+        <h3 id="invite-heading" className="font-bold text-sm uppercase tracking-wider text-ink">Invite codes</h3>
+        <p className="mt-1 text-xs leading-5 text-ink-soft">
+          This is the <b className="text-ink">sign-in for everyone else</b>. Share an active code — they join at <code className="rounded bg-canvas px-1.5 py-0.5 font-mono text-xs border border-hair/40">/join/:code</code> without creating an account. Revoking disables old links instantly.
+        </p>
+      </div>
+
+      <div className="flex flex-wrap items-end gap-2.5 rounded-xl bg-canvas/60 p-3.5 border border-hair/50">
+        <label className="text-xs font-semibold text-ink-soft">
+          Expires in
+          <input
+            value={expiry}
+            onChange={(e) => setExpiry(e.target.value)}
+            inputMode="numeric"
+            className="ml-1.5 w-16 rounded-lg border border-hair bg-surface px-2.5 py-1.5 text-sm font-semibold outline-none focus:border-brand"
+            aria-label="Expires in days"
+          />
+          <span className="ml-1 text-ink-soft">days</span>
+        </label>
+        <label className="text-xs font-semibold text-ink-soft">
+          Max uses
+          <input
+            value={maxUses}
+            onChange={(e) => setMaxUses(e.target.value)}
+            placeholder="∞"
+            inputMode="numeric"
+            className="ml-1.5 w-16 rounded-lg border border-hair bg-surface px-2.5 py-1.5 text-sm font-semibold outline-none focus:border-brand"
+            aria-label="Max uses (empty unlimited)"
+          />
+        </label>
         <button
           onClick={() => create.mutate()}
           disabled={create.isPending}
           aria-busy={create.isPending}
-          className="inline-flex min-h-11 items-center gap-1.5 rounded-md bg-brand px-3 text-sm font-bold text-white hover:bg-blue-700 disabled:opacity-50"
+          className="inline-flex min-h-11 items-center gap-1.5 rounded-xl bg-brand px-4 text-sm font-bold text-white hover:bg-blue-700 disabled:opacity-50 transition-colors shadow-2xs"
         >
           <Plus size={16} /> {create.isPending ? "Generating…" : "Generate new"}
         </button>
       </div>
 
       {isLoading ? (
-        <p className="mt-4 text-sm text-ink-soft" role="status">Loading invites…</p>
+        <p className="text-sm text-ink-soft" role="status">Loading invites…</p>
       ) : !invites?.length ? (
-        <p className="mt-4 text-sm text-ink-soft" role="status">No invites yet. Generate one.</p>
+        <p className="text-sm text-ink-soft" role="status">No invites yet. Generate one.</p>
       ) : (
-        <ul className="mt-4 space-y-2" aria-label="Invite codes">
+        <ul className="space-y-2.5" aria-label="Invite codes">
           {invites.map((inv) => (
-            <li key={inv.id} className={`flex flex-wrap items-center justify-between gap-3 rounded-lg border px-3 py-3 ${inv.is_active ? "border-emerald-200 bg-emerald-50/60 dark:border-emerald-800/60 dark:bg-emerald-950/40" : "border-hair bg-canvas opacity-70"}`} title={inv.is_active ? "Active — share this code" : inv.revoked_at ? "Revoked" : new Date(inv.expires_at) < new Date() ? "Expired" : `Max uses reached (${inv.use_count}/${inv.max_uses})`}>
+            <li
+              key={inv.id}
+              className={`flex flex-wrap items-center justify-between gap-3 rounded-xl border p-3.5 shadow-2xs transition-all ${
+                inv.is_active
+                  ? "border-emerald-200 bg-emerald-50/60 dark:border-emerald-800/60 dark:bg-emerald-950/40"
+                  : "border-hair bg-canvas opacity-70"
+              }`}
+              title={
+                inv.is_active
+                  ? "Active — share this code"
+                  : inv.revoked_at
+                  ? "Revoked"
+                  : new Date(inv.expires_at) < new Date()
+                  ? "Expired"
+                  : `Max uses reached (${inv.use_count}/${inv.max_uses})`
+              }
+            >
               <div>
                 <p className="flex items-center gap-2 font-mono text-sm font-bold tracking-[.16em]">
                   {inv.code}
-                  {inv.is_active ? <span className="inline-flex items-center gap-1 rounded bg-emerald-600 px-1.5 py-0.5 font-sans text-[10px] font-bold uppercase tracking-wider text-white"><Check size={12} />Active</span> : <span className="rounded bg-hair px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-ink-soft">Revoked/Expired</span>}
+                  {inv.is_active ? (
+                    <span className="inline-flex items-center gap-1 rounded-md bg-emerald-600 px-1.5 py-0.5 font-sans text-[10px] font-bold uppercase tracking-wider text-white">
+                      <Check size={12} /> Active
+                    </span>
+                  ) : (
+                    <span className="rounded-md bg-hair px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-ink-soft">
+                      Revoked/Expired
+                    </span>
+                  )}
                 </p>
                 <p className="mt-1 flex items-center gap-1 text-xs text-ink-soft">
                   <Clock size={12} /> expires {new Date(inv.expires_at).toLocaleString()} · used {inv.use_count}
                   {inv.max_uses ? `/${inv.max_uses}` : ""} {inv.revoked_at ? `· revoked ${new Date(inv.revoked_at).toLocaleString()}` : ""}
                 </p>
               </div>
-              <div className="flex flex-wrap gap-1.5">
+              <div className="flex flex-wrap items-center gap-2">
                 <button
                   onClick={() => copy(inv.code)}
-                  className="inline-flex min-h-11 items-center gap-1 rounded-md border border-hair bg-surface px-2.5 text-xs font-semibold hover:bg-canvas"
+                  className="inline-flex min-h-9 items-center gap-1 rounded-lg border border-hair bg-surface px-3 text-xs font-semibold text-ink hover:bg-canvas transition-colors shadow-2xs"
                   aria-label={`Copy code ${inv.code}`}
                 >
-                  <Copy size={14} /> {copied === inv.code ? "Copied" : "Copy"}
+                  <Copy size={13} /> {copied === inv.code ? "Copied" : "Copy"}
                 </button>
                 <button
                   onClick={() => copy(`${window.location.origin}/join/${inv.code}`)}
-                  className="inline-flex min-h-11 items-center rounded-md border border-hair bg-surface px-2.5 text-xs font-semibold hover:bg-canvas"
+                  className="inline-flex min-h-9 items-center rounded-lg border border-hair bg-surface px-3 text-xs font-semibold text-ink hover:bg-canvas transition-colors shadow-2xs"
                   aria-label={`Copy link for ${inv.code}`}
                 >
                   Copy link
@@ -114,9 +161,9 @@ export function InviteManager({ tripId }: { tripId: string }) {
                   <button
                     onClick={() => setConfirmRevoke(inv.id)}
                     disabled={revoke.isPending}
-                    className="inline-flex min-h-11 items-center gap-1 rounded-md border border-owe/20 bg-owe-soft px-2.5 text-xs font-bold text-owe hover:bg-owe hover:text-white disabled:opacity-50"
+                    className="inline-flex min-h-9 items-center gap-1 rounded-lg border border-owe/20 bg-owe-soft px-3 text-xs font-bold text-owe hover:bg-owe hover:text-white disabled:opacity-50 transition-colors shadow-2xs"
                   >
-                    <Ban size={14} /> Revoke
+                    <Ban size={13} /> Revoke
                   </button>
                 )}
               </div>
@@ -125,7 +172,7 @@ export function InviteManager({ tripId }: { tripId: string }) {
         </ul>
       )}
       {active.length > 0 && (
-        <div className="mt-4 rounded-lg bg-brand-soft p-3 text-xs leading-5 text-ink-soft">
+        <div className="rounded-xl bg-brand-soft/60 p-3.5 text-xs leading-5 text-ink-soft border border-brand/20">
           Share: <code className="font-mono font-bold text-brand">{active.map((a) => a.code).join(", ")}</code> or link <code className="break-all font-mono text-ink">{window.location.origin}/join/{active[0].code}</code> {active.length > 1 && <span className="text-ink-faint">({active.length} active codes)</span>}
         </div>
       )}
