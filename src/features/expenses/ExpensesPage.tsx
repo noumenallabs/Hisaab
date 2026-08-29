@@ -351,20 +351,20 @@ export function ExpensesPage() {
                           isDel ? "opacity-60 bg-red-50/40 dark:bg-red-950/30" : ""
                         }`}
                       >
-                        <div className="flex items-center gap-3.5 min-w-0">
+                        <div className="flex items-center gap-3.5 min-w-0 flex-1">
                           <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-canvas text-lg border border-hair shadow-2xs">
                             {catIcons[e.category] ?? "📦"}
                           </span>
-                          <div className="min-w-0">
-                            <div className="flex items-center gap-2">
-                              <p className="font-semibold text-sm text-ink truncate">{e.description}</p>
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2 min-w-0">
+                              <p className="font-semibold text-sm text-ink truncate min-w-0">{e.description}</p>
                               {isDel && (
-                                <span className="rounded bg-owe/10 px-1.5 py-0.5 text-[10px] font-bold text-owe">
+                                <span className="shrink-0 rounded bg-owe/10 px-1.5 py-0.5 text-[10px] font-bold text-owe">
                                   Deleted
                                 </span>
                               )}
                               {e.receipt_path && (
-                                <span className="inline-flex items-center gap-1 rounded-md border border-hair bg-canvas px-1.5 py-0.5 text-[10px] font-semibold text-ink-soft" title="Receipt attached">
+                                <span className="shrink-0 inline-flex items-center gap-1 rounded-md border border-hair bg-canvas px-1.5 py-0.5 text-[10px] font-semibold text-ink-soft" title="Receipt attached">
                                   <Paperclip size={10} className="text-brand" /> Receipt
                                 </span>
                               )}
@@ -375,7 +375,7 @@ export function ExpensesPage() {
                           </div>
                         </div>
 
-                        <div className="text-right shrink-0 ml-4">
+                        <div className="text-right shrink-0 ml-3">
                           <p className="font-mono text-base font-bold text-ink tnum">
                             {formatMinor(e.amount_minor ?? e.amount ?? 0, (trip as any)?.base_currency ?? "INR")}
                           </p>

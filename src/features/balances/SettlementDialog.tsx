@@ -178,13 +178,13 @@ export function SettlementDialog({
         <h2 id="settle-title" className="text-lg font-bold text-ink">
           Record settlement
         </h2>
-        <div className="mt-1.5 rounded-xl border border-hair bg-surface-inset/70 p-3 flex items-center justify-between gap-2 text-xs">
-          <div className="flex items-center gap-1.5 font-medium text-ink-soft">
-            <span className="font-bold text-ink">{fromName ?? fromId.slice(0, 8)}</span>
+        <div className="mt-1.5 rounded-xl border border-hair bg-surface-inset/70 p-3 flex flex-wrap items-center justify-between gap-2 text-xs">
+          <div className="flex items-center gap-1.5 font-medium text-ink-soft min-w-0 flex-1">
+            <span className="font-bold text-ink truncate">{fromName ?? fromId.slice(0, 8)}</span>
             <ArrowRight size={13} className="text-brand shrink-0" />
-            <span className="font-bold text-ink">{toName ?? toId.slice(0, 8)}</span>
+            <span className="font-bold text-ink truncate">{toName ?? toId.slice(0, 8)}</span>
           </div>
-          <span className="font-mono font-bold text-ink tnum">
+          <span className="font-mono font-bold text-ink tnum shrink-0">
             Outstanding {formatMinor(outstandingMinor, baseCurrency)}
           </span>
         </div>

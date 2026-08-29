@@ -329,31 +329,35 @@ export function BalancesPage() {
                     {formatMinor(v, baseCurrency)}
                   </p>
 
-                  <div className="mt-3 rounded-xl bg-canvas/50 p-2.5 text-xs grid grid-cols-2 gap-x-2 gap-y-1.5 border border-hair/40">
-                    <div className="flex justify-between text-ink-soft">
-                      <span>Paid:</span>{" "}
-                      <span className="font-mono font-semibold text-ink tabular-nums tnum">
+                  <div className="mt-3 rounded-xl bg-canvas/50 p-2.5 text-xs grid grid-cols-2 gap-2 border border-hair/60">
+                    <div className="min-w-0">
+                      <span className="block text-[10px] uppercase font-bold text-ink-faint">Paid</span>
+                      <span className="font-mono font-bold text-xs text-ink tnum truncate block">
                         {formatMinor(r.paid, baseCurrency)}
                       </span>
                     </div>
-                    <div className="flex justify-between text-ink-soft">
-                      <span>Share:</span>{" "}
-                      <span className="font-mono font-semibold text-ink tabular-nums tnum">
+                    <div className="min-w-0">
+                      <span className="block text-[10px] uppercase font-bold text-ink-faint">Share</span>
+                      <span className="font-mono font-bold text-xs text-ink tnum truncate block">
                         {formatMinor(r.owed, baseCurrency)}
                       </span>
                     </div>
-                    <div className="flex justify-between text-ink-soft">
-                      <span>Sent:</span>{" "}
-                      <span className="font-mono font-semibold text-ink tabular-nums tnum">
-                        {formatMinor(r.sent, baseCurrency)}
-                      </span>
-                    </div>
-                    <div className="flex justify-between text-ink-soft">
-                      <span>Recv:</span>{" "}
-                      <span className="font-mono font-semibold text-ink tabular-nums tnum">
-                        {formatMinor(r.received, baseCurrency)}
-                      </span>
-                    </div>
+                    {(r.sent > 0 || r.received > 0) && (
+                      <>
+                        <div className="min-w-0">
+                          <span className="block text-[10px] uppercase font-bold text-ink-faint">Sent</span>
+                          <span className="font-mono font-bold text-xs text-ink tnum truncate block">
+                            {formatMinor(r.sent, baseCurrency)}
+                          </span>
+                        </div>
+                        <div className="min-w-0">
+                          <span className="block text-[10px] uppercase font-bold text-ink-faint">Received</span>
+                          <span className="font-mono font-bold text-xs text-ink tnum truncate block">
+                            {formatMinor(r.received, baseCurrency)}
+                          </span>
+                        </div>
+                      </>
+                    )}
                   </div>
                 </div>
               )

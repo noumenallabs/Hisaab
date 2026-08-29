@@ -99,24 +99,24 @@ export function TripsPage() {
                 <p className="relative mt-1 text-xs text-ink-soft truncate">
                   📍 {t.destination || "Flexible"} · {t.start_date ?? t.dates ?? "Dates TBD"}
                 </p>
-                <div className="relative mt-6 grid grid-cols-3 border-t border-hair pt-4 text-xs">
-                  <span>
-                    <b className="block font-mono text-sm font-bold text-ink tnum tabular-nums">
+                <div className="relative mt-6 grid grid-cols-3 gap-2 border-t border-hair pt-4 text-xs">
+                  <span className="min-w-0">
+                    <b className="block font-mono text-sm font-bold text-ink tnum tabular-nums truncate">
                       {t.total || t.total_minor ? formatMinor(t.total ?? t.total_minor ?? 0, t.base_currency ?? "INR") : "—"}
                     </b>
-                    <span className="text-ink-faint text-[10px]">Tracked</span>
+                    <span className="text-ink-faint text-[10px] truncate block">Tracked</span>
                   </span>
-                  <span>
-                    <b className="block text-sm font-bold text-ink">
+                  <span className="min-w-0">
+                    <b className="block text-sm font-bold text-ink truncate">
                       {t.memberCount ?? "—"}
                     </b>
-                    <span className="text-ink-faint text-[10px]">Travelers</span>
+                    <span className="text-ink-faint text-[10px] truncate block">Travelers</span>
                   </span>
-                  <span>
-                    <b className="block text-sm font-bold text-ink capitalize">
+                  <span className="min-w-0">
+                    <b className="block text-sm font-bold text-ink capitalize truncate">
                       {t.role ?? "member"}
                     </b>
-                    <span className="text-ink-faint text-[10px]">Your role</span>
+                    <span className="text-ink-faint text-[10px] truncate block">Your role</span>
                   </span>
                 </div>
               </Link>

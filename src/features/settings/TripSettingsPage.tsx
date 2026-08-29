@@ -149,18 +149,18 @@ export function TripSettingsPage() {
             const isCurrentUser = uid === user?.id
             return (
             <li key={uid} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-hair bg-canvas/30 p-3.5 text-sm shadow-2xs">
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 min-w-0 flex-1">
                 <UserAvatar id={uid} name={m.name} isCurrentUser={isCurrentUser} size="md" />
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="font-bold text-ink">{m.name}</span>
-                    <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className="font-bold text-ink truncate min-w-0">{m.name}</span>
+                    <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
                       role === "owner" ? "border border-amber-500/20 bg-amber-500/10 text-amber-700 dark:text-amber-300" : "border border-hair bg-surface text-ink-soft"
                     }`}>
                       {role}
                     </span>
                   </div>
-                  <span className="text-xs text-ink-faint">{m.email ?? uid.slice(0, 8)}</span>
+                  <span className="text-xs text-ink-faint truncate block mt-0.5">{m.email ?? uid.slice(0, 8)}</span>
                 </div>
               </div>
               {getSupabase() && !isArchived && isOwner && (

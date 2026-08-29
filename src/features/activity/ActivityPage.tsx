@@ -97,7 +97,7 @@ export function ActivityPage() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <h2 className="text-lg font-bold">Activity log</h2>
-        <div className="relative flex items-center rounded-xl bg-canvas p-1 text-xs font-semibold">
+        <div className="relative flex items-center rounded-xl bg-canvas p-1 text-xs font-semibold overflow-x-auto max-w-full">
           <div
             className="pointer-events-none absolute top-1 bottom-1 rounded-lg bg-brand shadow-xs transition-all duration-200 ease-spring"
             style={{
@@ -118,7 +118,7 @@ export function ActivityPage() {
             <button
               key={f}
               onClick={() => setFilter(f)}
-              className={`relative z-10 flex-1 rounded-lg px-3 py-1.5 text-center capitalize transition-all duration-200 active:scale-[0.98] cursor-pointer ${
+              className={`relative z-10 flex-1 rounded-lg px-2.5 sm:px-3 py-1.5 text-center capitalize transition-all duration-200 active:scale-[0.98] cursor-pointer whitespace-nowrap text-[11px] sm:text-xs ${
                 filter === f ? "text-white font-bold" : "text-ink-soft hover:text-ink"
               }`}
             >
@@ -152,10 +152,10 @@ export function ActivityPage() {
             return (
               <div key={a.id} className="p-4 transition-all hover:bg-canvas/30">
                 <div className="flex items-start justify-between gap-3">
-                  <div className="flex items-start gap-3 min-w-0">
+                  <div className="flex items-start gap-3 min-w-0 flex-1">
                     <UserAvatar id={actorId} name={name} size="sm" />
-                    <div className="min-w-0">
-                      <p className="text-sm font-semibold text-ink">{formatActivitySummary(a, name, memberMap, expensesMap, baseCurrency)}</p>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-semibold text-ink break-words">{formatActivitySummary(a, name, memberMap, expensesMap, baseCurrency)}</p>
                       <p className="mt-0.5 text-xs text-ink-faint">
                         {new Date(a.created_at).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })}
                       </p>

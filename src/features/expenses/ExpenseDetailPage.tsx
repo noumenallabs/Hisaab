@@ -162,12 +162,12 @@ export function ExpenseDetailPage() {
               {payers.map((p: any) => {
                 const uid = p.user_id ?? p.userId
                 return (
-                  <li key={uid} className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
+                  <li key={uid} className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-2 min-w-0 flex-1">
                       <UserAvatar id={uid} name={nameOf(uid)} size="xs" />
-                      <span className="font-semibold text-ink">{nameOf(uid)}</span>
+                      <span className="font-semibold text-ink truncate">{nameOf(uid)}</span>
                     </div>
-                    <span className="font-mono text-ink font-bold tnum">{formatMinor(p.amount_paid_minor ?? p.amount ?? p.amountPaidMinor ?? 0, currency)}</span>
+                    <span className="font-mono text-ink font-bold tnum shrink-0 ml-2">{formatMinor(p.amount_paid_minor ?? p.amount ?? p.amountPaidMinor ?? 0, currency)}</span>
                   </li>
                 )
               })}
@@ -179,12 +179,12 @@ export function ExpenseDetailPage() {
               {splits.map((s: any) => {
                 const uid = s.user_id ?? s.userId
                 return (
-                  <li key={uid} className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
+                  <li key={uid} className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-2 min-w-0 flex-1">
                       <UserAvatar id={uid} name={nameOf(uid)} size="xs" />
-                      <span className="font-semibold text-ink">{nameOf(uid)}</span>
+                      <span className="font-semibold text-ink truncate">{nameOf(uid)}</span>
                     </div>
-                    <span className="font-mono text-ink font-bold tnum">{formatMinor(s.amount_owed_minor ?? s.amount ?? s.amountOwedMinor ?? 0, currency)}</span>
+                    <span className="font-mono text-ink font-bold tnum shrink-0 ml-2">{formatMinor(s.amount_owed_minor ?? s.amount ?? s.amountOwedMinor ?? 0, currency)}</span>
                   </li>
                 )
               })}

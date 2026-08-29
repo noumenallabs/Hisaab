@@ -6,9 +6,7 @@ import { useBalances } from "@/features/balances/hooks"
 import { getSupabase } from "@/lib/supabase"
 import { formatMinor } from "@/lib/currency"
 import { Skeleton } from "@/components/feedback/Skeleton"
-import {
-  computeGroupCategorySummary,
-} from "@/features/balances/categoryMath"
+import { computeGroupCategorySummary } from "@/features/balances/categoryMath"
 import { computeDayTimeline } from "@/features/balances/dayMath"
 import { simplifyDebts } from "@/features/balances/balanceMath"
 import { Donut, DailyBars } from "@/charts"
@@ -112,7 +110,6 @@ export function TripOverviewPage() {
     }
   }
 
-  // Use balancesData if available, fallback to client calculation
   const balanceRows: Record<
     string,
     { paid: number; owed: number; sent: number; received: number; net: number }
@@ -147,14 +144,12 @@ export function TripOverviewPage() {
 
   const simplifiedTransfers = simplifyDebts(netBalances)
 
-  // Personal standing of the logged in user
+  // Personal standing of current user
   const currentUserId = user?.id
-  const isMember = currentUserId ? !!balanceRows[currentUserId] : false
-  const currentUserRow = isMember && currentUserId ? balanceRows[currentUserId] : null
+  const currentUserRow = currentUserId ? balanceRows[currentUserId] : null
   const currentUserNetMinor = currentUserRow?.net ?? 0
   const isUserOwed = currentUserNetMinor > 0
   const isUserOwing = currentUserNetMinor < 0
-  const isUserSettled = currentUserNetMinor === 0
 
   // Category and day timelines
   const groupCategorySummary = computeGroupCategorySummary(activeExpenses)
@@ -168,7 +163,6 @@ export function TripOverviewPage() {
       ? dayTimeline.reduce((prev, cur) => (cur.totalMinor > prev.totalMinor ? cur : prev), dayTimeline[0])
       : null
 
-  // Category chart donut data with calibrated Apple HIG palette
   const donutSegments = activeCategories.map((c) => ({
     label: c.label,
     value: c.totalMinor,
@@ -209,10 +203,10 @@ export function TripOverviewPage() {
 
   return (
     <div className="space-y-6">
-      {/* Top Header & Quick Action Hub */}
+      {/* Top Header Card */}
       <div className="rounded-2xl border border-hair bg-surface p-5 sm:p-6 shadow-2xs">
         <div className="flex flex-wrap items-start justify-between gap-4">
-          <div>
+          <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2">
               <span
                 className={`rounded-full px-2.5 py-0.5 text-xs font-semibold uppercase tracking-wider ${
@@ -227,18 +221,18 @@ export function TripOverviewPage() {
                 {baseCurrency}
               </span>
             </div>
-            <h1 className="mt-2 text-2xl sm:text-3xl font-bold tracking-tight text-ink">
+            <h1 className="mt-2 text-2xl sm:text-3xl font-bold tracking-tight text-ink break-words">
               {t.name}
             </h1>
             {t.destination && (
-              <p className="mt-1 text-sm text-ink-soft">
+              <p className="mt-1 text-sm text-ink-soft break-words">
                 📍 {t.destination} {t.start_date ? `· ${t.start_date} → ${t.end_date}` : ""}
               </p>
             )}
           </div>
 
           {!isArchived && (
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2 shrink-0">
               {!isSettled && (
                 <Link
                   to={`/trips/${tripId}/expenses/new`}
@@ -292,34 +286,34 @@ export function TripOverviewPage() {
       {currentUserRow && (
         <div className="rounded-2xl border border-hair bg-surface p-5 sm:p-6 shadow-2xs transition-all">
           <div className="flex flex-wrap items-center justify-between gap-4">
-            <div className="flex items-center gap-3.5">
+            <div className="flex items-center gap-3.5 min-w-0">
               <UserAvatar
                 id={currentUserId!}
                 name={user?.name ?? (currentUserId ? memberMap.get(currentUserId) : undefined) ?? "You"}
                 isCurrentUser
                 size="lg"
               />
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-wider text-ink-soft flex items-center gap-1.5">
+              <div className="min-w-0">
+                <p className="text-xs font-semibold uppercase tracking-wider text-ink-soft flex items-center gap-1.5 truncate">
                   {isUserOwed ? (
                     <>
-                      <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                      <span className="h-2 w-2 rounded-full bg-emerald-500 shrink-0" />
                       Personal Balance · You are owed
                     </>
                   ) : isUserOwing ? (
                     <>
-                      <span className="h-2 w-2 rounded-full bg-rose-500" />
+                      <span className="h-2 w-2 rounded-full bg-rose-500 shrink-0" />
                       Personal Balance · You owe
                     </>
                   ) : (
                     <>
-                      <CheckCircle2 size={13} className="text-emerald-500" />
+                      <CheckCircle2 size={13} className="text-emerald-500 shrink-0" />
                       Personal Balance · You're all settled
                     </>
                   )}
                 </p>
                 <p
-                  className={`mt-0.5 font-mono text-2xl sm:text-3xl font-bold tracking-tight tnum ${
+                  className={`mt-0.5 font-mono text-2xl sm:text-3xl font-bold tracking-tight tnum truncate ${
                     isUserOwed
                       ? "text-emerald-600 dark:text-emerald-400"
                       : isUserOwing
@@ -332,7 +326,7 @@ export function TripOverviewPage() {
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 shrink-0">
               {isUserOwing && !isArchived && !isSettled && (
                 <button
                   type="button"
@@ -354,10 +348,10 @@ export function TripOverviewPage() {
         </div>
       )}
 
-      {/* Top Stat Cards with Asymmetric Hierarchy */}
+      {/* Top Stat Cards Hierarchy */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-12">
-        {/* Total Spending - Hero Feature Card (Spans 5 cols on lg) */}
-        <div className="rounded-2xl border border-hair bg-surface p-5 sm:p-6 shadow-2xs sm:col-span-2 lg:col-span-5">
+        {/* Total Spending */}
+        <div className="rounded-2xl border border-hair bg-surface p-5 sm:p-6 shadow-2xs sm:col-span-2 lg:col-span-5 min-w-0">
           <div className="flex items-center justify-between">
             <p className="text-xs font-semibold uppercase tracking-wider text-ink-soft">
               Total Spending
@@ -366,20 +360,20 @@ export function TripOverviewPage() {
               {baseCurrency}
             </span>
           </div>
-          <p className="mt-2 font-mono text-3xl font-bold tracking-tight text-ink tnum">
+          <p className="mt-2 font-mono text-2xl sm:text-3xl font-bold tracking-tight text-ink tnum truncate">
             {formatMinor(totalMinor, baseCurrency)}
           </p>
-          <p className="mt-1 text-xs text-ink-soft">
+          <p className="mt-1 text-xs text-ink-soft truncate">
             {`Across ${expenseCount} recorded ${expenseCount === 1 ? "transaction" : "transactions"}`}
           </p>
         </div>
 
-        {/* Avg / Person (Spans 3 cols on lg) */}
-        <div className="rounded-2xl border border-hair bg-surface p-5 shadow-2xs lg:col-span-3">
+        {/* Avg / Person */}
+        <div className="rounded-2xl border border-hair bg-surface p-5 shadow-2xs lg:col-span-3 min-w-0">
           <p className="text-xs font-semibold uppercase tracking-wider text-ink-soft">
             Avg / Person
           </p>
-          <p className="mt-2 font-mono text-2xl font-bold tracking-tight text-ink tnum">
+          <p className="mt-2 font-mono text-xl sm:text-2xl font-bold tracking-tight text-ink tnum truncate">
             {formatMinor(avgMinor, baseCurrency)}
           </p>
           <p className="mt-1 text-[11px] text-ink-faint">
@@ -387,30 +381,30 @@ export function TripOverviewPage() {
           </p>
         </div>
 
-        {/* Expenses Count (Spans 2 cols on lg) */}
-        <div className="rounded-2xl border border-hair bg-surface p-5 shadow-2xs lg:col-span-2">
+        {/* Expenses Count */}
+        <div className="rounded-2xl border border-hair bg-surface p-5 shadow-2xs lg:col-span-2 min-w-0">
           <p className="text-xs font-semibold uppercase tracking-wider text-ink-soft">
             Expenses
           </p>
-          <p className="mt-2 font-mono text-2xl font-bold tracking-tight text-ink tnum">
+          <p className="mt-2 font-mono text-xl sm:text-2xl font-bold tracking-tight text-ink tnum truncate">
             {expenseCount}
           </p>
           <p className="mt-1 text-[11px] text-ink-faint">Total entries</p>
         </div>
 
-        {/* Trip Members (Spans 2 cols on lg) */}
-        <div className="rounded-2xl border border-hair bg-surface p-5 shadow-2xs lg:col-span-2">
+        {/* Trip Members */}
+        <div className="rounded-2xl border border-hair bg-surface p-5 shadow-2xs lg:col-span-2 min-w-0">
           <p className="text-xs font-semibold uppercase tracking-wider text-ink-soft">
             Members
           </p>
-          <p className="mt-2 font-mono text-2xl font-bold tracking-tight text-ink tnum">
+          <p className="mt-2 font-mono text-xl sm:text-2xl font-bold tracking-tight text-ink tnum truncate">
             {memberCount}
           </p>
           <p className="mt-1 text-[11px] text-ink-faint">Active in group</p>
         </div>
       </div>
 
-      {/* Zero-Expense Onboarding Checklist or Active Content */}
+      {/* Zero-Expense State or Main Content */}
       {expenseCount === 0 ? (
         <div className="rounded-2xl border border-hair bg-surface p-6 sm:p-8 shadow-2xs text-center space-y-6">
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-brand/10 text-2xl border border-brand/20">
@@ -489,18 +483,18 @@ export function TripOverviewPage() {
           {/* Spending Trajectory & Category Donut Row */}
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
             {/* Daily Trajectory Widget (7 cols on lg) */}
-            <div className="rounded-2xl border border-hair bg-surface p-5 sm:p-6 shadow-2xs lg:col-span-7 space-y-4">
-              <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="rounded-2xl border border-hair bg-surface p-5 sm:p-6 shadow-2xs lg:col-span-7 space-y-4 min-w-0">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <div>
                   <h2 className="text-base font-semibold tracking-tight flex items-center gap-2 text-ink">
-                    <TrendingUp size={18} className="text-brand" />
+                    <TrendingUp size={18} className="text-brand shrink-0" />
                     Spending Trajectory
                   </h2>
                   <p className="text-xs text-ink-soft">
                     Day-by-day burn rate across {dayTimeline.length} travel days
                   </p>
                 </div>
-                <div className="flex items-center gap-2 text-xs">
+                <div className="flex flex-wrap items-center gap-2 text-xs">
                   {peakDay && (
                     <span className="rounded-md bg-canvas px-2 py-1 font-mono font-semibold text-ink-soft border border-hair">
                       Peak: Day {peakDay.dayNumber} ({formatMinor(peakDay.totalMinor, baseCurrency)})
@@ -528,35 +522,35 @@ export function TripOverviewPage() {
             </div>
 
             {/* Interactive Category Donut (5 cols on lg) */}
-            <div className="rounded-2xl border border-hair bg-surface p-5 sm:p-6 shadow-2xs lg:col-span-5 space-y-4">
-              <div className="flex items-center justify-between">
+            <div className="rounded-2xl border border-hair bg-surface p-5 shadow-2xs lg:col-span-5 space-y-4 min-w-0">
+              <div className="flex items-center justify-between border-b border-hair/60 pb-3">
                 <div>
                   <h2 className="text-base font-semibold tracking-tight flex items-center gap-2 text-ink">
-                    <PieChart size={18} className="text-brand" />
+                    <PieChart size={18} className="text-brand shrink-0" />
                     Spending by Category
                   </h2>
                   <p className="text-xs text-ink-soft">Where your group budget went</p>
                 </div>
                 <Link
                   to={`/trips/${tripId}/balances`}
-                  className="inline-flex items-center gap-1 text-xs font-semibold text-brand hover:underline"
+                  className="inline-flex items-center gap-1 text-xs font-semibold text-brand hover:underline shrink-0 ml-2"
                   aria-label="Detailed breakdown"
                 >
-                  Detailed breakdown <ArrowRight size={13} />
+                  Details <ArrowRight size={13} />
                 </Link>
               </div>
 
-              <div className="flex items-center justify-center pt-2">
+              <div className="flex items-center justify-center py-2">
                 <Donut
                   data={donutSegments}
                   currency={baseCurrency}
-                  size={150}
+                  size={140}
                   activeCategory={hoveredCategory}
                   onHoverCategory={setHoveredCategory}
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-2 text-xs pt-1">
+              <div className="grid grid-cols-2 gap-2 text-xs">
                 {activeCategories.map((c) => {
                   const isHovered = hoveredCategory === c.label
                   return (
@@ -564,17 +558,17 @@ export function TripOverviewPage() {
                       key={c.category}
                       onMouseEnter={() => setHoveredCategory(c.label)}
                       onMouseLeave={() => setHoveredCategory(null)}
-                      className={`flex items-center justify-between rounded-xl px-2.5 py-1.5 border transition-all duration-150 cursor-pointer ${
+                      className={`flex items-center justify-between rounded-xl px-2.5 py-1.5 border transition-all duration-150 cursor-pointer min-w-0 ${
                         isHovered
                           ? "border-brand/40 bg-brand/10 shadow-2xs"
                           : "border-hair bg-canvas/40 hover:bg-canvas/80"
                       }`}
                     >
-                      <span className="font-semibold text-ink truncate flex items-center gap-1.5">
+                      <span className="font-semibold text-ink truncate flex items-center gap-1.5 min-w-0">
                         <span>{c.emoji}</span>
                         <span className="truncate">{c.label}</span>
                       </span>
-                      <span className="font-mono font-bold text-ink-soft ml-1 tnum">
+                      <span className="font-mono font-bold text-ink-soft ml-1 tnum shrink-0">
                         {c.percentage.toFixed(0)}%
                       </span>
                     </div>
@@ -589,7 +583,7 @@ export function TripOverviewPage() {
             {/* Left: Member Financial Spend Breakdown */}
             <div className="space-y-6 lg:col-span-7">
               <div className="rounded-2xl border border-hair bg-surface p-5 sm:p-6 shadow-2xs">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between border-b border-hair/60 pb-3">
                   <div>
                     <h2 className="text-base font-semibold tracking-tight text-ink">
                       Member Breakdown ({memberCount})
@@ -600,7 +594,7 @@ export function TripOverviewPage() {
                   </div>
                   <Link
                     to={`/trips/${tripId}/settings`}
-                    className="text-xs font-semibold text-brand hover:underline"
+                    className="text-xs font-semibold text-brand hover:underline shrink-0 ml-2"
                     aria-label="Manage"
                   >
                     Manage
@@ -621,16 +615,16 @@ export function TripOverviewPage() {
                         key={uid}
                         className="rounded-xl border border-hair bg-canvas/40 p-3.5 text-sm space-y-2.5"
                       >
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2.5">
+                        <div className="flex items-center justify-between gap-3">
+                          <div className="flex items-center gap-2.5 min-w-0">
                             <UserAvatar
                               name={m.name}
                               id={uid}
                               isCurrentUser={isCurrent}
                               size="md"
                             />
-                            <div>
-                              <p className="font-semibold text-xs text-ink">
+                            <div className="min-w-0">
+                              <p className="font-semibold text-xs text-ink truncate">
                                 {m.name}
                                 {isCurrent && (
                                   <span className="ml-1.5 rounded-md bg-brand/10 px-1.5 py-0.5 text-[10px] font-semibold text-brand">
@@ -645,7 +639,7 @@ export function TripOverviewPage() {
                           </div>
 
                           <span
-                            className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase font-mono tnum border ${
+                            className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase font-mono tnum border shrink-0 ${
                               isPositive
                                 ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
                                 : isNegative
@@ -665,11 +659,11 @@ export function TripOverviewPage() {
 
                         {/* Spend Progress Bar */}
                         <div className="space-y-1">
-                          <div className="flex justify-between text-[11px] text-ink-soft">
-                            <span>
+                          <div className="flex flex-wrap justify-between gap-1 text-[11px] text-ink-soft">
+                            <span className="truncate">
                               Paid: <b className="font-mono text-ink tnum">{formatMinor(r.paid, baseCurrency)}</b> ({paidPct}%)
                             </span>
-                            <span>
+                            <span className="truncate">
                               Share: <b className="font-mono text-ink tnum">{formatMinor(r.owed, baseCurrency)}</b>
                             </span>
                           </div>
@@ -723,10 +717,10 @@ export function TripOverviewPage() {
                       return (
                         <li
                           key={idx}
-                          className="flex items-center justify-between rounded-xl border border-hair bg-canvas/40 p-3 text-xs shadow-2xs transition-colors hover:bg-canvas/70"
+                          className="flex items-center justify-between gap-3 rounded-xl border border-hair bg-canvas/40 p-3 text-xs shadow-2xs transition-colors hover:bg-canvas/70"
                         >
-                          <div>
-                            <p className="font-medium text-ink">
+                          <div className="min-w-0">
+                            <p className="font-medium text-ink truncate">
                               <span className="font-bold text-ink">{fromName}</span>{" "}
                               <span className="text-ink-soft">pays</span>{" "}
                               <span className="font-bold text-ink">{toName}</span>
@@ -740,12 +734,12 @@ export function TripOverviewPage() {
                               type="button"
                               onClick={() =>
                                 setSettleTransfer({
-                                   fromId: tr.fromId,
+                                  fromId: tr.fromId,
                                   toId: tr.toId,
                                   amount: tr.amount,
                                 })
                               }
-                              className="inline-flex min-h-8 items-center rounded-lg bg-brand px-3 text-xs font-semibold text-white shadow-2xs hover:opacity-90 active:scale-[0.98] transition-all cursor-pointer"
+                              className="inline-flex min-h-8 shrink-0 items-center rounded-lg bg-brand px-3 text-xs font-semibold text-white shadow-2xs hover:opacity-90 active:scale-[0.98] transition-all cursor-pointer"
                             >
                               Settle
                             </button>
@@ -777,16 +771,16 @@ export function TripOverviewPage() {
                       <li key={exp.id} className="py-2.5 first:pt-0 last:pb-0">
                         <Link
                           to={`/trips/${tripId}/expenses/${exp.id}`}
-                          className="flex items-center justify-between hover:bg-canvas/50 -mx-2 px-2 py-1.5 rounded-xl transition-colors"
+                          className="flex items-center justify-between gap-3 hover:bg-canvas/50 -mx-2 px-2 py-1.5 rounded-xl transition-colors"
                           aria-label={exp.description}
                         >
-                          <div>
-                            <p className="text-xs font-semibold text-ink">{exp.description}</p>
-                            <p className="text-[10px] text-ink-soft">
+                          <div className="min-w-0">
+                            <p className="text-xs font-semibold text-ink truncate">{exp.description}</p>
+                            <p className="text-[10px] text-ink-soft truncate">
                               {exp.category} · {exp.expense_date ?? exp.date}
                             </p>
                           </div>
-                          <div className="flex items-center gap-1.5">
+                          <div className="flex items-center gap-1.5 shrink-0 ml-3">
                             <span className="font-mono text-xs font-bold text-ink tnum">
                               {formatMinor(exp.amount_minor ?? exp.amount ?? 0, baseCurrency)}
                             </span>
@@ -844,4 +838,3 @@ export function TripOverviewPage() {
     </div>
   )
 }
-
