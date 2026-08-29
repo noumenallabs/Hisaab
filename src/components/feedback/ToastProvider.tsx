@@ -32,12 +32,12 @@ export function ToastProvider({ children }: { children: ReactNode }) {
             key={t.id}
             role={t.kind === "error" ? "alert" : "status"}
             aria-live={t.kind === "error" ? "assertive" : "polite"}
-            className={`animate-toast-in pointer-events-auto flex items-center justify-between gap-3 rounded-2xl border px-4 py-3 text-sm font-semibold backdrop-blur-xl transition-all ${
+            className={`animate-toast-in pointer-events-auto flex items-center justify-between gap-3 rounded-2xl border px-4 py-3 text-sm font-semibold backdrop-blur-xl transition-all shadow-lg bg-surface/95 text-ink ${
               t.kind === "error"
-                ? "border-owe/40 bg-surface/95 text-ink shadow-glow-owe"
+                ? "border-owe/40 shadow-glow-owe"
                 : t.kind === "success"
-                ? "border-owed/40 bg-surface/95 text-ink shadow-glow-owed"
-                : "border-hair bg-surface/95 text-ink shadow-glow-brand"
+                ? "border-owed/40 shadow-glow-owed"
+                : "border-hair shadow-glow-brand"
             }`}
           >
             <div className="flex items-center gap-3 min-w-0">

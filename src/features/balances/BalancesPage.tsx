@@ -270,13 +270,7 @@ export function BalancesPage() {
               return (
                 <div
                   key={m.id}
-                  className={`relative overflow-hidden rounded-2xl border bg-surface p-4 shadow-2xs transition-all tactile-card hover:shadow-xs ${
-                    isPositive
-                      ? "border-l-4 border-l-emerald-500 border-emerald-200/80 dark:border-emerald-800/50 hover:shadow-glow-owed/30"
-                      : isNegative
-                      ? "border-l-4 border-l-rose-500 border-rose-200/80 dark:border-rose-800/50 hover:shadow-glow-owe/30"
-                      : "border-l-4 border-l-slate-300 dark:border-l-slate-700 border-hair"
-                  }`}
+                  className="relative overflow-hidden rounded-2xl border border-hair bg-surface p-4 shadow-2xs transition-all hover:bg-canvas/30 tactile-card"
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2.5">
@@ -586,13 +580,7 @@ export function BalancesPage() {
                   return (
                     <li
                       key={i}
-                      className={`relative overflow-hidden flex items-center justify-between rounded-xl border p-3.5 text-sm shadow-2xs transition-all tactile-card ${
-                        isMyDebt
-                          ? "border-l-4 border-l-rose-500 border-rose-200/90 dark:border-rose-800/60 bg-gradient-to-r from-rose-500/10 via-surface to-surface shadow-glow-owe/20"
-                          : isOwedToMe
-                          ? "border-l-4 border-l-emerald-500 border-emerald-200/90 dark:border-emerald-800/60 bg-gradient-to-r from-emerald-500/10 via-surface to-surface shadow-glow-owed/20"
-                          : "border-l-4 border-l-brand/70 border-hair bg-canvas/30 hover:bg-canvas/50"
-                      }`}
+                      className="relative overflow-hidden flex items-center justify-between rounded-2xl border border-hair bg-surface p-4 text-sm shadow-2xs transition-all hover:bg-canvas/30 tactile-card"
                     >
                       <div className="min-w-0 pr-2">
                         <div className="flex items-center gap-1.5 flex-wrap">

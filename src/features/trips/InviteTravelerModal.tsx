@@ -195,7 +195,7 @@ export function InviteTravelerModal({
           </div>
         ) : activeCode ? (
           <div className="space-y-4">
-            <div className="rounded-2xl border border-brand/20 bg-gradient-to-br from-brand/10 via-surface to-surface p-5 text-center shadow-xs">
+            <div className="rounded-2xl border border-hair bg-canvas/60 p-5 text-center shadow-xs">
               <p className="text-[11px] font-bold uppercase tracking-wider text-brand">
                 Active Trip Invite Code
               </p>

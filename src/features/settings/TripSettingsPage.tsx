@@ -155,7 +155,7 @@ export function TripSettingsPage() {
                   <div className="flex items-center gap-2">
                     <span className="font-bold text-ink">{m.name}</span>
                     <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
-                      role === "owner" ? "border border-amber-200 bg-amber-100 text-amber-800 dark:border-amber-800/60 dark:bg-amber-950/60 dark:text-amber-300" : "border border-hair bg-surface text-ink-soft"
+                      role === "owner" ? "border border-amber-500/20 bg-amber-500/10 text-amber-700 dark:text-amber-300" : "border border-hair bg-surface text-ink-soft"
                     }`}>
                       {role}
                     </span>
@@ -177,7 +177,7 @@ export function TripSettingsPage() {
                         "Role updated",
                       )
                     }
-                    className="min-h-9 rounded-lg border border-hair bg-surface px-3 text-xs font-semibold text-ink hover:bg-canvas transition-colors"
+                    className="min-h-9 rounded-lg border border-hair bg-surface px-3 text-xs font-semibold text-ink hover:bg-canvas active:scale-[0.98] transition-all cursor-pointer"
                     aria-label={role === "owner" ? "Change to member" : "Promote to owner"}
                     disabled={roleUnresolved || !online}
                   >
@@ -185,7 +185,7 @@ export function TripSettingsPage() {
                   </button>
                   <button
                     onClick={() => setConfirm(uid)}
-                    className="min-h-9 rounded-lg border border-owe/20 bg-owe-soft px-3 text-xs font-bold text-owe hover:bg-owe hover:text-white transition-colors"
+                    className="min-h-9 rounded-lg border border-owe/20 bg-owe-soft px-3 text-xs font-bold text-owe hover:bg-owe hover:text-white active:scale-[0.98] transition-all cursor-pointer"
                     aria-label={`Remove ${m.name}`}
                     disabled={roleUnresolved || !online}
                   >
@@ -226,28 +226,28 @@ export function TripSettingsPage() {
           {trip?.status === "settled" ? (
             <button
               onClick={() => act(() => reopenTrip(tripId!), "Trip reopened")}
-              className="min-h-11 rounded-xl bg-emerald-600 px-5 text-sm font-bold text-white hover:bg-emerald-700 transition-colors shadow-2xs"
+              className="min-h-11 rounded-xl bg-emerald-600 px-5 text-sm font-bold text-white hover:bg-emerald-700 active:scale-[0.98] transition-all shadow-2xs cursor-pointer"
             >
               Reopen trip
             </button>
           ) : (
             <button
               onClick={() => act(() => markSettled(tripId!), "Marked settled")}
-              className="min-h-11 rounded-xl bg-brand px-5 text-sm font-bold text-white hover:bg-blue-700 transition-colors shadow-2xs"
+              className="min-h-11 rounded-xl bg-brand px-5 text-sm font-bold text-white hover:bg-blue-700 active:scale-[0.98] transition-all shadow-2xs cursor-pointer"
             >
               Mark settled
             </button>
           )}
           <button
             onClick={() => act(() => archiveTrip(tripId!), "Archived")}
-            className="min-h-11 rounded-xl border border-hair bg-surface px-4 text-sm font-semibold text-ink hover:bg-canvas transition-colors"
+            className="min-h-11 rounded-xl border border-hair bg-surface px-4 text-sm font-semibold text-ink hover:bg-canvas active:scale-[0.98] transition-all cursor-pointer"
           >
             Archive trip
           </button>
           {isAdmin && (
             <button
               onClick={() => setConfirmDelete(true)}
-              className="min-h-11 rounded-xl bg-owe px-4 text-sm font-bold text-white hover:bg-red-700 transition-colors shadow-2xs"
+              className="min-h-11 rounded-xl bg-owe px-4 text-sm font-bold text-white hover:bg-red-700 active:scale-[0.98] transition-all shadow-2xs cursor-pointer"
               aria-label="Delete trip"
             >
               Delete trip
@@ -263,7 +263,7 @@ export function TripSettingsPage() {
           {isAdmin && (
             <button
               onClick={() => setConfirmDelete(true)}
-              className="mt-3 min-h-11 rounded-md bg-owe px-4 text-sm font-bold text-white"
+              className="mt-3 min-h-11 rounded-xl bg-owe px-4 text-sm font-bold text-white hover:bg-red-700 active:scale-[0.98] transition-all cursor-pointer"
               aria-label="Delete trip"
             >
               Delete trip (admin)

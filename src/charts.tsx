@@ -1,4 +1,4 @@
-import { useState, useId } from "react"
+import { useState } from "react"
 import { formatMinor } from "@/lib/currency"
 
 export type Slice = {
@@ -23,7 +23,7 @@ export interface DonutProps {
 /**
  * Interactive SVG Donut Chart with animated stroke transitions,
  * hover arc scaling, center readout, and bidirectional category synchronization.
- * Zero 3rd-party charting bloat — pure theme-aware SVG + Tailwind CSS.
+ * Pure Apple HIG calibrated SVG + Tailwind CSS.
  */
 export function Donut({
   data,
@@ -35,7 +35,6 @@ export function Donut({
   ariaLabel = "Category spending distribution",
 }: DonutProps) {
   const [internalActive, setInternalActive] = useState<number | null>(null)
-  const filterId = useId().replace(/:/g, "_")
 
   const total = data.reduce((s, d) => s + (d.value || 0), 0)
   const r = Math.max((size - stroke - 4) / 2, 10)
@@ -47,13 +46,15 @@ export function Donut({
     activeCategory !== undefined
       ? activeCategory === null
         ? null
-        : data.findIndex((d) => d.label.toLowerCase() === activeCategory.toLowerCase())
+        : data.findIndex(
+            (d) => d.label.toLowerCase() === activeCategory.toLowerCase(),
+          )
       : internalActive
 
   const handleSetActive = (index: number | null) => {
     setInternalActive(index)
     if (onHoverCategory) {
-      onHoverCategory(index === null ? null : data[index]?.label ?? null)
+      onHoverCategory(index === null ? null : (data[index]?.label ?? null))
     }
   }
 
@@ -76,7 +77,8 @@ export function Donut({
     activeIndex !== null && activeIndex >= 0 && activeIndex < data.length
       ? data[activeIndex]
       : null
-  const shownPct = shown && total > 0 ? Math.round((shown.value / total) * 100) : 0
+  const shownPct =
+    shown && total > 0 ? Math.round((shown.value / total) * 100) : 0
 
   return (
     <div
@@ -92,13 +94,6 @@ export function Donut({
         className="-rotate-90 transform-gpu overflow-visible"
         aria-hidden="true"
       >
-        <defs>
-          <filter id={`glow-${filterId}`} x="-20%" y="-20%" width="140%" height="140%">
-            <feGaussianBlur stdDeviation="3" result="blur" />
-            <feComposite in="SourceGraphic" in2="blur" operator="over" />
-          </filter>
-        </defs>
-
         {/* Background track circle */}
         <circle
           cx={size / 2}
@@ -115,7 +110,7 @@ export function Donut({
           arcs.map((a) => {
             const isCurrentActive = activeIndex === a.i
             const hasAnyActive = activeIndex !== null && activeIndex >= 0
-            const currentStroke = isCurrentActive ? stroke + 3.5 : stroke
+            const currentStroke = isCurrentActive ? stroke + 3 : stroke
             const currentOpacity = isCurrentActive ? 1 : hasAnyActive ? 0.32 : 1
 
             return (
@@ -137,12 +132,11 @@ export function Donut({
                 tabIndex={0}
                 role="graphics-symbol"
                 aria-label={`${a.d.label}: ${formatMinor(a.d.value, currency)} (${Math.round(a.frac * 100)}%)`}
-                filter={isCurrentActive ? `url(#glow-${filterId})` : undefined}
                 style={{
                   cursor: "pointer",
                   opacity: currentOpacity,
                   transition:
-                    "stroke-width 0.22s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease, filter 0.2s ease",
+                    "stroke-width 0.2s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease",
                   outline: "none",
                 }}
               />
@@ -203,8 +197,8 @@ export interface DailyBarsProps {
 
 /**
  * Interactive SVG/HTML Daily Spending Trajectory Bars.
- * Features relative percentage heights, peak-day glowing badges,
- * average daily spend dashed reference line, and spring hover tooltip popovers.
+ * Apple HIG Inset style: relative percentage heights, peak-day markers,
+ * average daily spend dashed reference line, and tactile popover tooltips.
  */
 export function DailyBars({
   data,
@@ -231,8 +225,8 @@ export function DailyBars({
     avgMinor !== undefined
       ? avgMinor
       : items.length > 0
-      ? Math.round(total / items.length)
-      : 0
+        ? Math.round(total / items.length)
+        : 0
 
   // Reference line relative vertical position (bounded between 8% and 92%)
   const avgHeightPct =
@@ -252,7 +246,7 @@ export function DailyBars({
           className="absolute inset-x-2 border-t border-dashed border-brand/35 dark:border-brand/45 pointer-events-none z-0 flex items-center justify-end"
           style={{ bottom: `calc(${avgHeightPct}% * 0.72 + 28px)` }}
         >
-          <span className="bg-surface/90 text-brand px-1 py-0.2 text-[9px] font-mono font-bold tracking-tight rounded -mt-2.5 shadow-2xs border border-brand/20">
+          <span className="bg-surface text-brand px-1.5 py-0.5 text-[9px] font-mono font-bold tracking-tight rounded-md shadow-2xs border border-hair -mt-2.5">
             avg {formatMinor(computedAvg, currency)}
           </span>
         </div>
@@ -264,8 +258,10 @@ export function DailyBars({
         style={{ height: `${height}px` }}
       >
         {items.map((d, i) => {
-          const isItemPeak = d.isPeak ?? (d.value === max && max > 0 && items.length > 1)
-          const h = max > 0 ? Math.max((d.value / max) * 100, d.value > 0 ? 8 : 4) : 4
+          const isItemPeak =
+            d.isPeak ?? (d.value === max && max > 0 && items.length > 1)
+          const h =
+            max > 0 ? Math.max((d.value / max) * 100, d.value > 0 ? 8 : 4) : 4
           const isActive = active === i
           const hasActive = active !== null
 
@@ -279,30 +275,34 @@ export function DailyBars({
               onBlur={() => setActive(null)}
               tabIndex={0}
               role="button"
-              aria-label={`Day ${d.label}: ${formatMinor(d.value, currency)}${isItemPeak ? " (Peak Day)" : ""}`}
+              aria-label={`Day ${d.label}: ${formatMinor(d.value, currency)}${
+                isItemPeak ? " (Peak Day)" : ""
+              }`}
             >
               {/* Tooltip Popover */}
               {isActive && (
-                <div className="absolute -top-10 z-30 whitespace-nowrap rounded-lg border border-slate-700/60 bg-slate-900/95 px-2.5 py-1 text-[11px] font-medium text-white shadow-xl dark:border-slate-700 dark:bg-slate-800/95 dark:text-slate-100 animate-badge-pop backdrop-blur-xs flex flex-col items-center pointer-events-none">
+                <div className="absolute -top-10 z-30 whitespace-nowrap rounded-xl border border-hair bg-surface/95 px-2.5 py-1 text-[11px] font-medium text-ink shadow-lg animate-badge-pop backdrop-blur-md flex flex-col items-center pointer-events-none">
                   <div className="flex items-center gap-1.5">
-                    <span className="font-semibold text-slate-300">{d.label}</span>
-                    <span className="tnum font-mono font-bold text-emerald-400">
+                    <span className="font-semibold text-ink-soft">
+                      {d.label}
+                    </span>
+                    <span className="tnum font-mono font-bold text-ink">
                       {formatMinor(d.value, currency)}
                     </span>
                   </div>
                   {isItemPeak && (
-                    <span className="text-[9px] font-bold text-amber-300 uppercase tracking-wide">
+                    <span className="text-[9px] font-bold text-amber-500 dark:text-amber-400 uppercase tracking-wide">
                       👑 Peak Day
                     </span>
                   )}
                   {/* Tooltip Arrow */}
-                  <div className="w-1.5 h-1.5 bg-slate-900 dark:bg-slate-800 border-r border-b border-slate-700/60 rotate-45 -mb-1 mt-0.5" />
+                  <div className="w-1.5 h-1.5 bg-surface border-r border-b border-hair rotate-45 -mb-1 mt-0.5" />
                 </div>
               )}
 
               {/* Peak Marker Badge */}
               {isItemPeak && !isActive && (
-                <div className="absolute -top-4 text-[9px] font-extrabold text-amber-500 dark:text-amber-400 animate-pulse pointer-events-none">
+                <div className="absolute -top-4 text-[9px] font-bold text-amber-500 dark:text-amber-400 pointer-events-none">
                   👑
                 </div>
               )}
@@ -313,13 +313,13 @@ export function DailyBars({
                   className={`w-full max-w-[28px] rounded-[5px_5px_1px_1px] transition-all duration-200 ${
                     isItemPeak
                       ? isActive
-                        ? "bg-gradient-to-t from-brand to-amber-500 shadow-glow-brand scale-y-105"
-                        : "bg-gradient-to-t from-brand to-blue-400 dark:from-brand dark:to-blue-300 shadow-sm"
+                        ? "bg-brand scale-y-105"
+                        : "bg-brand"
                       : isActive
-                      ? "bg-brand shadow-glow-brand scale-y-105"
-                      : hasActive
-                      ? "bg-blue-200 dark:bg-slate-700 opacity-40"
-                      : "bg-blue-200/85 hover:bg-blue-300/90 dark:bg-slate-700 dark:hover:bg-slate-600"
+                        ? "bg-brand scale-y-105"
+                        : hasActive
+                          ? "bg-slate-200 dark:bg-slate-700 opacity-40"
+                          : "bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600"
                   }`}
                   style={{
                     height: `${h}%`,
@@ -334,8 +334,8 @@ export function DailyBars({
                   isActive
                     ? "text-brand font-bold"
                     : isItemPeak
-                    ? "text-ink font-bold"
-                    : "text-ink-faint"
+                      ? "text-ink font-bold"
+                      : "text-ink-faint"
                 }`}
               >
                 {d.label}

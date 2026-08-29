@@ -25,18 +25,16 @@ export function JoinTripPage() {
       <section className="mx-auto w-full max-w-[520px] pt-5 sm:pt-0">
         <Link
           to="/trips"
-          className="inline-flex items-center gap-2 text-sm font-semibold text-ink-soft hover:text-ink"
+          className="inline-flex items-center gap-2 text-sm font-semibold text-ink-soft hover:text-ink active:scale-[0.98] transition-all"
         >
           <ArrowLeft size={17} /> All trips
         </Link>
-        <div className="mt-6 overflow-hidden rounded-xl border border-hair bg-surface shadow-[0_18px_50px_rgba(28,36,48,.09)]">
-          <div className="border-b border-hair bg-canvas/50 p-7">
+        <div className="mt-6 overflow-hidden rounded-2xl border border-hair bg-surface shadow-xs">
+          <div className="border-b border-hair bg-canvas/40 p-7">
             <p className="font-mono text-[11px] font-semibold tracking-[.14em] text-brand">
               JOIN A TRIP
             </p>
-            <h1 className="mt-3 text-3xl font-bold tracking-tight">
-              Your seat is waiting.
-            </h1>
+            <h1 className="mt-3 text-3xl font-bold tracking-tight">Your seat is waiting.</h1>
             <p className="mt-2 max-w-sm text-sm leading-6 text-ink-soft">
               Paste an invite code from a trip owner.
             </p>
@@ -57,21 +55,21 @@ export function JoinTripPage() {
                       setCode(e.target.value)
                       setErr("")
                     }}
-                    className="mt-1.5 w-full rounded-md border border-hair bg-surface px-3 py-3 pl-10 text-sm font-mono uppercase tracking-[.16em] outline-none focus:border-brand"
+                    className="mt-1.5 w-full rounded-xl border border-hair bg-surface px-3 py-3 pl-10 text-sm font-mono uppercase tracking-[.16em] outline-none focus:border-brand focus:ring-1 focus:ring-brand"
                     placeholder="LISBON24"
                   />
                 </div>
               </label>
               {err && (
-                <p className="mt-2 text-xs font-medium text-owe">{err}</p>
+                <p className="mt-2 rounded-xl bg-owe-soft px-3 py-2 text-xs font-medium text-owe">{err}</p>
               )}
-              <button className="mt-6 flex h-12 w-full items-center justify-center gap-2 rounded-md bg-brand text-sm font-bold text-white hover:bg-blue-700">
+              <button className="mt-6 flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-brand text-sm font-bold text-white hover:bg-blue-700 active:scale-[0.98] transition-all cursor-pointer shadow-sm">
                 Join trip <ArrowRight size={17} />
               </button>
             </form>
-            <div className="mt-7 rounded-lg bg-canvas px-4 py-3 text-xs leading-5 text-ink-soft">
+            <div className="mt-7 rounded-xl bg-canvas/60 p-4 text-xs leading-5 text-ink-soft border border-hair/50">
               <b className="text-ink">Try it:</b> enter{" "}
-              <code className="font-mono text-brand">LISBON24</code> to join the
+              <code className="font-mono font-bold text-brand">LISBON24</code> to join the
               seeded Lisbon trip.
             </div>
           </div>

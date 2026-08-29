@@ -145,12 +145,12 @@ export function ActivityPage() {
           </div>
         </div>
       ) : (
-        <div className="space-y-3">
+        <div className="rounded-2xl border border-hair bg-surface divide-y divide-hair overflow-hidden shadow-2xs">
           {filteredPages.map((a: any) => {
             const actorId = a.actor_user_id as string
             const name = (memberMap.get(actorId) as string | undefined) ?? "Member"
             return (
-              <div key={a.id} className="rounded-2xl border border-hair bg-surface p-4 shadow-2xs transition-all hover:shadow-xs">
+              <div key={a.id} className="p-4 transition-all hover:bg-canvas/30">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-start gap-3 min-w-0">
                     <UserAvatar id={actorId} name={name} size="sm" />

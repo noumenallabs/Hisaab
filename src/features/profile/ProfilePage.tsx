@@ -172,9 +172,9 @@ export function ProfilePage() {
               aria-live="polite"
               className={`rounded-xl p-3 text-xs font-semibold ${
                 msg.kind === "error"
-                  ? "border border-red-200 bg-red-50 text-owe dark:border-red-800/60 dark:bg-red-950/40 dark:text-red-300"
+                  ? "border border-rose-500/20 bg-rose-500/10 text-rose-700 dark:text-rose-300"
                   : msg.kind === "success"
-                  ? "border border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-800/60 dark:bg-emerald-950/40 dark:text-emerald-300"
+                  ? "border border-emerald-500/20 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
                   : "border border-hair bg-canvas text-ink-soft"
               }`}
             >
@@ -184,7 +184,7 @@ export function ProfilePage() {
 
           <button
             disabled={isSubmitting}
-            className="flex min-h-11 w-full items-center justify-center rounded-xl bg-brand text-sm font-bold text-white shadow-sm hover:bg-blue-700 disabled:opacity-50 transition-colors"
+            className="flex min-h-11 w-full items-center justify-center rounded-xl bg-brand text-sm font-bold text-white shadow-sm hover:bg-blue-700 disabled:opacity-50 active:scale-[0.98] transition-all cursor-pointer"
           >
             {isSubmitting ? "Saving changes…" : "Save changes"}
           </button>

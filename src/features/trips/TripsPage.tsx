@@ -35,13 +35,13 @@ export function TripsPage() {
           <div className="flex gap-2">
             <Link
               to="/join"
-              className="inline-flex h-11 items-center gap-2 rounded-md border border-hair bg-surface px-4 text-sm font-semibold hover:border-ink-faint"
+              className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-hair bg-surface px-4 text-sm font-semibold hover:bg-canvas active:scale-[0.98] transition-all cursor-pointer"
             >
               <Users size={17} /> Join trip
             </Link>
             <Link
               to="/trips/new"
-              className="inline-flex h-11 items-center gap-2 rounded-md bg-brand px-4 text-sm font-bold text-white hover:bg-blue-700"
+              className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-brand px-4 text-sm font-bold text-white hover:bg-blue-700 active:scale-[0.98] transition-all cursor-pointer shadow-2xs"
             >
               <Plus size={17} /> New trip
             </Link>
@@ -61,7 +61,7 @@ export function TripsPage() {
               action={
                 <Link
                   to="/trips/new"
-                  className="inline-flex h-10 items-center rounded-xl bg-brand px-5 text-sm font-bold text-white shadow-sm"
+                  className="inline-flex min-h-11 items-center rounded-xl bg-brand px-5 text-sm font-bold text-white shadow-sm hover:bg-blue-700 active:scale-[0.98] transition-all"
                 >
                   Create trip
                 </Link>
@@ -74,17 +74,16 @@ export function TripsPage() {
               <Link
                 key={t.id}
                 to={`/trips/${t.id}`}
-                className="group relative overflow-hidden rounded-2xl border border-hair bg-surface p-6 transition-all duration-200 hover:-translate-y-1 hover:shadow-md"
+                className="group relative overflow-hidden rounded-2xl border border-hair bg-surface p-6 shadow-2xs transition-all active:scale-[0.98] hover:border-hair/80"
               >
-                <div className="absolute right-0 top-0 h-28 w-28 translate-x-8 -translate-y-8 rounded-full bg-brand-soft/60 transition-transform group-hover:scale-110" />
                 <div className="relative flex items-start justify-between">
                   <span
                     className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
                       t.status === "active"
-                        ? "border border-emerald-200 bg-emerald-100 text-emerald-800 dark:border-emerald-800/60 dark:bg-emerald-950/60 dark:text-emerald-300"
+                        ? "border border-emerald-500/20 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
                         : t.status === "settled"
-                        ? "border border-blue-200 bg-blue-100 text-blue-800 dark:border-blue-800/60 dark:bg-blue-950/60 dark:text-blue-300"
-                        : "border border-hair bg-canvas text-ink-faint"
+                        ? "border border-blue-500/20 bg-blue-500/10 text-blue-700 dark:text-blue-300"
+                        : "border border-hair bg-canvas/80 text-ink-soft"
                     }`}
                   >
                     {t.status}
@@ -102,7 +101,7 @@ export function TripsPage() {
                 </p>
                 <div className="relative mt-6 grid grid-cols-3 border-t border-hair pt-4 text-xs">
                   <span>
-                    <b className="block font-mono text-sm font-bold text-ink">
+                    <b className="block font-mono text-sm font-bold text-ink tnum tabular-nums">
                       {t.total || t.total_minor ? formatMinor(t.total ?? t.total_minor ?? 0, t.base_currency ?? "INR") : "—"}
                     </b>
                     <span className="text-ink-faint text-[10px]">Tracked</span>

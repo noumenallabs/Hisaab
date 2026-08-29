@@ -438,89 +438,92 @@ export function ExpenseFormPage() {
       >
         <ArrowLeft size={14} /> Back to expenses
       </Link>
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-5 rounded-2xl border border-hair bg-surface p-6 shadow-sm" aria-labelledby="expense-form-title">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 rounded-2xl border border-hair bg-surface p-5 sm:p-6 shadow-2xs" aria-labelledby="expense-form-title">
         <div className="flex items-center justify-between border-b border-hair pb-4">
           <div>
-            <h1 id="expense-form-title" className="text-xl font-bold tracking-tight">{expenseId ? "Edit expense" : "Add expense"}</h1>
+            <h1 id="expense-form-title" className="text-xl font-bold tracking-tight text-ink">{expenseId ? "Edit expense" : "Add expense"}</h1>
             <p className="text-xs text-ink-soft">Enter details to split costs with your group</p>
           </div>
-          <Link to={`/trips/${tripId}/expenses`} className="rounded-lg px-3 py-1.5 text-xs font-semibold text-ink-soft hover:bg-canvas transition-colors">Cancel</Link>
+          <Link to={`/trips/${tripId}/expenses`} className="rounded-xl px-3 py-1.5 text-xs font-semibold text-ink-soft hover:bg-canvas hover:text-ink transition-colors active:scale-[0.98]">Cancel</Link>
         </div>
 
       {isDirty && <p className="text-xs text-amber-600 dark:text-amber-400 font-medium">Unsaved changes — you will be warned on leave.</p>}
       {isArchived && <p role="alert" className="rounded-xl border border-hair bg-canvas/80 px-4 py-2.5 text-sm font-semibold text-ink-soft">Archived — read-only. No edits allowed.</p>}
 
-      <label htmlFor="exp-desc" className="block text-xs font-semibold uppercase tracking-wider text-ink-soft">Description
-        <input
-          id="exp-desc"
-          {...register("description")}
-          className={`mt-1 w-full min-h-11 rounded-xl border bg-surface px-3 py-3 text-sm outline-none transition-all duration-300 ${
-            justReset
-              ? "border-emerald-500 ring-2 ring-emerald-500/30 bg-emerald-50/20 dark:bg-emerald-950/20"
-              : "border-hair focus:border-brand focus:ring-1 focus:ring-brand"
-          }`}
-          placeholder="e.g. Beach dinner"
-          aria-invalid={!!errors.description}
-        />
-        {errors.description && <span className="mt-1 block text-xs text-owe" role="alert">{errors.description.message}</span>}
-      </label>
-
-      <div className="grid grid-cols-2 gap-3">
-        <label htmlFor="exp-amount" className="block text-xs font-semibold uppercase tracking-wider text-ink-soft">Amount ({baseCurrency})
+      {/* Section 1: General Info */}
+      <div className="space-y-3">
+        <label htmlFor="exp-desc" className="block text-xs font-bold uppercase tracking-wider text-ink-soft">Description
           <input
-            id="exp-amount"
-            value={amountStr}
-            onChange={(e) => {
-              const newStr = e.target.value
-              setAmountStr(newStr)
-              const minor = parseCurrencyInput(newStr, baseCurrency)
-              if (minor !== null) {
-                setValue("amountMinor", minor as any, { shouldValidate: true, shouldDirty: true })
-                if (payerInputs.length === 1) {
-                  const nextPayers = [{ userId: payerInputs[0].userId, amountMinor: minor }]
-                  setPayerInputs(nextPayers)
-                  setValue("payers", nextPayers.map((x) => ({ userId: x.userId, amountPaidMinor: x.amountMinor })) as any, { shouldValidate: true, shouldDirty: true })
-                  clearErrors("payers")
-                }
-                if (splitMode === "equal") {
-                  const alloc = allocateEqual(minor, selectedIds.length)
-                  syncSplitsToForm(selectedIds.map((id, i) => ({ userId: id, amountOwedMinor: alloc[i] ?? 0 })))
-                } else if (splitMode === "percent") {
-                  const alloc = allocatePercent(minor, percentInputs)
-                  if (alloc) {
-                    syncSplitsToForm(selectedIds.map((id, i) => ({ userId: id, amountOwedMinor: alloc[i] })))
-                  } else {
-                    const raw = percentInputs.map((p) => Math.round((minor * (p || 0)) / 100))
-                    syncSplitsToForm(selectedIds.map((id, i) => ({ userId: id, amountOwedMinor: raw[i] })))
-                  }
-                } else if (splitMode === "shares") {
-                  const alloc = allocateShares(minor, shareInputs)
-                  if (alloc) {
-                    syncSplitsToForm(selectedIds.map((id, i) => ({ userId: id, amountOwedMinor: alloc[i] })))
-                  } else {
-                    syncSplitsToForm(selectedIds.map((id) => ({ userId: id, amountOwedMinor: 0 })))
-                  }
-                }
-              }
-            }}
-            placeholder={dec === 0 ? "1200" : "1250.50"}
-            className="mt-1 w-full min-h-11 rounded-xl border border-hair bg-surface px-3 py-3 text-base font-semibold font-mono tabular-nums tnum focus:border-brand focus:ring-1 focus:ring-brand outline-none transition-all"
-            aria-describedby="exp-amount-hint"
-            inputMode="decimal"
+            id="exp-desc"
+            {...register("description")}
+            className={`mt-1 w-full min-h-11 rounded-xl border bg-canvas/40 focus:bg-surface px-3.5 py-2.5 text-sm outline-none transition-all duration-200 placeholder:text-ink-faint ${
+              justReset
+                ? "border-emerald-500 ring-2 ring-emerald-500/30 bg-emerald-50/20 dark:bg-emerald-950/20"
+                : "border-hair focus:border-brand focus:ring-1 focus:ring-brand"
+            }`}
+            placeholder="e.g. Beach dinner"
+            aria-invalid={!!errors.description}
           />
-          <span id="exp-amount-hint" className="mt-1 block text-[11px] font-normal text-ink-faint">Preview: {formatMinor(amountMinor, baseCurrency)}</span>
-          {errors.amountMinor && <span className="text-xs text-owe" role="alert">{errors.amountMinor.message}</span>}
+          {errors.description && <span className="mt-1 block text-xs text-owe font-semibold" role="alert">{errors.description.message}</span>}
         </label>
-        <input type="hidden" {...register("amountMinor", { valueAsNumber: true })} />
-        <label htmlFor="exp-date" className="block text-xs font-semibold uppercase tracking-wider text-ink-soft">Expense Date
-          <input id="exp-date" type="date" {...register("expenseDate")} className="mt-1 w-full min-h-11 rounded-xl border border-hair bg-surface px-3 py-3 text-sm focus:border-brand focus:ring-1 focus:ring-brand outline-none transition-all" />
-        </label>
-        <input id="exp-currency" {...register("currency")} readOnly className="sr-only" aria-hidden="true" tabIndex={-1} />
+
+        <div className="grid grid-cols-2 gap-3">
+          <label htmlFor="exp-amount" className="block text-xs font-bold uppercase tracking-wider text-ink-soft">Amount ({baseCurrency})
+            <input
+              id="exp-amount"
+              value={amountStr}
+              onChange={(e) => {
+                const newStr = e.target.value
+                setAmountStr(newStr)
+                const minor = parseCurrencyInput(newStr, baseCurrency)
+                if (minor !== null) {
+                  setValue("amountMinor", minor as any, { shouldValidate: true, shouldDirty: true })
+                  if (payerInputs.length === 1) {
+                    const nextPayers = [{ userId: payerInputs[0].userId, amountMinor: minor }]
+                    setPayerInputs(nextPayers)
+                    setValue("payers", nextPayers.map((x) => ({ userId: x.userId, amountPaidMinor: x.amountMinor })) as any, { shouldValidate: true, shouldDirty: true })
+                    clearErrors("payers")
+                  }
+                  if (splitMode === "equal") {
+                    const alloc = allocateEqual(minor, selectedIds.length)
+                    syncSplitsToForm(selectedIds.map((id, i) => ({ userId: id, amountOwedMinor: alloc[i] ?? 0 })))
+                  } else if (splitMode === "percent") {
+                    const alloc = allocatePercent(minor, percentInputs)
+                    if (alloc) {
+                      syncSplitsToForm(selectedIds.map((id, i) => ({ userId: id, amountOwedMinor: alloc[i] })))
+                    } else {
+                      const raw = percentInputs.map((p) => Math.round((minor * (p || 0)) / 100))
+                      syncSplitsToForm(selectedIds.map((id, i) => ({ userId: id, amountOwedMinor: raw[i] })))
+                    }
+                  } else if (splitMode === "shares") {
+                    const alloc = allocateShares(minor, shareInputs)
+                    if (alloc) {
+                      syncSplitsToForm(selectedIds.map((id, i) => ({ userId: id, amountOwedMinor: alloc[i] })))
+                    } else {
+                      syncSplitsToForm(selectedIds.map((id) => ({ userId: id, amountOwedMinor: 0 })))
+                    }
+                  }
+                }
+              }}
+              placeholder={dec === 0 ? "1200" : "1250.50"}
+              className="mt-1 w-full min-h-11 rounded-xl border border-hair bg-canvas/40 focus:bg-surface px-3.5 py-2.5 text-base font-semibold font-mono tabular-nums tnum focus:border-brand focus:ring-1 focus:ring-brand outline-none transition-all placeholder:text-ink-faint"
+              aria-describedby="exp-amount-hint"
+              inputMode="decimal"
+            />
+            <span id="exp-amount-hint" className="mt-1 block text-[11px] font-mono tnum text-ink-faint">Preview: {formatMinor(amountMinor, baseCurrency)}</span>
+            {errors.amountMinor && <span className="text-xs text-owe font-semibold" role="alert">{errors.amountMinor.message}</span>}
+          </label>
+          <input type="hidden" {...register("amountMinor", { valueAsNumber: true })} />
+          <label htmlFor="exp-date" className="block text-xs font-bold uppercase tracking-wider text-ink-soft">Expense Date
+            <input id="exp-date" type="date" {...register("expenseDate")} className="mt-1 w-full min-h-11 rounded-xl border border-hair bg-canvas/40 focus:bg-surface px-3.5 py-2.5 text-sm focus:border-brand focus:ring-1 focus:ring-brand outline-none transition-all text-ink" />
+          </label>
+          <input id="exp-currency" {...register("currency")} readOnly className="sr-only" aria-hidden="true" tabIndex={-1} />
+        </div>
       </div>
 
-      {/* Visual Category Selector */}
-      <div>
-        <label className="block text-xs font-semibold uppercase tracking-wider text-ink-soft mb-2">Category</label>
+      {/* Section 2: Visual Category Selector */}
+      <div className="space-y-2">
+        <label className="block text-xs font-bold uppercase tracking-wider text-ink-soft">Category</label>
         <div className="grid grid-cols-3 gap-2 sm:grid-cols-6">
           {CATEGORIES.map((cat) => {
             const isSelected = currentCategory === cat.id
@@ -532,8 +535,8 @@ export function ExpenseFormPage() {
                 aria-pressed={isSelected}
                 className={`flex flex-col items-center justify-center rounded-xl border p-2.5 text-xs transition-all duration-150 ease-spring active:scale-[0.98] ${
                   isSelected
-                    ? "border-brand bg-brand/10 text-brand font-bold shadow-xs ring-1 ring-brand/30"
-                    : "border-hair bg-surface text-ink-soft hover:bg-canvas hover:border-hair-glass"
+                    ? "border-brand bg-brand-soft text-brand font-bold shadow-xs ring-1 ring-brand/30"
+                    : "border-hair bg-canvas/40 text-ink-soft hover:bg-canvas hover:border-hair-glass"
                 }`}
               >
                 <span className="text-lg">{cat.icon}</span>
@@ -545,11 +548,11 @@ export function ExpenseFormPage() {
         <input type="hidden" {...register("category")} />
       </div>
 
-      {/* Payers Section */}
-      <div className="rounded-xl border border-hair bg-canvas/40 p-4 space-y-3">
+      {/* Section 3: Payers Section */}
+      <div className="rounded-2xl border border-hair bg-canvas/40 p-4 space-y-3 shadow-2xs">
         <div className="flex items-center justify-between">
           <span className="text-xs font-bold uppercase tracking-wider text-ink-soft">Paid By</span>
-          <span className="text-xs font-medium text-ink-soft">
+          <span className="text-xs font-medium font-mono tnum text-ink-soft">
             Total {formatMinor(totalPaid, baseCurrency)} / {formatMinor(amountMinor, baseCurrency)}{" "}
             {totalPaid === amountMinor ? <span className="text-emerald-600 font-bold">✓</span> : <span className="text-owe font-semibold">({formatMinor(amountMinor - totalPaid, baseCurrency)} left)</span>}
           </span>
@@ -557,7 +560,7 @@ export function ExpenseFormPage() {
         {payerInputs.map((p, i) => {
           const currentMember = members.find((m: any) => m.id === p.userId)
           return (
-            <div key={p.userId} className="flex gap-2 items-center p-2 rounded-xl bg-surface border border-hair/80 shadow-2xs">
+            <div key={`${p.userId}-${i}`} className="flex gap-2 items-center p-2 rounded-xl bg-surface border border-hair shadow-2xs">
               <UserAvatar id={p.userId} name={currentMember?.name} size="xs" />
               <select
                 value={p.userId}
@@ -571,7 +574,7 @@ export function ExpenseFormPage() {
                   setPayerInputs(next)
                   setValue("payers", next.map((x) => ({ userId: x.userId, amountPaidMinor: x.amountMinor })) as any, { shouldValidate: true })
                 }}
-                className="flex-1 min-h-10 rounded-lg border border-hair bg-canvas/40 px-3 text-sm font-medium outline-none focus:border-brand focus:bg-surface transition-all"
+                className="flex-1 min-h-10 rounded-lg border border-hair bg-canvas/40 px-3 text-sm font-medium outline-none focus:border-brand focus:bg-surface text-ink transition-all"
               >
                 {members.map((m: any) => (
                   <option key={m.id} value={m.id}>{m.name}</option>
@@ -594,7 +597,7 @@ export function ExpenseFormPage() {
                     clearErrors("payers")
                   }
                 }}
-                className="w-32 min-h-10 rounded-lg border border-hair bg-canvas/40 px-3 text-sm font-semibold font-mono tabular-nums tnum outline-none focus:border-brand focus:ring-1 focus:ring-brand focus:bg-surface transition-all"
+                className="w-32 min-h-10 rounded-lg border border-hair bg-canvas/40 px-3 text-sm font-semibold font-mono tabular-nums tnum outline-none focus:border-brand focus:ring-1 focus:ring-brand focus:bg-surface text-ink transition-all placeholder:text-ink-faint"
                 aria-label={`Payer amount for ${currentMember?.name ?? p.userId}`}
               />
               {payerInputs.length > 1 && (
@@ -625,14 +628,14 @@ export function ExpenseFormPage() {
           + Add multiple payers
         </button>
         {errors.payers && totalPaid !== amountMinor && (
-          <p className="text-xs text-owe font-medium" role="alert">
+          <p className="text-xs text-owe font-semibold" role="alert">
             {(errors.payers as any).message ?? "Payer sum must equal total"}
           </p>
         )}
       </div>
 
-      {/* Split Section */}
-      <div className="rounded-xl border border-hair bg-canvas/40 p-4 space-y-3">
+      {/* Section 4: Split Section */}
+      <div className="rounded-2xl border border-hair bg-canvas/40 p-4 space-y-3.5 shadow-2xs">
         <div className="flex items-center justify-between flex-wrap gap-2">
           <div>
             <span className="text-xs font-bold uppercase tracking-wider text-ink-soft">Split Between</span>
@@ -740,7 +743,7 @@ export function ExpenseFormPage() {
               const member = members.find((m: any) => m.id === id)
               const memberName = member?.name ?? id.slice(0, 8)
               return (
-                <div key={id} className="flex gap-2.5 items-center p-2 rounded-xl bg-surface border border-hair/80 shadow-2xs">
+                <div key={id} className="flex gap-2.5 items-center p-2 rounded-xl bg-surface border border-hair shadow-2xs">
                   <UserAvatar id={id} name={memberName} size="xs" />
                   <label htmlFor={`split-${i}`} className="w-28 text-xs font-semibold text-ink truncate cursor-pointer">
                     {memberName}
@@ -763,7 +766,7 @@ export function ExpenseFormPage() {
                           next[i] = { ...next[i], userId: id, amountOwedMinor: minor ?? 0 }
                           syncSplitsToForm(next)
                         }}
-                        className="w-full min-h-10 rounded-lg border border-hair bg-canvas/40 px-3 text-sm font-semibold font-mono tabular-nums tnum outline-none focus:border-brand focus:ring-1 focus:ring-brand focus:bg-surface transition-all"
+                        className="w-full min-h-10 rounded-lg border border-hair bg-canvas/40 px-3 text-sm font-semibold font-mono tabular-nums tnum outline-none focus:border-brand focus:ring-1 focus:ring-brand focus:bg-surface text-ink transition-all placeholder:text-ink-faint"
                         placeholder={dec === 0 ? "0" : "0.00"}
                       />
                     </div>
@@ -775,7 +778,7 @@ export function ExpenseFormPage() {
                         type="number"
                         value={percentInputs[i] ?? 0}
                         onChange={(e) => handlePercentChange(i, Number(e.target.value))}
-                        className="flex-1 min-h-10 rounded-lg border border-hair bg-canvas/40 px-3 text-sm font-semibold font-mono tabular-nums tnum outline-none focus:border-brand focus:ring-1 focus:ring-brand focus:bg-surface transition-all"
+                        className="flex-1 min-h-10 rounded-lg border border-hair bg-canvas/40 px-3 text-sm font-semibold font-mono tabular-nums tnum outline-none focus:border-brand focus:ring-1 focus:ring-brand focus:bg-surface text-ink transition-all placeholder:text-ink-faint"
                         placeholder="%"
                       />
                       <span className="rounded-md bg-canvas px-2 py-1 text-xs font-bold text-ink-soft border border-hair">%</span>
@@ -788,7 +791,7 @@ export function ExpenseFormPage() {
                         type="number"
                         value={shareInputs[i] ?? 1}
                         onChange={(e) => handleSharesChange(i, Number(e.target.value))}
-                        className="flex-1 min-h-10 rounded-lg border border-hair bg-canvas/40 px-3 text-sm font-semibold font-mono tabular-nums tnum outline-none focus:border-brand focus:ring-1 focus:ring-brand focus:bg-surface transition-all"
+                        className="flex-1 min-h-10 rounded-lg border border-hair bg-canvas/40 px-3 text-sm font-semibold font-mono tabular-nums tnum outline-none focus:border-brand focus:ring-1 focus:ring-brand focus:bg-surface text-ink transition-all placeholder:text-ink-faint"
                         placeholder="shares"
                       />
                       <span className="rounded-md bg-canvas px-2 py-1 text-xs font-bold text-ink-soft border border-hair">share(s)</span>
@@ -800,7 +803,7 @@ export function ExpenseFormPage() {
           </div>
         )}
 
-        <p className="text-[11px] text-ink-faint font-medium">
+        <p className="text-[11px] text-ink-faint font-medium font-mono tnum">
           Allocated {formatMinor(totalAllocatedMinor, baseCurrency)} / {formatMinor(amountMinor, baseCurrency)}{" "}
           {totalAllocatedMinor === amountMinor ? (
             <span className="text-emerald-600 font-bold">✓</span>
@@ -809,14 +812,14 @@ export function ExpenseFormPage() {
           )}
         </p>
         {errors.splits && totalAllocatedMinor !== amountMinor && (
-          <p className="text-xs text-owe font-medium" role="alert">
+          <p className="text-xs text-owe font-semibold" role="alert">
             {(errors.splits as any).message ?? "Split sum must equal total"}
           </p>
         )}
       </div>
 
-      {/* Receipt Upload & Preview */}
-      <div className="rounded-xl border border-hair bg-canvas/40 p-4 space-y-2">
+      {/* Section 5: Receipt Upload & Preview */}
+      <div className="rounded-2xl border border-hair bg-canvas/40 p-4 space-y-2.5 shadow-2xs">
         <label htmlFor="exp-receipt-file" className="block text-xs font-bold uppercase tracking-wider text-ink-soft">
           Receipt Attachment
         </label>
@@ -844,12 +847,12 @@ export function ExpenseFormPage() {
               setIsUploadingReceipt(false)
             }
           }}
-          className="block w-full text-xs file:mr-3 file:rounded-lg file:border-0 file:bg-brand file:px-3 file:py-2 file:text-xs file:font-semibold file:text-white file:cursor-pointer"
+          className="block w-full text-xs text-ink-soft file:mr-3 file:rounded-xl file:border-0 file:bg-brand file:px-3.5 file:py-2 file:text-xs file:font-semibold file:text-white file:cursor-pointer hover:file:opacity-90 transition-all"
         />
         <input type="hidden" {...register("receiptPath")} />
         {localReceiptPreview && (
           <div className="relative mt-2 inline-block">
-            <img src={localReceiptPreview} alt="Receipt preview" className="h-20 w-20 rounded-lg object-cover border border-hair shadow-2xs" />
+            <img src={localReceiptPreview} alt="Receipt preview" className="h-20 w-20 rounded-xl object-cover border border-hair shadow-2xs" />
             <button
               type="button"
               onClick={() => {
@@ -857,7 +860,7 @@ export function ExpenseFormPage() {
                 setLocalReceiptPreview(null)
                 setValue("receiptPath", null as any, { shouldDirty: true })
               }}
-              className="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-owe text-white text-xs font-bold shadow-xs active:scale-95"
+              className="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-owe text-white text-xs font-bold shadow-xs active:scale-95 transition-transform"
             >
               ×
             </button>
@@ -874,15 +877,17 @@ export function ExpenseFormPage() {
         {isUploadingReceipt && <p className="text-xs text-brand animate-pulse font-semibold">Uploading receipt…</p>}
       </div>
 
-      {/* Notes */}
-      <label htmlFor="exp-notes" className="block text-xs font-semibold uppercase tracking-wider text-ink-soft">Notes
-        <textarea id="exp-notes" {...register("notes")} className="mt-1 w-full rounded-xl border border-hair bg-surface px-3 py-2 text-sm focus:border-brand focus:ring-1 focus:ring-brand outline-none transition-all" rows={2} maxLength={2000} placeholder="Additional details or reference notes" />
-        <span className="mt-1 block text-right text-[11px] text-ink-faint">{(watch("notes") as any ?? "").length}/2000</span>
-      </label>
+      {/* Section 6: Notes */}
+      <div className="space-y-1">
+        <label htmlFor="exp-notes" className="block text-xs font-bold uppercase tracking-wider text-ink-soft">Notes
+          <textarea id="exp-notes" {...register("notes")} className="mt-1 w-full rounded-xl border border-hair bg-canvas/40 focus:bg-surface px-3.5 py-2.5 text-sm focus:border-brand focus:ring-1 focus:ring-brand outline-none transition-all placeholder:text-ink-faint text-ink" rows={2} maxLength={2000} placeholder="Additional details or reference notes" />
+        </label>
+        <span className="block text-right text-[11px] font-mono tnum text-ink-faint">{(watch("notes") as any ?? "").length}/2000</span>
+      </div>
 
       {err && <p className="text-sm font-semibold text-owe" role="alert">{err}</p>}
       
-      <div className="flex flex-col sm:flex-row gap-2.5">
+      <div className="flex flex-col sm:flex-row gap-2.5 pt-1">
         <button
           type="submit"
           onClick={() => {
@@ -890,7 +895,7 @@ export function ExpenseFormPage() {
           }}
           disabled={isSubmitting || isArchived || existingLoading}
           aria-disabled={isArchived}
-          className="flex-1 flex min-h-12 items-center justify-center rounded-xl bg-brand text-sm font-bold text-white shadow-sm hover:bg-blue-700 active:scale-[0.98] disabled:opacity-50 transition-all duration-150 ease-spring"
+          className="flex-1 flex min-h-12 items-center justify-center rounded-xl bg-brand text-sm font-bold text-white shadow-sm hover:opacity-90 active:scale-[0.98] disabled:opacity-50 transition-all duration-150 ease-spring"
         >
           {isSubmitting && !shouldAddAnotherRef.current
             ? "Saving…"

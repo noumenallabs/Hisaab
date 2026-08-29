@@ -130,7 +130,7 @@ export function CreateTripPage() {
         <button
           disabled={isSubmitting || create.isPending}
           aria-busy={isSubmitting || create.isPending}
-          className="mt-2 flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-brand text-sm font-bold text-white hover:bg-blue-700 disabled:opacity-60 shadow-sm transition-colors"
+          className="mt-2 flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-brand text-sm font-bold text-white hover:bg-blue-700 disabled:opacity-60 shadow-sm active:scale-[0.98] transition-all cursor-pointer"
         >
           {create.isPending ? "Creating trip…" : <>Create trip <ArrowRight size={17} /></>}
         </button>
@@ -140,7 +140,7 @@ export function CreateTripPage() {
 }
 
 const input =
-  "mt-1.5 w-full rounded-xl border border-hair bg-surface px-3 py-3 text-sm text-ink outline-none placeholder:text-ink-faint focus:border-brand focus:ring-2 focus:ring-brand-soft"
+  "mt-1.5 w-full rounded-xl border border-hair bg-surface px-3 py-3 text-sm text-ink outline-none placeholder:text-ink-faint focus:border-brand focus:ring-1 focus:ring-brand"
 function FlowShell({
   eyebrow,
   title,
@@ -154,12 +154,12 @@ function FlowShell({
       <section className="mx-auto w-full max-w-[520px] pt-5 sm:pt-0">
         <Link
           to="/trips"
-          className="inline-flex items-center gap-2 text-sm font-semibold text-ink-soft hover:text-ink"
+          className="inline-flex items-center gap-2 text-sm font-semibold text-ink-soft hover:text-ink active:scale-[0.98] transition-all"
         >
           <ArrowLeft size={17} /> All trips
         </Link>
-        <div className="mt-6 overflow-hidden rounded-xl border border-hair bg-surface shadow-[0_18px_50px_rgba(28,36,48,.09)]">
-          <div className="border-b border-hair bg-canvas/50 p-7">
+        <div className="mt-6 overflow-hidden rounded-2xl border border-hair bg-surface shadow-xs">
+          <div className="border-b border-hair bg-canvas/40 p-7">
             <p className="font-mono text-[11px] font-semibold tracking-[.14em] text-brand">
               {eyebrow}
             </p>

@@ -111,7 +111,7 @@ export function InviteManager({ tripId }: { tripId: string }) {
               key={inv.id}
               className={`flex flex-wrap items-center justify-between gap-3 rounded-xl border p-3.5 shadow-2xs transition-all ${
                 inv.is_active
-                  ? "border-emerald-200 bg-emerald-50/60 dark:border-emerald-800/60 dark:bg-emerald-950/40"
+                  ? "border-emerald-500/20 bg-emerald-500/10 dark:border-emerald-500/20 dark:bg-emerald-950/40"
                   : "border-hair bg-canvas opacity-70"
               }`}
               title={
@@ -128,11 +128,11 @@ export function InviteManager({ tripId }: { tripId: string }) {
                 <p className="flex items-center gap-2 font-mono text-sm font-bold tracking-[.16em]">
                   {inv.code}
                   {inv.is_active ? (
-                    <span className="inline-flex items-center gap-1 rounded-md bg-emerald-600 px-1.5 py-0.5 font-sans text-[10px] font-bold uppercase tracking-wider text-white">
+                    <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2 py-0.5 font-sans text-[10px] font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-300">
                       <Check size={12} /> Active
                     </span>
                   ) : (
-                    <span className="rounded-md bg-hair px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-ink-soft">
+                    <span className="rounded-full bg-hair px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-ink-soft">
                       Revoked/Expired
                     </span>
                   )}
@@ -145,14 +145,14 @@ export function InviteManager({ tripId }: { tripId: string }) {
               <div className="flex flex-wrap items-center gap-2">
                 <button
                   onClick={() => copy(inv.code)}
-                  className="inline-flex min-h-9 items-center gap-1 rounded-lg border border-hair bg-surface px-3 text-xs font-semibold text-ink hover:bg-canvas transition-colors shadow-2xs"
+                  className="inline-flex min-h-9 items-center gap-1 rounded-lg border border-hair bg-surface px-3 text-xs font-semibold text-ink hover:bg-canvas active:scale-[0.98] transition-all shadow-2xs cursor-pointer"
                   aria-label={`Copy code ${inv.code}`}
                 >
                   <Copy size={13} /> {copied === inv.code ? "Copied" : "Copy"}
                 </button>
                 <button
                   onClick={() => copy(`${window.location.origin}/join/${inv.code}`)}
-                  className="inline-flex min-h-9 items-center rounded-lg border border-hair bg-surface px-3 text-xs font-semibold text-ink hover:bg-canvas transition-colors shadow-2xs"
+                  className="inline-flex min-h-9 items-center rounded-lg border border-hair bg-surface px-3 text-xs font-semibold text-ink hover:bg-canvas active:scale-[0.98] transition-all shadow-2xs cursor-pointer"
                   aria-label={`Copy link for ${inv.code}`}
                 >
                   Copy link
@@ -161,7 +161,7 @@ export function InviteManager({ tripId }: { tripId: string }) {
                   <button
                     onClick={() => setConfirmRevoke(inv.id)}
                     disabled={revoke.isPending}
-                    className="inline-flex min-h-9 items-center gap-1 rounded-lg border border-owe/20 bg-owe-soft px-3 text-xs font-bold text-owe hover:bg-owe hover:text-white disabled:opacity-50 transition-colors shadow-2xs"
+                    className="inline-flex min-h-9 items-center gap-1 rounded-lg border border-owe/20 bg-owe-soft px-3 text-xs font-bold text-owe hover:bg-owe hover:text-white disabled:opacity-50 active:scale-[0.98] transition-all shadow-2xs cursor-pointer"
                   >
                     <Ban size={13} /> Revoke
                   </button>
@@ -172,7 +172,7 @@ export function InviteManager({ tripId }: { tripId: string }) {
         </ul>
       )}
       {active.length > 0 && (
-        <div className="rounded-xl bg-brand-soft/60 p-3.5 text-xs leading-5 text-ink-soft border border-brand/20">
+        <div className="rounded-xl bg-canvas/60 p-3.5 text-xs leading-5 text-ink-soft border border-hair/50">
           Share: <code className="font-mono font-bold text-brand">{active.map((a) => a.code).join(", ")}</code> or link <code className="break-all font-mono text-ink">{window.location.origin}/join/{active[0].code}</code> {active.length > 1 && <span className="text-ink-faint">({active.length} active codes)</span>}
         </div>
       )}

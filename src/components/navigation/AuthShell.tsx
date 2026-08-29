@@ -57,14 +57,14 @@ export function AuthShell({
         </div>
 
         {/* Card Container */}
-        <div className="overflow-hidden rounded-2xl border border-hair bg-surface shadow-md">
+        <div className="overflow-hidden rounded-2xl border border-hair bg-surface shadow-xs">
           {/* Segmented Auth Navigation Tabs */}
           {showTabs && (
             <div className="grid grid-cols-3 border-b border-hair bg-canvas/60 p-1.5 text-xs font-bold">
               <NavLink
                 to={`/sign-in${search}`}
                 className={({ isActive }) =>
-                  `flex items-center justify-center rounded-xl py-2.5 transition-all ${
+                  `flex items-center justify-center rounded-xl py-2.5 transition-all active:scale-[0.98] ${
                     isActive
                       ? "bg-surface text-brand shadow-xs"
                       : "text-ink-soft hover:text-ink"
@@ -76,7 +76,7 @@ export function AuthShell({
               <NavLink
                 to={`/sign-up${search}`}
                 className={({ isActive }) =>
-                  `flex items-center justify-center rounded-xl py-2.5 transition-all ${
+                  `flex items-center justify-center rounded-xl py-2.5 transition-all active:scale-[0.98] ${
                     isActive
                       ? "bg-surface text-brand shadow-xs"
                       : "text-ink-soft hover:text-ink"
@@ -88,7 +88,7 @@ export function AuthShell({
               <NavLink
                 to={`/join${search}`}
                 className={({ isActive }) =>
-                  `flex items-center justify-center rounded-xl py-2.5 transition-all ${
+                  `flex items-center justify-center rounded-xl py-2.5 transition-all active:scale-[0.98] ${
                     isActive
                       ? "bg-surface text-brand shadow-xs"
                       : "text-ink-soft hover:text-ink"

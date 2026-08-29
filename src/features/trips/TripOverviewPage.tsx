@@ -8,32 +8,24 @@ import { formatMinor } from "@/lib/currency"
 import { Skeleton } from "@/components/feedback/Skeleton"
 import {
   computeGroupCategorySummary,
-  CATEGORY_META,
-  type ExpenseCategory,
 } from "@/features/balances/categoryMath"
 import { computeDayTimeline } from "@/features/balances/dayMath"
 import { simplifyDebts } from "@/features/balances/balanceMath"
 import { Donut, DailyBars } from "@/charts"
 import {
   Plus,
-  Receipt,
-  Scale,
-  Activity as ActivityIcon,
-  Settings2,
-  Users,
   ArrowRight,
   TrendingUp,
   Share2,
   UserPlus,
   HandCoins,
-  Sparkles,
   CheckCircle2,
-  Calendar,
   PieChart,
+  ChevronRight,
 } from "lucide-react"
 import { UserAvatar } from "@/components/feedback/UserAvatar"
 import { useAuth } from "@/lib/auth"
-import { useState, useMemo } from "react"
+import { useState } from "react"
 import { SettlementDialog } from "@/features/balances/SettlementDialog"
 import { ShareSummaryModal } from "@/features/balances/ShareSummaryModal"
 import { InviteTravelerModal } from "./InviteTravelerModal"
@@ -176,13 +168,13 @@ export function TripOverviewPage() {
       ? dayTimeline.reduce((prev, cur) => (cur.totalMinor > prev.totalMinor ? cur : prev), dayTimeline[0])
       : null
 
-  // Category chart donut data
+  // Category chart donut data with calibrated Apple HIG palette
   const donutSegments = activeCategories.map((c) => ({
     label: c.label,
     value: c.totalMinor,
     color:
       c.category === "food"
-        ? "#3b82f6"
+        ? "#007aff"
         : c.category === "transport"
         ? "#f59e0b"
         : c.category === "accommodation"
@@ -190,8 +182,8 @@ export function TripOverviewPage() {
         : c.category === "tickets"
         ? "#ec4899"
         : c.category === "shopping"
-        ? "#10b981"
-        : "#64748b",
+        ? "#34c759"
+        : "#8e8e93",
   }))
 
   const summaryCardOptions = {
@@ -218,20 +210,20 @@ export function TripOverviewPage() {
   return (
     <div className="space-y-6">
       {/* Top Header & Quick Action Hub */}
-      <div className="rounded-2xl border border-hair bg-surface p-6 sm:p-8 shadow-xs">
+      <div className="rounded-2xl border border-hair bg-surface p-5 sm:p-6 shadow-2xs">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <div className="flex items-center gap-2">
               <span
-                className={`rounded-full px-2.5 py-0.5 text-xs font-bold uppercase tracking-wider ${
+                className={`rounded-full px-2.5 py-0.5 text-xs font-semibold uppercase tracking-wider ${
                   t.status === "active"
-                    ? "border border-emerald-200 bg-emerald-100 text-emerald-800 dark:border-emerald-800/60 dark:bg-emerald-950/60 dark:text-emerald-300"
+                    ? "border border-emerald-500/20 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
                     : "border border-hair bg-canvas text-ink-soft"
                 }`}
               >
                 {t.status}
               </span>
-              <span className="text-xs font-semibold text-ink-soft">
+              <span className="text-xs font-mono font-semibold text-ink-soft">
                 {baseCurrency}
               </span>
             </div>
@@ -250,7 +242,7 @@ export function TripOverviewPage() {
               {!isSettled && (
                 <Link
                   to={`/trips/${tripId}/expenses/new`}
-                  className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-brand px-4 py-2 text-sm font-bold text-white shadow-sm hover:bg-blue-700 active:scale-[0.98] transition-all"
+                  className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-brand px-4 py-2 text-sm font-semibold text-white shadow-2xs hover:opacity-95 active:scale-[0.98] transition-all"
                   aria-label="Add new expense"
                 >
                   <Plus size={16} /> Add expense
@@ -260,7 +252,7 @@ export function TripOverviewPage() {
                 <button
                   type="button"
                   onClick={() => setIsGeneralSettleOpen(true)}
-                  className="inline-flex min-h-11 items-center gap-1.5 rounded-xl border border-hair bg-surface px-3.5 text-xs font-bold text-ink shadow-2xs hover:bg-canvas active:scale-[0.98] transition-all cursor-pointer"
+                  className="inline-flex min-h-11 items-center gap-1.5 rounded-xl border border-hair bg-surface px-3.5 text-xs font-semibold text-ink shadow-2xs hover:bg-canvas active:scale-[0.98] transition-all cursor-pointer"
                   aria-label="Settle debts"
                 >
                   <HandCoins size={15} className="text-brand" /> Settle up
@@ -269,7 +261,7 @@ export function TripOverviewPage() {
               <button
                 type="button"
                 onClick={() => setIsInviteModalOpen(true)}
-                className="inline-flex min-h-11 items-center gap-1.5 rounded-xl border border-hair bg-surface px-3.5 text-xs font-bold text-ink shadow-2xs hover:bg-canvas active:scale-[0.98] transition-all cursor-pointer"
+                className="inline-flex min-h-11 items-center gap-1.5 rounded-xl border border-hair bg-surface px-3.5 text-xs font-semibold text-ink shadow-2xs hover:bg-canvas active:scale-[0.98] transition-all cursor-pointer"
                 aria-label="Invite traveler"
               >
                 <UserPlus size={15} className="text-brand" /> Invite
@@ -277,7 +269,7 @@ export function TripOverviewPage() {
               <button
                 type="button"
                 onClick={() => setIsShareModalOpen(true)}
-                className="inline-flex min-h-11 items-center gap-1.5 rounded-xl border border-hair bg-surface px-3.5 text-xs font-bold text-ink shadow-2xs hover:bg-canvas active:scale-[0.98] transition-all cursor-pointer"
+                className="inline-flex min-h-11 items-center gap-1.5 rounded-xl border border-hair bg-surface px-3.5 text-xs font-semibold text-ink shadow-2xs hover:bg-canvas active:scale-[0.98] transition-all cursor-pointer"
                 aria-label="Share trip summary"
               >
                 <Share2 size={15} className="text-brand" /> Share
@@ -289,24 +281,16 @@ export function TripOverviewPage() {
         {isArchived && (
           <p
             role="alert"
-            className="mt-4 rounded-xl border border-hair bg-canvas/80 px-4 py-2.5 text-sm font-semibold text-ink-soft"
+            className="mt-4 rounded-xl border border-hair bg-canvas px-4 py-2.5 text-sm font-medium text-ink-soft"
           >
             Archived trip — read-only mode.
           </p>
         )}
       </div>
 
-      {/* Personal Standing Hero Banner */}
+      {/* Personal Standing Hero Card */}
       {currentUserRow && (
-        <div
-          className={`relative overflow-hidden rounded-2xl border p-5 shadow-2xs transition-all tactile-card ${
-            isUserOwed
-              ? "border-l-4 border-l-emerald-500 border-emerald-200/90 bg-gradient-to-r from-emerald-500/10 via-emerald-500/5 to-surface dark:border-emerald-800/60 dark:bg-emerald-950/30 shadow-glow-owed/20"
-              : isUserOwing
-              ? "border-l-4 border-l-rose-500 border-rose-200/90 bg-gradient-to-r from-rose-500/10 via-rose-500/5 to-surface dark:border-rose-800/60 dark:bg-rose-950/30 shadow-glow-owe/20"
-              : "border-l-4 border-l-slate-300 dark:border-l-slate-700 border-hair bg-surface"
-          }`}
-        >
+        <div className="rounded-2xl border border-hair bg-surface p-5 sm:p-6 shadow-2xs transition-all">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-center gap-3.5">
               <UserAvatar
@@ -316,10 +300,10 @@ export function TripOverviewPage() {
                 size="lg"
               />
               <div>
-                <p className="text-xs font-bold uppercase tracking-wider text-ink-soft flex items-center gap-1.5">
+                <p className="text-xs font-semibold uppercase tracking-wider text-ink-soft flex items-center gap-1.5">
                   {isUserOwed ? (
                     <>
-                      <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                      <span className="h-2 w-2 rounded-full bg-emerald-500" />
                       Personal Balance · You are owed
                     </>
                   ) : isUserOwing ? (
@@ -329,7 +313,7 @@ export function TripOverviewPage() {
                     </>
                   ) : (
                     <>
-                      <CheckCircle2 size={12} className="text-ink-soft" />
+                      <CheckCircle2 size={13} className="text-emerald-500" />
                       Personal Balance · You're all settled
                     </>
                   )}
@@ -353,14 +337,14 @@ export function TripOverviewPage() {
                 <button
                   type="button"
                   onClick={() => setIsGeneralSettleOpen(true)}
-                  className="inline-flex min-h-10 items-center gap-1.5 rounded-xl bg-rose-600 px-4 text-xs font-bold text-white shadow-2xs hover:bg-rose-700 active:scale-[0.98] transition-all cursor-pointer"
+                  className="inline-flex min-h-10 items-center gap-1.5 rounded-xl bg-rose-600 px-4 text-xs font-semibold text-white shadow-2xs hover:bg-rose-700 active:scale-[0.98] transition-all cursor-pointer"
                 >
                   Settle your share →
                 </button>
               )}
               <Link
                 to={`/trips/${tripId}/balances`}
-                className="inline-flex min-h-10 items-center gap-1 rounded-xl border border-hair bg-surface px-3.5 text-xs font-bold text-ink hover:bg-canvas active:scale-[0.98] transition-all shadow-2xs"
+                className="inline-flex min-h-10 items-center gap-1 rounded-xl border border-hair bg-surface px-3.5 text-xs font-semibold text-ink hover:bg-canvas active:scale-[0.98] transition-all shadow-2xs"
                 aria-label="Balances matrix"
               >
                 Balances matrix →
@@ -373,16 +357,16 @@ export function TripOverviewPage() {
       {/* Top Stat Cards with Asymmetric Hierarchy */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-12">
         {/* Total Spending - Hero Feature Card (Spans 5 cols on lg) */}
-        <div className="rounded-2xl border border-brand/20 bg-gradient-to-br from-brand/5 via-surface to-surface p-6 shadow-2xs sm:col-span-2 lg:col-span-5">
+        <div className="rounded-2xl border border-hair bg-surface p-5 sm:p-6 shadow-2xs sm:col-span-2 lg:col-span-5">
           <div className="flex items-center justify-between">
-            <p className="text-xs font-bold uppercase tracking-wider text-brand">
+            <p className="text-xs font-semibold uppercase tracking-wider text-ink-soft">
               Total Spending
             </p>
-            <span className="rounded-md bg-brand/10 px-2 py-0.5 text-[10px] font-bold text-brand">
+            <span className="rounded-md bg-canvas border border-hair px-2 py-0.5 text-[10px] font-mono font-semibold text-ink">
               {baseCurrency}
             </span>
           </div>
-          <p className="mt-3 font-mono text-3xl font-bold tracking-tight text-ink tnum">
+          <p className="mt-2 font-mono text-3xl font-bold tracking-tight text-ink tnum">
             {formatMinor(totalMinor, baseCurrency)}
           </p>
           <p className="mt-1 text-xs text-ink-soft">
@@ -392,7 +376,7 @@ export function TripOverviewPage() {
 
         {/* Avg / Person (Spans 3 cols on lg) */}
         <div className="rounded-2xl border border-hair bg-surface p-5 shadow-2xs lg:col-span-3">
-          <p className="text-xs font-bold uppercase tracking-wider text-ink-soft">
+          <p className="text-xs font-semibold uppercase tracking-wider text-ink-soft">
             Avg / Person
           </p>
           <p className="mt-2 font-mono text-2xl font-bold tracking-tight text-ink tnum">
@@ -405,7 +389,7 @@ export function TripOverviewPage() {
 
         {/* Expenses Count (Spans 2 cols on lg) */}
         <div className="rounded-2xl border border-hair bg-surface p-5 shadow-2xs lg:col-span-2">
-          <p className="text-xs font-bold uppercase tracking-wider text-ink-soft">
+          <p className="text-xs font-semibold uppercase tracking-wider text-ink-soft">
             Expenses
           </p>
           <p className="mt-2 font-mono text-2xl font-bold tracking-tight text-ink tnum">
@@ -416,7 +400,7 @@ export function TripOverviewPage() {
 
         {/* Trip Members (Spans 2 cols on lg) */}
         <div className="rounded-2xl border border-hair bg-surface p-5 shadow-2xs lg:col-span-2">
-          <p className="text-xs font-bold uppercase tracking-wider text-ink-soft">
+          <p className="text-xs font-semibold uppercase tracking-wider text-ink-soft">
             Members
           </p>
           <p className="mt-2 font-mono text-2xl font-bold tracking-tight text-ink tnum">
@@ -428,8 +412,8 @@ export function TripOverviewPage() {
 
       {/* Zero-Expense Onboarding Checklist or Active Content */}
       {expenseCount === 0 ? (
-        <div className="rounded-2xl border border-hair bg-surface p-8 shadow-xs text-center space-y-6">
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-brand/10 text-3xl border border-brand/20">
+        <div className="rounded-2xl border border-hair bg-surface p-6 sm:p-8 shadow-2xs text-center space-y-6">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-brand/10 text-2xl border border-brand/20">
             ✈️
           </div>
           <div>
@@ -444,10 +428,10 @@ export function TripOverviewPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-left max-w-3xl mx-auto">
             <div className="rounded-xl border border-hair bg-canvas/40 p-4 space-y-2">
               <div className="flex items-center gap-2">
-                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-brand text-xs font-bold text-white">
+                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-brand text-xs font-semibold text-white">
                   1
                 </span>
-                <h3 className="text-sm font-bold text-ink">Invite your crew</h3>
+                <h3 className="text-sm font-semibold text-ink">Invite your crew</h3>
               </div>
               <p className="text-xs text-ink-soft">
                 Share your private trip link or invite code with travel buddies.
@@ -455,7 +439,7 @@ export function TripOverviewPage() {
               <button
                 type="button"
                 onClick={() => setIsInviteModalOpen(true)}
-                className="inline-flex items-center gap-1 text-xs font-bold text-brand hover:underline pt-1 cursor-pointer"
+                className="inline-flex items-center gap-1 text-xs font-semibold text-brand hover:underline pt-1 cursor-pointer"
               >
                 <UserPlus size={13} /> Invite travelers →
               </button>
@@ -463,17 +447,17 @@ export function TripOverviewPage() {
 
             <div className="rounded-xl border border-hair bg-canvas/40 p-4 space-y-2">
               <div className="flex items-center gap-2">
-                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-brand text-xs font-bold text-white">
+                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-brand text-xs font-semibold text-white">
                   2
                 </span>
-                <h3 className="text-sm font-bold text-ink">Add your first expense</h3>
+                <h3 className="text-sm font-semibold text-ink">Add your first expense</h3>
               </div>
               <p className="text-xs text-ink-soft">
                 Log meals, stays, rides, or tickets with multi-currency minor math.
               </p>
               <Link
                 to={`/trips/${tripId}/expenses/new`}
-                className="inline-flex items-center gap-1 text-xs font-bold text-brand hover:underline pt-1"
+                className="inline-flex items-center gap-1 text-xs font-semibold text-brand hover:underline pt-1"
                 aria-label="Add first expense"
               >
                 <Plus size={13} /> Add first expense →
@@ -482,20 +466,20 @@ export function TripOverviewPage() {
 
             <div className="rounded-xl border border-hair bg-canvas/40 p-4 space-y-2">
               <div className="flex items-center gap-2">
-                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-brand text-xs font-bold text-white">
+                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-brand text-xs font-semibold text-white">
                   3
                 </span>
-                <h3 className="text-sm font-bold text-ink">Track & Settle with 0 math</h3>
+                <h3 className="text-sm font-semibold text-ink">Track & Settle with 0 math</h3>
               </div>
               <p className="text-xs text-ink-soft">
                 Hissaab simplifies debts into minimum direct UPI settlement transfers.
               </p>
               <Link
                 to={`/trips/${tripId}/balances`}
-                className="inline-flex items-center gap-1 text-xs font-bold text-brand hover:underline pt-1"
+                className="inline-flex items-center gap-1 text-xs font-semibold text-brand hover:underline pt-1"
                 aria-label="Explore Balances"
               >
-                <Scale size={13} /> Explore Balances →
+                <HandCoins size={13} /> Explore Balances →
               </Link>
             </div>
           </div>
@@ -505,10 +489,10 @@ export function TripOverviewPage() {
           {/* Spending Trajectory & Category Donut Row */}
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
             {/* Daily Trajectory Widget (7 cols on lg) */}
-            <div className="rounded-2xl border border-hair bg-surface p-6 shadow-2xs lg:col-span-7 space-y-4">
+            <div className="rounded-2xl border border-hair bg-surface p-5 sm:p-6 shadow-2xs lg:col-span-7 space-y-4">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div>
-                  <h2 className="text-base font-bold tracking-tight flex items-center gap-2 text-ink">
+                  <h2 className="text-base font-semibold tracking-tight flex items-center gap-2 text-ink">
                     <TrendingUp size={18} className="text-brand" />
                     Spending Trajectory
                   </h2>
@@ -518,11 +502,11 @@ export function TripOverviewPage() {
                 </div>
                 <div className="flex items-center gap-2 text-xs">
                   {peakDay && (
-                    <span className="rounded-md bg-canvas px-2 py-1 font-semibold text-ink-soft border border-hair/50">
+                    <span className="rounded-md bg-canvas px-2 py-1 font-mono font-semibold text-ink-soft border border-hair">
                       Peak: Day {peakDay.dayNumber} ({formatMinor(peakDay.totalMinor, baseCurrency)})
                     </span>
                   )}
-                  <span className="rounded-md bg-brand/10 px-2 py-1 font-bold text-brand">
+                  <span className="rounded-md bg-canvas px-2 py-1 font-mono font-semibold text-brand border border-hair">
                     Avg: {formatMinor(avgDailySpend, baseCurrency)}/day
                   </span>
                 </div>
@@ -544,10 +528,10 @@ export function TripOverviewPage() {
             </div>
 
             {/* Interactive Category Donut (5 cols on lg) */}
-            <div className="rounded-2xl border border-hair bg-surface p-6 shadow-2xs lg:col-span-5 space-y-4">
+            <div className="rounded-2xl border border-hair bg-surface p-5 sm:p-6 shadow-2xs lg:col-span-5 space-y-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="text-base font-bold tracking-tight flex items-center gap-2 text-ink">
+                  <h2 className="text-base font-semibold tracking-tight flex items-center gap-2 text-ink">
                     <PieChart size={18} className="text-brand" />
                     Spending by Category
                   </h2>
@@ -555,7 +539,7 @@ export function TripOverviewPage() {
                 </div>
                 <Link
                   to={`/trips/${tripId}/balances`}
-                  className="inline-flex items-center gap-1 text-xs font-bold text-brand hover:underline"
+                  className="inline-flex items-center gap-1 text-xs font-semibold text-brand hover:underline"
                   aria-label="Detailed breakdown"
                 >
                   Detailed breakdown <ArrowRight size={13} />
@@ -580,10 +564,10 @@ export function TripOverviewPage() {
                       key={c.category}
                       onMouseEnter={() => setHoveredCategory(c.label)}
                       onMouseLeave={() => setHoveredCategory(null)}
-                      className={`flex items-center justify-between rounded-lg px-2.5 py-1.5 border transition-all duration-150 cursor-pointer ${
+                      className={`flex items-center justify-between rounded-xl px-2.5 py-1.5 border transition-all duration-150 cursor-pointer ${
                         isHovered
-                          ? "border-brand/40 bg-brand/10 shadow-xs scale-[1.02]"
-                          : "border-hair/40 bg-canvas/40 hover:bg-canvas/80"
+                          ? "border-brand/40 bg-brand/10 shadow-2xs"
+                          : "border-hair bg-canvas/40 hover:bg-canvas/80"
                       }`}
                     >
                       <span className="font-semibold text-ink truncate flex items-center gap-1.5">
@@ -604,10 +588,10 @@ export function TripOverviewPage() {
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
             {/* Left: Member Financial Spend Breakdown */}
             <div className="space-y-6 lg:col-span-7">
-              <div className="rounded-2xl border border-hair bg-surface p-6 shadow-2xs">
+              <div className="rounded-2xl border border-hair bg-surface p-5 sm:p-6 shadow-2xs">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h2 className="text-base font-bold tracking-tight text-ink">
+                    <h2 className="text-base font-semibold tracking-tight text-ink">
                       Member Breakdown ({memberCount})
                     </h2>
                     <p className="text-xs text-ink-soft">
@@ -616,7 +600,7 @@ export function TripOverviewPage() {
                   </div>
                   <Link
                     to={`/trips/${tripId}/settings`}
-                    className="text-xs font-bold text-brand hover:underline"
+                    className="text-xs font-semibold text-brand hover:underline"
                     aria-label="Manage"
                   >
                     Manage
@@ -635,7 +619,7 @@ export function TripOverviewPage() {
                     return (
                       <li
                         key={uid}
-                        className="rounded-xl border border-hair/60 bg-canvas/30 p-3.5 text-sm space-y-2.5"
+                        className="rounded-xl border border-hair bg-canvas/40 p-3.5 text-sm space-y-2.5"
                       >
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2.5">
@@ -646,10 +630,10 @@ export function TripOverviewPage() {
                               size="md"
                             />
                             <div>
-                              <p className="font-bold text-xs text-ink">
+                              <p className="font-semibold text-xs text-ink">
                                 {m.name}
                                 {isCurrent && (
-                                  <span className="ml-1.5 rounded-md bg-brand/10 px-1.5 py-0.5 text-[10px] font-bold text-brand">
+                                  <span className="ml-1.5 rounded-md bg-brand/10 px-1.5 py-0.5 text-[10px] font-semibold text-brand">
                                     You
                                   </span>
                                 )}
@@ -661,12 +645,12 @@ export function TripOverviewPage() {
                           </div>
 
                           <span
-                            className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase font-mono tnum ${
+                            className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase font-mono tnum border ${
                               isPositive
-                                ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300"
+                                ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
                                 : isNegative
-                                ? "bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-300"
-                                : "bg-canvas text-ink-soft"
+                                ? "border-rose-500/20 bg-rose-500/10 text-rose-600 dark:text-rose-400"
+                                : "border-hair bg-canvas text-ink-soft"
                             }`}
                           >
                             {isPositive
@@ -689,7 +673,7 @@ export function TripOverviewPage() {
                               Share: <b className="font-mono text-ink tnum">{formatMinor(r.owed, baseCurrency)}</b>
                             </span>
                           </div>
-                          <div className="h-1.5 w-full overflow-hidden rounded-full bg-canvas border border-hair/40">
+                          <div className="h-1.5 w-full overflow-hidden rounded-full bg-canvas border border-hair">
                             <div
                               className="h-full bg-brand rounded-full transition-all"
                               style={{ width: `${paidPct}%` }}
@@ -706,10 +690,10 @@ export function TripOverviewPage() {
             {/* Right: Quick Simplified Settlements & Recent Transactions */}
             <div className="space-y-6 lg:col-span-5">
               {/* Quick Settlements Card */}
-              <div className="rounded-2xl border border-hair bg-surface p-6 shadow-2xs">
-                <div className="flex items-center justify-between border-b border-hair/40 pb-3">
+              <div className="rounded-2xl border border-hair bg-surface p-5 sm:p-6 shadow-2xs">
+                <div className="flex items-center justify-between border-b border-hair pb-3">
                   <div>
-                    <h2 className="text-base font-bold tracking-tight flex items-center gap-2 text-ink">
+                    <h2 className="text-base font-semibold tracking-tight flex items-center gap-2 text-ink">
                       <HandCoins size={17} className="text-brand" />
                       Quick Settlements
                     </h2>
@@ -717,7 +701,7 @@ export function TripOverviewPage() {
                   </div>
                   <Link
                     to={`/trips/${tripId}/balances`}
-                    className="text-xs font-bold text-brand hover:underline"
+                    className="text-xs font-semibold text-brand hover:underline"
                     aria-label="All"
                   >
                     All
@@ -725,8 +709,8 @@ export function TripOverviewPage() {
                 </div>
 
                 {simplifiedTransfers.length === 0 ? (
-                  <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-center dark:border-emerald-800/60 dark:bg-emerald-950/40">
-                    <p className="text-xs font-bold text-emerald-800 dark:text-emerald-300">
+                  <div className="mt-4 rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-4 text-center">
+                    <p className="text-xs font-semibold text-emerald-700 dark:text-emerald-300">
                       🎉 Group is 100% settled up!
                     </p>
                   </div>
@@ -735,25 +719,17 @@ export function TripOverviewPage() {
                     {simplifiedTransfers.slice(0, 3).map((tr, idx) => {
                       const fromName = memberMap.get(tr.fromId) ?? "Member"
                       const toName = memberMap.get(tr.toId) ?? "Member"
-                      const isMyDebt = user?.id === tr.fromId
-                      const isOwedToMe = user?.id === tr.toId
 
                       return (
                         <li
                           key={idx}
-                          className={`flex items-center justify-between rounded-xl border p-3 text-xs shadow-2xs transition-all tactile-card ${
-                            isMyDebt
-                              ? "border-l-4 border-l-rose-500 border-rose-200/90 dark:border-rose-800/50 bg-gradient-to-r from-rose-500/10 via-surface to-surface"
-                              : isOwedToMe
-                              ? "border-l-4 border-l-emerald-500 border-emerald-200/90 dark:border-emerald-800/50 bg-gradient-to-r from-emerald-500/10 via-surface to-surface"
-                              : "border-l-4 border-l-brand/70 border-hair bg-canvas/30"
-                          }`}
+                          className="flex items-center justify-between rounded-xl border border-hair bg-canvas/40 p-3 text-xs shadow-2xs transition-colors hover:bg-canvas/70"
                         >
                           <div>
-                            <p className="font-semibold text-ink">
-                              <span className="font-bold text-rose-600 dark:text-rose-400">{fromName}</span>{" "}
-                              pays{" "}
-                              <span className="font-bold text-emerald-600 dark:text-emerald-400">{toName}</span>
+                            <p className="font-medium text-ink">
+                              <span className="font-bold text-ink">{fromName}</span>{" "}
+                              <span className="text-ink-soft">pays</span>{" "}
+                              <span className="font-bold text-ink">{toName}</span>
                             </p>
                             <p className="mt-0.5 font-mono text-xs font-bold text-ink tnum">
                               {formatMinor(tr.amount, baseCurrency)}
@@ -764,12 +740,12 @@ export function TripOverviewPage() {
                               type="button"
                               onClick={() =>
                                 setSettleTransfer({
-                                  fromId: tr.fromId,
+                                   fromId: tr.fromId,
                                   toId: tr.toId,
                                   amount: tr.amount,
                                 })
                               }
-                              className="min-h-8 rounded-lg bg-brand px-3 text-xs font-bold text-white shadow-2xs hover:bg-blue-700 active:scale-[0.98] transition-all cursor-pointer"
+                              className="inline-flex min-h-8 items-center rounded-lg bg-brand px-3 text-xs font-semibold text-white shadow-2xs hover:opacity-90 active:scale-[0.98] transition-all cursor-pointer"
                             >
                               Settle
                             </button>
@@ -782,12 +758,12 @@ export function TripOverviewPage() {
               </div>
 
               {/* Recent Expenses Card */}
-              <div className="rounded-2xl border border-hair bg-surface p-6 shadow-2xs">
+              <div className="rounded-2xl border border-hair bg-surface p-5 sm:p-6 shadow-2xs">
                 <div className="flex items-center justify-between">
-                  <h2 className="text-base font-bold tracking-tight text-ink">Recent Expenses</h2>
+                  <h2 className="text-base font-semibold tracking-tight text-ink">Recent Expenses</h2>
                   <Link
                     to={`/trips/${tripId}/expenses`}
-                    className="inline-flex items-center gap-1 text-xs font-bold text-brand hover:underline"
+                    className="inline-flex items-center gap-1 text-xs font-semibold text-brand hover:underline"
                     aria-label={`View all (${expenseCount})`}
                   >
                     View all ({expenseCount}) <ArrowRight size={14} />
@@ -801,7 +777,7 @@ export function TripOverviewPage() {
                       <li key={exp.id} className="py-2.5 first:pt-0 last:pb-0">
                         <Link
                           to={`/trips/${tripId}/expenses/${exp.id}`}
-                          className="flex items-center justify-between hover:bg-canvas/50 -mx-2 px-2 py-1 rounded-lg transition-colors"
+                          className="flex items-center justify-between hover:bg-canvas/50 -mx-2 px-2 py-1.5 rounded-xl transition-colors"
                           aria-label={exp.description}
                         >
                           <div>
@@ -810,9 +786,12 @@ export function TripOverviewPage() {
                               {exp.category} · {exp.expense_date ?? exp.date}
                             </p>
                           </div>
-                          <span className="font-mono text-xs font-bold text-ink tnum">
-                            {formatMinor(exp.amount_minor ?? exp.amount ?? 0, baseCurrency)}
-                          </span>
+                          <div className="flex items-center gap-1.5">
+                            <span className="font-mono text-xs font-bold text-ink tnum">
+                              {formatMinor(exp.amount_minor ?? exp.amount ?? 0, baseCurrency)}
+                            </span>
+                            <ChevronRight size={14} className="text-ink-faint shrink-0" />
+                          </div>
                         </Link>
                       </li>
                     ))}
@@ -865,3 +844,4 @@ export function TripOverviewPage() {
     </div>
   )
 }
+
