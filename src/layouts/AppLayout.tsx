@@ -3,12 +3,13 @@ import { AppHeader } from "@/components/navigation/AppHeader"
 
 export function AppLayout() {
   return (
-    <main className="min-h-[100dvh] bg-canvas">
+    <div className="flex min-h-[100dvh] flex-col bg-canvas">
       <a href="#main-content" className="skip-link">Skip to content</a>
-      <div className="mx-auto max-w-6xl px-4 pb-12 pt-5 sm:px-8">
-        <AppHeader />
-        <div id="main-content" className="pt-6"><Outlet /></div>
-      </div>
-    </main>
+      <AppHeader />
+      <main id="main-content" className="mx-auto w-full max-w-6xl flex-1 px-4 pb-12 pt-6 sm:px-8">
+        <Outlet />
+      </main>
+    </div>
   )
 }
+

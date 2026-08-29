@@ -90,13 +90,23 @@ export function TripLayout() {
   return (
     <div className="mx-auto flex min-h-[100dvh] max-w-6xl flex-col bg-canvas">
       <a href="#trip-content" className="skip-link">Skip to content</a>
-      <header className="border-b border-hair bg-surface px-4 py-5 sm:px-8">
+      <header className="border-b border-hair/60 bg-surface/90 backdrop-blur-md px-4 py-5 sm:px-8 transition-colors">
         <div className="flex items-center justify-between mb-2">
-          <Link to="/trips" className="inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-ink-soft hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand rounded px-1 -ml-1 transition-colors" aria-label="Back to all trips">
+          <Link
+            to="/trips"
+            className="inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-ink-soft hover:text-ink hover:bg-canvas/60 rounded-xl px-2.5 py-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand -ml-1 transition-all active:scale-[0.98]"
+            aria-label="Back to all trips"
+          >
             <ArrowLeft size={16} /> All trips
           </Link>
-          <div className="flex items-center gap-1.5 rounded-full border border-hair bg-canvas/60 px-2.5 py-1 text-xs font-medium text-ink-soft">
-            <span className={`h-2 w-2 rounded-full ${online ? "bg-emerald-500 shadow-xs" : "bg-amber-500"}`} />
+          <div className="flex items-center gap-1.5 rounded-full border border-hair/60 bg-canvas/70 px-2.5 py-1 text-xs font-medium text-ink-soft shadow-2xs backdrop-blur-xs">
+            <span
+              className={`h-2 w-2 rounded-full ${
+                online
+                  ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"
+                  : "bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]"
+              }`}
+            />
             <span className="text-[11px]">{online ? "Live sync" : "Offline"}</span>
           </div>
         </div>
@@ -106,32 +116,37 @@ export function TripLayout() {
         <p className="text-sm text-ink-soft">
           {trip ? headerDestination : <span className="inline-block h-4 w-32 animate-pulse rounded bg-hair/60" />}{" "}
           {trip && (
-            <span className="ml-2 rounded bg-canvas px-2 py-0.5 text-xs font-bold uppercase">
+            <span className="ml-2 rounded-md border border-hair/60 bg-canvas px-2 py-0.5 text-xs font-bold uppercase tracking-wider">
               {trip.status}
             </span>
           )}
         </p>
         {trip?.status === "archived" && (
-          <div className="mt-3 rounded-xl border border-hair bg-canvas/80 px-3.5 py-2 text-sm font-semibold text-ink-soft">
+          <div className="mt-3 rounded-xl border border-hair/80 bg-canvas/80 px-3.5 py-2 text-sm font-semibold text-ink-soft shadow-2xs">
             Archived — read-only. No financial or membership changes allowed.
           </div>
         )}
       </header>
-      <div className="hidden md:block sticky top-0 z-20 bg-surface border-b border-hair">
+      <div className="hidden md:block sticky top-0 z-20 backdrop-blur-md bg-surface/85 border-b border-hair/60 transition-colors shadow-xs">
         <TripNavigation tripId={tripId!} base={base} />
       </div>
-      <div id="trip-content" className="flex-1 p-4 pb-[88px] md:pb-8 sm:p-8">
+      <div id="trip-content" className="flex-1 p-4 pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))] md:pb-8 sm:p-8">
         <Outlet />
       </div>
-      <nav className="fixed bottom-0 left-0 right-0 z-30 border-t border-hair bg-surface shadow-[0_-8px_24px_rgba(0,0,0,0.06)] md:hidden" aria-label="Trip sections">
-        <div className="mx-auto grid h-[68px] w-full max-w-6xl grid-cols-5 pb-[env(safe-area-inset-bottom)]">
+      <nav
+        className="fixed bottom-0 left-0 right-0 z-30 border-t border-hair/60 backdrop-blur-md bg-surface/85 shadow-[0_-8px_24px_rgba(0,0,0,0.06)] dark:shadow-[0_-8px_24px_rgba(0,0,0,0.35)] md:hidden transition-colors"
+        aria-label="Trip sections"
+      >
+        <div className="mx-auto grid h-[calc(60px+env(safe-area-inset-bottom,0px))] w-full max-w-6xl grid-cols-5 items-center pt-1.5 pb-[calc(0.5rem+env(safe-area-inset-bottom,0px))]">
           {bottomTabs.map((t) => (
             <NavLink
               key={t.label}
               to={t.to}
               end={(t as any).end ?? false}
               className={({ isActive }) =>
-                `flex flex-col items-center justify-center gap-1 text-[11px] transition ${isActive ? "text-brand" : "text-ink-soft"}`
+                `flex min-h-[44px] flex-col items-center justify-center gap-1 text-[11px] transition-all active:scale-[0.92] ${
+                  isActive ? "text-brand font-semibold" : "text-ink-soft hover:text-ink"
+                }`
               }
             >
               {({ isActive }) => (
@@ -147,3 +162,4 @@ export function TripLayout() {
     </div>
   )
 }
+

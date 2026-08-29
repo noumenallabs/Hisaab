@@ -68,14 +68,14 @@ export function ConfirmDialog({
 
   return createPortal(
     <div
-      className="fixed inset-0 z-50 grid place-items-center p-4"
+      className="fixed inset-0 z-50 flex items-end justify-center sm:items-center p-0 sm:p-4 overflow-y-auto"
       role="dialog"
       aria-modal="true"
       aria-labelledby="confirm-title"
       aria-describedby="confirm-desc"
     >
       <div
-        className="absolute inset-0 bg-black/60 backdrop-blur-xs transition-opacity"
+        className="fixed inset-0 bg-black/70 backdrop-blur-md transition-opacity animate-in fade-in duration-200"
         onClick={() => {
           if (!pending) onClose()
         }}
@@ -83,25 +83,30 @@ export function ConfirmDialog({
       />
       <div
         id="confirm-dialog"
-        className="relative w-full max-w-md rounded-xl bg-surface p-6 shadow-2xl"
+        className="relative w-full border-t sm:border border-hair bg-surface p-6 shadow-2xl max-sm:fixed max-sm:inset-x-0 max-sm:bottom-0 max-sm:rounded-t-3xl max-sm:max-h-[90dvh] max-sm:overflow-y-auto max-sm:pb-[calc(1.5rem+env(safe-area-inset-bottom,0px))] sm:max-w-md sm:rounded-2xl sm:my-8 animate-in slide-in-from-bottom duration-250 sm:slide-in-from-bottom-0 sm:fade-in sm:zoom-in-95"
       >
-        <h2 id="confirm-title" className="text-lg font-bold">
+        {/* Mobile Grab Bar */}
+        <div className="sm:hidden -mt-2 mb-4 flex justify-center" aria-hidden="true">
+          <div className="h-1.5 w-12 rounded-full bg-hair" />
+        </div>
+
+        <h2 id="confirm-title" className="text-lg font-bold text-ink">
           {title}
         </h2>
         <p id="confirm-desc" className="mt-2 text-sm leading-6 text-ink-soft">
           {description}
         </p>
         {error && (
-          <p role="alert" className="mt-3 rounded-md bg-owe/10 px-3 py-2 text-sm text-owe">
+          <p role="alert" className="mt-3 rounded-xl bg-owe/10 px-3 py-2 text-sm text-owe">
             {error}
           </p>
         )}
-        <div className="mt-6 flex justify-end gap-2">
+        <div className="mt-6 flex flex-col-reverse sm:flex-row justify-end gap-2.5">
           <button
             ref={cancelRef}
             onClick={onClose}
             disabled={!!pending}
-            className="min-h-11 rounded-xl border border-hair bg-surface px-4 text-sm font-semibold text-ink hover:bg-canvas disabled:opacity-50 transition-colors"
+            className="min-h-11 rounded-xl border border-hair bg-surface px-5 text-sm font-semibold text-ink hover:bg-canvas disabled:opacity-50 active:scale-[0.98] transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 cursor-pointer"
           >
             Cancel
           </button>
@@ -111,7 +116,7 @@ export function ConfirmDialog({
               const r = onConfirm()
               if (!(r instanceof Promise)) onClose()
             }}
-            className={`min-h-11 rounded-xl px-5 text-sm font-bold text-white shadow-sm transition-colors ${
+            className={`min-h-11 rounded-xl px-5 text-sm font-bold text-white shadow-sm disabled:opacity-50 active:scale-[0.98] transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 cursor-pointer ${
               danger ? "bg-owe hover:bg-red-700" : "bg-brand hover:bg-blue-700"
             }`}
           >

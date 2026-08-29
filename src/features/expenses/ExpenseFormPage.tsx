@@ -8,12 +8,13 @@ import { getSupabase } from "@/lib/supabase"
 import { useTripMembers } from "@/features/trips/useMembers"
 import { useTrip } from "@/features/trips/hooks"
 import { useState, useRef, useEffect } from "react"
-import { allocateEqual, allocatePercent, allocateShares, money } from "./money"
+import { allocateEqual, allocatePercent, allocateShares } from "./money"
 import { parseCurrencyInput, fromMinor, decimalsFor, formatMinor } from "@/lib/currency"
 import { uploadReceipt, validateReceiptFile } from "@/lib/receipts"
 import { FormSkeleton } from "@/components/feedback/Skeleton"
 import { useToast } from "@/components/feedback/ToastProvider"
 import { ArrowLeft } from "lucide-react"
+import { UserAvatar } from "@/components/feedback/UserAvatar"
 
 type Form = z.infer<typeof expenseSchema>
 
@@ -124,8 +125,8 @@ export function ExpenseFormPage() {
   useEffect(() => {
     if (!expenseId || !existing) return
     const amt = (existing as any).amount_minor ?? 1000
-    const dec = baseCurrency === "JPY" ? 0 : 2
-    setAmountStr((amt / Math.pow(10, dec)).toFixed(dec))
+    const curDec = baseCurrency === "JPY" ? 0 : 2
+    setAmountStr((amt / Math.pow(10, curDec)).toFixed(curDec))
     const payers = ((existing as any).expense_payers ?? []).map((p: any) => ({ userId: p.user_id, amountPaidMinor: p.amount_paid_minor }))
     const splits = ((existing as any).expense_splits ?? []).map((s: any) => ({ userId: s.user_id, amountOwedMinor: s.amount_owed_minor }))
     setSelectedIds(splits.map((s: any) => s.userId))
@@ -433,7 +434,7 @@ export function ExpenseFormPage() {
     <div className="mx-auto max-w-lg space-y-4">
       <Link
         to={`/trips/${tripId}/expenses`}
-        className="inline-flex items-center gap-1.5 text-xs font-semibold text-ink-soft hover:text-ink transition-colors"
+        className="inline-flex items-center gap-1.5 text-xs font-semibold text-ink-soft hover:text-ink transition-colors active:scale-[0.98]"
       >
         <ArrowLeft size={14} /> Back to expenses
       </Link>
@@ -443,7 +444,7 @@ export function ExpenseFormPage() {
             <h1 id="expense-form-title" className="text-xl font-bold tracking-tight">{expenseId ? "Edit expense" : "Add expense"}</h1>
             <p className="text-xs text-ink-soft">Enter details to split costs with your group</p>
           </div>
-          <Link to={`/trips/${tripId}/expenses`} className="rounded-lg px-3 py-1.5 text-xs font-semibold text-ink-soft hover:bg-canvas">Cancel</Link>
+          <Link to={`/trips/${tripId}/expenses`} className="rounded-lg px-3 py-1.5 text-xs font-semibold text-ink-soft hover:bg-canvas transition-colors">Cancel</Link>
         </div>
 
       {isDirty && <p className="text-xs text-amber-600 dark:text-amber-400 font-medium">Unsaved changes — you will be warned on leave.</p>}
@@ -503,7 +504,7 @@ export function ExpenseFormPage() {
               }
             }}
             placeholder={dec === 0 ? "1200" : "1250.50"}
-            className="mt-1 w-full min-h-11 rounded-xl border border-hair bg-surface px-3 py-3 text-base font-semibold tabular-nums focus:border-brand focus:ring-1 focus:ring-brand outline-none"
+            className="mt-1 w-full min-h-11 rounded-xl border border-hair bg-surface px-3 py-3 text-base font-semibold font-mono tabular-nums tnum focus:border-brand focus:ring-1 focus:ring-brand outline-none transition-all"
             aria-describedby="exp-amount-hint"
             inputMode="decimal"
           />
@@ -512,7 +513,7 @@ export function ExpenseFormPage() {
         </label>
         <input type="hidden" {...register("amountMinor", { valueAsNumber: true })} />
         <label htmlFor="exp-date" className="block text-xs font-semibold uppercase tracking-wider text-ink-soft">Expense Date
-          <input id="exp-date" type="date" {...register("expenseDate")} className="mt-1 w-full min-h-11 rounded-xl border border-hair bg-surface px-3 py-3 text-sm focus:border-brand focus:ring-1 focus:ring-brand outline-none" />
+          <input id="exp-date" type="date" {...register("expenseDate")} className="mt-1 w-full min-h-11 rounded-xl border border-hair bg-surface px-3 py-3 text-sm focus:border-brand focus:ring-1 focus:ring-brand outline-none transition-all" />
         </label>
         <input id="exp-currency" {...register("currency")} readOnly className="sr-only" aria-hidden="true" tabIndex={-1} />
       </div>
@@ -528,14 +529,15 @@ export function ExpenseFormPage() {
                 key={cat.id}
                 type="button"
                 onClick={() => setValue("category", cat.id as any, { shouldDirty: true })}
-                className={`flex flex-col items-center justify-center rounded-xl border p-2.5 text-xs transition-all ${
+                aria-pressed={isSelected}
+                className={`flex flex-col items-center justify-center rounded-xl border p-2.5 text-xs transition-all duration-150 ease-spring active:scale-[0.98] ${
                   isSelected
-                    ? "border-brand bg-brand/10 text-brand font-bold shadow-xs"
-                    : "border-hair bg-surface text-ink-soft hover:bg-canvas"
+                    ? "border-brand bg-brand/10 text-brand font-bold shadow-xs ring-1 ring-brand/30"
+                    : "border-hair bg-surface text-ink-soft hover:bg-canvas hover:border-hair-glass"
                 }`}
               >
                 <span className="text-lg">{cat.icon}</span>
-                <span className="mt-1">{cat.label}</span>
+                <span className="mt-1 font-medium">{cat.label}</span>
               </button>
             )
           })}
@@ -552,74 +554,78 @@ export function ExpenseFormPage() {
             {totalPaid === amountMinor ? <span className="text-emerald-600 font-bold">✓</span> : <span className="text-owe font-semibold">({formatMinor(amountMinor - totalPaid, baseCurrency)} left)</span>}
           </span>
         </div>
-        {payerInputs.map((p, i) => (
-          <div key={p.userId} className="flex gap-2 items-center">
-            <select
-              value={p.userId}
-              onChange={(e) => {
-                const next = [...payerInputs]
-                const newUserId = e.target.value
-                next[i] = {
-                  userId: newUserId,
-                  amountMinor: payerInputs.length === 1 ? amountMinor : next[i].amountMinor,
-                }
-                setPayerInputs(next)
-                setValue("payers", next.map((x) => ({ userId: x.userId, amountPaidMinor: x.amountMinor })) as any, { shouldValidate: true })
-              }}
-              className="flex-1 min-h-11 rounded-lg border border-hair bg-surface px-3 text-sm font-medium"
-            >
-              {members.map((m: any) => (
-                <option key={m.id} value={m.id}>{m.name}</option>
-              ))}
-            </select>
-            <input
-              type="text"
-              inputMode="decimal"
-              value={p.amountMinor === 0 ? "" : String(fromMinor(p.amountMinor, dec))}
-              placeholder={dec === 0 ? "0" : "0.00"}
-              onChange={(e) => {
-                const minor = parseCurrencyInput(e.target.value, baseCurrency)
-                const next = [...payerInputs]
-                next[i] = { ...next[i], amountMinor: minor ?? 0 }
-                setPayerInputs(next)
-                const nextPayers = next.map((x) => ({ userId: x.userId, amountPaidMinor: x.amountMinor }))
-                setValue("payers", nextPayers as any, { shouldDirty: true })
-                const newTotalPaid = next.reduce((s, p) => s + p.amountMinor, 0)
-                if (newTotalPaid === amountMinor) {
-                  clearErrors("payers")
-                }
-              }}
-              className="w-32 min-h-11 rounded-lg border border-hair bg-surface px-3 text-sm font-semibold tabular-nums"
-              aria-label={`Payer amount for ${members.find((m: any) => m.id === p.userId)?.name ?? p.userId}`}
-            />
-            {payerInputs.length > 1 && (
-              <button
-                type="button"
-                onClick={() => {
-                  const next = payerInputs.filter((_, idx) => idx !== i)
-                  const updated = next.length ? next : [{ userId: members[0].id, amountMinor: amountMinor }]
-                  setPayerInputs(updated)
-                  setValue("payers", updated.map((x) => ({ userId: x.userId, amountPaidMinor: x.amountMinor })) as any, { shouldDirty: true })
-                  if (updated.reduce((s, p) => s + p.amountMinor, 0) === amountMinor) {
+        {payerInputs.map((p, i) => {
+          const currentMember = members.find((m: any) => m.id === p.userId)
+          return (
+            <div key={p.userId} className="flex gap-2 items-center p-2 rounded-xl bg-surface border border-hair/80 shadow-2xs">
+              <UserAvatar id={p.userId} name={currentMember?.name} size="xs" />
+              <select
+                value={p.userId}
+                onChange={(e) => {
+                  const next = [...payerInputs]
+                  const newUserId = e.target.value
+                  next[i] = {
+                    userId: newUserId,
+                    amountMinor: payerInputs.length === 1 ? amountMinor : next[i].amountMinor,
+                  }
+                  setPayerInputs(next)
+                  setValue("payers", next.map((x) => ({ userId: x.userId, amountPaidMinor: x.amountMinor })) as any, { shouldValidate: true })
+                }}
+                className="flex-1 min-h-10 rounded-lg border border-hair bg-canvas/40 px-3 text-sm font-medium outline-none focus:border-brand focus:bg-surface transition-all"
+              >
+                {members.map((m: any) => (
+                  <option key={m.id} value={m.id}>{m.name}</option>
+                ))}
+              </select>
+              <input
+                type="text"
+                inputMode="decimal"
+                value={p.amountMinor === 0 ? "" : String(fromMinor(p.amountMinor, dec))}
+                placeholder={dec === 0 ? "0" : "0.00"}
+                onChange={(e) => {
+                  const minor = parseCurrencyInput(e.target.value, baseCurrency)
+                  const next = [...payerInputs]
+                  next[i] = { ...next[i], amountMinor: minor ?? 0 }
+                  setPayerInputs(next)
+                  const nextPayers = next.map((x) => ({ userId: x.userId, amountPaidMinor: x.amountMinor }))
+                  setValue("payers", nextPayers as any, { shouldDirty: true })
+                  const newTotalPaid = next.reduce((s, p) => s + p.amountMinor, 0)
+                  if (newTotalPaid === amountMinor) {
                     clearErrors("payers")
                   }
                 }}
-                className="min-h-11 w-8 text-ink-faint hover:text-owe font-bold"
-              >
-                ×
-              </button>
-            )}
-          </div>
-        ))}
+                className="w-32 min-h-10 rounded-lg border border-hair bg-canvas/40 px-3 text-sm font-semibold font-mono tabular-nums tnum outline-none focus:border-brand focus:ring-1 focus:ring-brand focus:bg-surface transition-all"
+                aria-label={`Payer amount for ${currentMember?.name ?? p.userId}`}
+              />
+              {payerInputs.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    const next = payerInputs.filter((_, idx) => idx !== i)
+                    const updated = next.length ? next : [{ userId: members[0].id, amountMinor: amountMinor }]
+                    setPayerInputs(updated)
+                    setValue("payers", updated.map((x) => ({ userId: x.userId, amountPaidMinor: x.amountMinor })) as any, { shouldDirty: true })
+                    if (updated.reduce((s, p) => s + p.amountMinor, 0) === amountMinor) {
+                      clearErrors("payers")
+                    }
+                  }}
+                  className="min-h-10 w-8 flex items-center justify-center rounded-lg text-ink-faint hover:text-owe hover:bg-owe-soft/40 active:scale-95 font-bold transition-colors"
+                >
+                  ×
+                </button>
+              )}
+            </div>
+          )
+        })}
         <button
           type="button"
           onClick={() => setPayerInputs([...payerInputs, { userId: members[0].id, amountMinor: 0 }])}
-          className="text-xs font-bold text-brand hover:underline"
+          className="text-xs font-bold text-brand hover:underline active:scale-[0.98] transition-transform inline-flex items-center gap-1"
         >
           + Add multiple payers
         </button>
         {errors.payers && totalPaid !== amountMinor && (
-          <p className="text-xs text-owe" role="alert">
+          <p className="text-xs text-owe font-medium" role="alert">
             {(errors.payers as any).message ?? "Payer sum must equal total"}
           </p>
         )}
@@ -631,24 +637,30 @@ export function ExpenseFormPage() {
           <div>
             <span className="text-xs font-bold uppercase tracking-wider text-ink-soft">Split Between</span>
             {splitMode === "equal" && selectedIds.length > 0 && (
-              <span className="ml-2 inline-block rounded bg-brand/10 px-2 py-0.5 text-[11px] font-bold text-brand">
+              <span className="ml-2 inline-block rounded-full bg-brand/10 border border-brand/20 px-2.5 py-0.5 text-[11px] font-bold font-mono text-brand tnum">
                 {formatMinor(perPersonAmount, baseCurrency)} / person
               </span>
             )}
           </div>
-          <div className="flex gap-1" role="group" aria-label="Split mode">
-            {(["equal", "exact", "percent", "shares"] as const).map((m) => (
-              <button
-                key={m}
-                type="button"
-                onClick={() => switchSplitMode(m)}
-                className={`min-h-8 rounded-lg px-2.5 text-xs font-semibold capitalize transition-colors ${
-                  splitMode === m ? "bg-brand text-white" : "bg-surface text-ink-soft hover:bg-hair"
-                }`}
-              >
-                {m}
-              </button>
-            ))}
+          <div className="flex items-center p-1 rounded-xl bg-canvas border border-hair" role="group" aria-label="Split mode">
+            {(["equal", "exact", "percent", "shares"] as const).map((m) => {
+              const isActive = splitMode === m
+              return (
+                <button
+                  key={m}
+                  type="button"
+                  onClick={() => switchSplitMode(m)}
+                  aria-pressed={isActive}
+                  className={`min-h-8 rounded-lg px-2.5 text-xs font-semibold capitalize transition-all duration-150 ease-spring active:scale-[0.98] ${
+                    isActive
+                      ? "bg-brand text-white shadow-xs font-bold"
+                      : "text-ink-soft hover:text-ink hover:bg-surface/60"
+                  }`}
+                >
+                  {m}
+                </button>
+              )
+            })}
           </div>
         </div>
 
@@ -660,27 +672,30 @@ export function ExpenseFormPage() {
               <button
                 type="button"
                 onClick={selectAllMembers}
-                className="rounded-md border border-hair bg-surface px-2 py-0.5 text-brand shadow-2xs hover:bg-canvas transition-colors"
+                aria-label="Select all"
+                className="rounded-lg border border-hair bg-surface px-2.5 py-1 text-brand shadow-2xs hover:bg-brand-soft/40 hover:border-brand/30 active:scale-[0.98] transition-all duration-150 ease-spring"
               >
                 Select all
               </button>
               <button
                 type="button"
                 onClick={invertSelectedMembers}
-                className="rounded-md border border-hair bg-surface px-2 py-0.5 text-ink-soft shadow-2xs hover:bg-canvas transition-colors"
+                aria-label="Invert"
+                className="rounded-lg border border-hair bg-surface px-2.5 py-1 text-ink-soft shadow-2xs hover:bg-canvas hover:text-ink hover:border-hair-glass active:scale-[0.98] transition-all duration-150 ease-spring"
               >
                 Invert
               </button>
               <button
                 type="button"
                 onClick={clearSelectedMembers}
-                className="rounded-md border border-hair bg-surface px-2 py-0.5 text-ink-faint shadow-2xs hover:bg-canvas transition-colors"
+                aria-label="Clear"
+                className="rounded-lg border border-hair bg-surface px-2.5 py-1 text-ink-faint shadow-2xs hover:bg-owe-soft/50 hover:text-owe hover:border-owe/30 active:scale-[0.98] transition-all duration-150 ease-spring"
               >
                 Clear
               </button>
             </div>
           </div>
-          <div className="flex flex-wrap gap-1.5">
+          <div className="flex flex-wrap gap-2">
             {members.map((m: any) => {
               const isSelected = selectedIds.includes(m.id)
               return (
@@ -688,19 +703,30 @@ export function ExpenseFormPage() {
                   key={m.id}
                   type="button"
                   onClick={() => toggleParticipant(m.id)}
-                  className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-all ${
+                  aria-pressed={isSelected}
+                  aria-label={m.name}
+                  className={`group flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold transition-all duration-150 ease-spring active:scale-[0.98] ${
                     isSelected
-                      ? "border-brand bg-brand text-white shadow-xs"
-                      : "border-hair bg-surface text-ink-soft hover:bg-hair"
+                      ? "border-brand bg-brand text-white shadow-xs ring-1 ring-brand/30"
+                      : "border-hair bg-surface text-ink-soft hover:bg-canvas hover:border-hair-glass"
                   }`}
                 >
-                  <span className={`flex h-4 w-4 items-center justify-center rounded-full text-[10px] font-bold ${
-                    isSelected ? "bg-white text-brand" : "bg-hair text-ink"
-                  }`}>
-                    {(m.name ?? "?")[0].toUpperCase()}
-                  </span>
+                  <UserAvatar
+                    id={m.id}
+                    name={m.name}
+                    size="xs"
+                    className={isSelected ? "ring-2 ring-white/80" : ""}
+                  />
                   <span>{m.name}</span>
-                  <span className="text-[10px]">{isSelected ? "✓" : "+"}</span>
+                  <span
+                    className={`flex h-4 w-4 items-center justify-center rounded-full text-[10px] font-bold transition-transform ${
+                      isSelected
+                        ? "bg-white/20 text-white"
+                        : "bg-canvas text-ink-faint group-hover:bg-hair"
+                    }`}
+                  >
+                    {isSelected ? "✓" : "+"}
+                  </span>
                 </button>
               )
             })}
@@ -709,65 +735,72 @@ export function ExpenseFormPage() {
 
         {/* Custom Split Inputs */}
         {splitMode !== "equal" && (
-          <div className="space-y-2 border-t border-hair pt-3">
-            {selectedIds.map((id, i) => (
-              <div key={id} className="flex gap-2 items-center">
-                <label htmlFor={`split-${i}`} className="w-28 text-xs font-semibold truncate">
-                  {members.find((m: any) => m.id === id)?.name ?? id.slice(0, 8)}
-                </label>
-                {splitMode === "exact" && (
-                  <input
-                    id={`split-${i}`}
-                    type="text"
-                    inputMode="decimal"
-                    value={
-                      (watchedSplits as any)?.[i]?.amountOwedMinor === undefined || (watchedSplits as any)?.[i]?.amountOwedMinor === 0
-                        ? ""
-                        : String(fromMinor((watchedSplits as any)?.[i]?.amountOwedMinor ?? 0, dec))
-                    }
-                    onChange={(e) => {
-                      const minor = parseCurrencyInput(e.target.value, baseCurrency)
-                      const cur = (watch("splits") as any) ?? []
-                      const next = [...cur]
-                      next[i] = { ...next[i], userId: id, amountOwedMinor: minor ?? 0 }
-                      syncSplitsToForm(next)
-                    }}
-                    className="flex-1 min-h-10 rounded-lg border border-hair bg-surface px-3 text-sm tabular-nums outline-none focus:border-brand focus:ring-1 focus:ring-brand"
-                    placeholder={dec === 0 ? "0" : "0.00"}
-                  />
-                )}
-                {splitMode === "percent" && (
-                  <div className="flex flex-1 items-center gap-1">
-                    <input
-                      id={`split-${i}`}
-                      type="number"
-                      value={percentInputs[i] ?? 0}
-                      onChange={(e) => handlePercentChange(i, Number(e.target.value))}
-                      className="flex-1 min-h-10 rounded-lg border border-hair bg-surface px-3 text-sm"
-                      placeholder="%"
-                    />
-                    <span className="text-xs text-ink-soft">%</span>
-                  </div>
-                )}
-                {splitMode === "shares" && (
-                  <div className="flex flex-1 items-center gap-1">
-                    <input
-                      id={`split-${i}`}
-                      type="number"
-                      value={shareInputs[i] ?? 1}
-                      onChange={(e) => handleSharesChange(i, Number(e.target.value))}
-                      className="flex-1 min-h-10 rounded-lg border border-hair bg-surface px-3 text-sm"
-                      placeholder="shares"
-                    />
-                    <span className="text-xs text-ink-soft">share(s)</span>
-                  </div>
-                )}
-              </div>
-            ))}
+          <div className="space-y-2.5 border-t border-hair pt-3.5 animate-in fade-in duration-200">
+            {selectedIds.map((id, i) => {
+              const member = members.find((m: any) => m.id === id)
+              const memberName = member?.name ?? id.slice(0, 8)
+              return (
+                <div key={id} className="flex gap-2.5 items-center p-2 rounded-xl bg-surface border border-hair/80 shadow-2xs">
+                  <UserAvatar id={id} name={memberName} size="xs" />
+                  <label htmlFor={`split-${i}`} className="w-28 text-xs font-semibold text-ink truncate cursor-pointer">
+                    {memberName}
+                  </label>
+                  {splitMode === "exact" && (
+                    <div className="relative flex-1">
+                      <input
+                        id={`split-${i}`}
+                        type="text"
+                        inputMode="decimal"
+                        value={
+                          (watchedSplits as any)?.[i]?.amountOwedMinor === undefined || (watchedSplits as any)?.[i]?.amountOwedMinor === 0
+                            ? ""
+                            : String(fromMinor((watchedSplits as any)?.[i]?.amountOwedMinor ?? 0, dec))
+                        }
+                        onChange={(e) => {
+                          const minor = parseCurrencyInput(e.target.value, baseCurrency)
+                          const cur = (watch("splits") as any) ?? []
+                          const next = [...cur]
+                          next[i] = { ...next[i], userId: id, amountOwedMinor: minor ?? 0 }
+                          syncSplitsToForm(next)
+                        }}
+                        className="w-full min-h-10 rounded-lg border border-hair bg-canvas/40 px-3 text-sm font-semibold font-mono tabular-nums tnum outline-none focus:border-brand focus:ring-1 focus:ring-brand focus:bg-surface transition-all"
+                        placeholder={dec === 0 ? "0" : "0.00"}
+                      />
+                    </div>
+                  )}
+                  {splitMode === "percent" && (
+                    <div className="flex flex-1 items-center gap-1.5">
+                      <input
+                        id={`split-${i}`}
+                        type="number"
+                        value={percentInputs[i] ?? 0}
+                        onChange={(e) => handlePercentChange(i, Number(e.target.value))}
+                        className="flex-1 min-h-10 rounded-lg border border-hair bg-canvas/40 px-3 text-sm font-semibold font-mono tabular-nums tnum outline-none focus:border-brand focus:ring-1 focus:ring-brand focus:bg-surface transition-all"
+                        placeholder="%"
+                      />
+                      <span className="rounded-md bg-canvas px-2 py-1 text-xs font-bold text-ink-soft border border-hair">%</span>
+                    </div>
+                  )}
+                  {splitMode === "shares" && (
+                    <div className="flex flex-1 items-center gap-1.5">
+                      <input
+                        id={`split-${i}`}
+                        type="number"
+                        value={shareInputs[i] ?? 1}
+                        onChange={(e) => handleSharesChange(i, Number(e.target.value))}
+                        className="flex-1 min-h-10 rounded-lg border border-hair bg-canvas/40 px-3 text-sm font-semibold font-mono tabular-nums tnum outline-none focus:border-brand focus:ring-1 focus:ring-brand focus:bg-surface transition-all"
+                        placeholder="shares"
+                      />
+                      <span className="rounded-md bg-canvas px-2 py-1 text-xs font-bold text-ink-soft border border-hair">share(s)</span>
+                    </div>
+                  )}
+                </div>
+              )
+            })}
           </div>
         )}
 
-        <p className="text-[11px] text-ink-faint">
+        <p className="text-[11px] text-ink-faint font-medium">
           Allocated {formatMinor(totalAllocatedMinor, baseCurrency)} / {formatMinor(amountMinor, baseCurrency)}{" "}
           {totalAllocatedMinor === amountMinor ? (
             <span className="text-emerald-600 font-bold">✓</span>
@@ -776,7 +809,7 @@ export function ExpenseFormPage() {
           )}
         </p>
         {errors.splits && totalAllocatedMinor !== amountMinor && (
-          <p className="text-xs text-owe" role="alert">
+          <p className="text-xs text-owe font-medium" role="alert">
             {(errors.splits as any).message ?? "Split sum must equal total"}
           </p>
         )}
@@ -811,12 +844,12 @@ export function ExpenseFormPage() {
               setIsUploadingReceipt(false)
             }
           }}
-          className="block w-full text-xs file:mr-3 file:rounded-lg file:border-0 file:bg-brand file:px-3 file:py-2 file:text-xs file:font-semibold file:text-white"
+          className="block w-full text-xs file:mr-3 file:rounded-lg file:border-0 file:bg-brand file:px-3 file:py-2 file:text-xs file:font-semibold file:text-white file:cursor-pointer"
         />
         <input type="hidden" {...register("receiptPath")} />
         {localReceiptPreview && (
           <div className="relative mt-2 inline-block">
-            <img src={localReceiptPreview} alt="Receipt preview" className="h-20 w-20 rounded-lg object-cover border border-hair" />
+            <img src={localReceiptPreview} alt="Receipt preview" className="h-20 w-20 rounded-lg object-cover border border-hair shadow-2xs" />
             <button
               type="button"
               onClick={() => {
@@ -824,7 +857,7 @@ export function ExpenseFormPage() {
                 setLocalReceiptPreview(null)
                 setValue("receiptPath", null as any, { shouldDirty: true })
               }}
-              className="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-owe text-white text-xs font-bold"
+              className="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-owe text-white text-xs font-bold shadow-xs active:scale-95"
             >
               ×
             </button>
@@ -838,12 +871,12 @@ export function ExpenseFormPage() {
             </button>
           </p>
         )}
-        {isUploadingReceipt && <p className="text-xs text-brand animate-pulse">Uploading receipt…</p>}
+        {isUploadingReceipt && <p className="text-xs text-brand animate-pulse font-semibold">Uploading receipt…</p>}
       </div>
 
       {/* Notes */}
       <label htmlFor="exp-notes" className="block text-xs font-semibold uppercase tracking-wider text-ink-soft">Notes
-        <textarea id="exp-notes" {...register("notes")} className="mt-1 w-full rounded-xl border border-hair bg-surface px-3 py-2 text-sm focus:border-brand focus:ring-1 focus:ring-brand outline-none" rows={2} maxLength={2000} placeholder="Additional details or reference notes" />
+        <textarea id="exp-notes" {...register("notes")} className="mt-1 w-full rounded-xl border border-hair bg-surface px-3 py-2 text-sm focus:border-brand focus:ring-1 focus:ring-brand outline-none transition-all" rows={2} maxLength={2000} placeholder="Additional details or reference notes" />
         <span className="mt-1 block text-right text-[11px] text-ink-faint">{(watch("notes") as any ?? "").length}/2000</span>
       </label>
 
@@ -857,7 +890,7 @@ export function ExpenseFormPage() {
           }}
           disabled={isSubmitting || isArchived || existingLoading}
           aria-disabled={isArchived}
-          className="flex-1 flex min-h-12 items-center justify-center rounded-xl bg-brand text-sm font-bold text-white shadow-sm hover:bg-blue-700 disabled:opacity-50 transition-colors"
+          className="flex-1 flex min-h-12 items-center justify-center rounded-xl bg-brand text-sm font-bold text-white shadow-sm hover:bg-blue-700 active:scale-[0.98] disabled:opacity-50 transition-all duration-150 ease-spring"
         >
           {isSubmitting && !shouldAddAnotherRef.current
             ? "Saving…"
@@ -873,7 +906,7 @@ export function ExpenseFormPage() {
             }}
             disabled={isSubmitting || isArchived || existingLoading}
             aria-disabled={isArchived}
-            className="flex-1 flex min-h-12 items-center justify-center rounded-xl border border-hair bg-surface text-sm font-bold text-ink shadow-2xs hover:bg-canvas disabled:opacity-50 transition-colors"
+            className="flex-1 flex min-h-12 items-center justify-center rounded-xl border border-hair bg-surface text-sm font-bold text-ink shadow-2xs hover:bg-canvas active:scale-[0.98] disabled:opacity-50 transition-all duration-150 ease-spring"
           >
             {isSubmitting && shouldAddAnotherRef.current
               ? "Saving…"

@@ -70,7 +70,7 @@ export function CurrencyInput({
         value={text}
         onChange={handleChange}
         placeholder={placeholder}
-        className="w-full rounded-xl border border-hair bg-surface py-2.5 pl-12 pr-3 text-sm font-semibold tabular-nums outline-none transition-colors focus:border-brand focus:ring-1 focus:ring-brand disabled:cursor-not-allowed disabled:opacity-50"
+        className="w-full rounded-xl border border-hair bg-surface py-2.5 pl-12 pr-3 font-mono text-sm font-semibold tabular-nums tnum outline-none transition-colors focus:border-brand focus:ring-1 focus:ring-brand disabled:cursor-not-allowed disabled:opacity-50"
         aria-label={ariaLabel}
         aria-describedby={ariaDescribedby}
         aria-invalid={ariaInvalid}

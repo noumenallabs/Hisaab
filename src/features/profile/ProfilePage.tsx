@@ -130,37 +130,37 @@ export function ProfilePage() {
               <button
                 type="button"
                 onClick={() => setTheme("system")}
-                className={`flex flex-col items-center justify-center gap-1.5 rounded-xl border p-3 text-xs font-bold transition-all ${
+                className={`group flex flex-col items-center justify-center gap-1.5 rounded-xl border p-3 text-xs font-bold transition-all duration-200 active:scale-[0.98] cursor-pointer ${
                   theme === "system"
-                    ? "border-brand bg-brand/10 text-brand shadow-xs"
+                    ? "border-brand bg-brand/10 text-brand shadow-xs ring-1 ring-brand/30"
                     : "border-hair bg-surface text-ink-soft hover:bg-canvas hover:text-ink"
                 }`}
               >
-                <span className="text-base">💻</span>
+                <span className="text-base transition-transform duration-200 group-hover:scale-110">💻</span>
                 <span>System</span>
               </button>
               <button
                 type="button"
                 onClick={() => setTheme("light")}
-                className={`flex flex-col items-center justify-center gap-1.5 rounded-xl border p-3 text-xs font-bold transition-all ${
+                className={`group flex flex-col items-center justify-center gap-1.5 rounded-xl border p-3 text-xs font-bold transition-all duration-200 active:scale-[0.98] cursor-pointer ${
                   theme === "light"
-                    ? "border-brand bg-brand/10 text-brand shadow-xs"
+                    ? "border-brand bg-brand/10 text-brand shadow-xs ring-1 ring-brand/30"
                     : "border-hair bg-surface text-ink-soft hover:bg-canvas hover:text-ink"
                 }`}
               >
-                <span className="text-base">☀️</span>
+                <span className="text-base transition-transform duration-200 group-hover:scale-110">☀️</span>
                 <span>Light</span>
               </button>
               <button
                 type="button"
                 onClick={() => setTheme("dark")}
-                className={`flex flex-col items-center justify-center gap-1.5 rounded-xl border p-3 text-xs font-bold transition-all ${
+                className={`group flex flex-col items-center justify-center gap-1.5 rounded-xl border p-3 text-xs font-bold transition-all duration-200 active:scale-[0.98] cursor-pointer ${
                   theme === "dark"
-                    ? "border-brand bg-brand/10 text-brand shadow-xs"
+                    ? "border-brand bg-brand/10 text-brand shadow-xs ring-1 ring-brand/30"
                     : "border-hair bg-surface text-ink-soft hover:bg-canvas hover:text-ink"
                 }`}
               >
-                <span className="text-base">🌙</span>
+                <span className="text-base transition-transform duration-200 group-hover:scale-110">🌙</span>
                 <span>Dark</span>
               </button>
             </div>

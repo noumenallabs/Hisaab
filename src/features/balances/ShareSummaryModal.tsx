@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react"
+import { useEffect, useState, useRef } from "react"
 import { createPortal } from "react-dom"
 import {
   type SummaryCardOptions,
@@ -23,6 +23,7 @@ export function ShareSummaryModal({
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [copiedText, setCopiedText] = useState(false)
   const [sharing, setSharing] = useState(false)
+  const prevFocus = useRef<HTMLElement | null>(null)
 
   const tripUrl = typeof window !== "undefined" ? window.location.href : ""
 
@@ -31,6 +32,7 @@ export function ShareSummaryModal({
       setPreviewUrl(null)
       return
     }
+    prevFocus.current = document.activeElement as HTMLElement | null
     // Generate snapshot card on open
     try {
       const url = generateSummaryImageDataUrl(opts)
@@ -38,7 +40,41 @@ export function ShareSummaryModal({
     } catch (err) {
       console.error("Failed to generate preview image", err)
     }
-  }, [open, opts])
+
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose()
+      if (e.key === "Tab") {
+        const dialog = document.getElementById("share-dialog")
+        if (!dialog) return
+        const nodes = Array.from(
+          dialog.querySelectorAll<HTMLElement>(
+            "button, [href], input, select, textarea, [tabindex]:not([tabindex='-1'])"
+          )
+        ).filter((el) => !el.hasAttribute("disabled"))
+        if (!nodes.length) return
+        const first = nodes[0],
+          last = nodes[nodes.length - 1]
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault()
+          last.focus()
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault()
+          first.focus()
+        }
+      }
+    }
+    window.addEventListener("keydown", handleKey)
+    document.body.style.overflow = "hidden"
+    const appRoot = document.getElementById("root")
+    if (appRoot) appRoot.setAttribute("aria-hidden", "true")
+
+    return () => {
+      window.removeEventListener("keydown", handleKey)
+      document.body.style.overflow = ""
+      if (appRoot) appRoot.removeAttribute("aria-hidden")
+      prevFocus.current?.focus()
+    }
+  }, [open, opts, onClose])
 
   if (!open) return null
 
@@ -98,12 +134,22 @@ export function ShareSummaryModal({
       role="dialog"
       aria-modal="true"
       aria-labelledby="share-modal-title"
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-in fade-in duration-150 overflow-y-auto"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose()
-      }}
+      className="fixed inset-0 z-50 flex items-end justify-center sm:items-center p-0 sm:p-4 overflow-y-auto"
     >
-      <div className="relative w-full max-w-lg rounded-2xl border border-hair bg-surface p-6 shadow-2xl space-y-5 my-8">
+      <div
+        className="fixed inset-0 bg-black/70 backdrop-blur-md transition-opacity animate-in fade-in duration-200"
+        onClick={onClose}
+        aria-hidden="true"
+      />
+      <div
+        id="share-dialog"
+        className="relative w-full border-t sm:border border-hair bg-surface p-6 shadow-2xl space-y-5 max-sm:fixed max-sm:inset-x-0 max-sm:bottom-0 max-sm:rounded-t-3xl max-sm:max-h-[90dvh] max-sm:overflow-y-auto max-sm:pb-[calc(1.5rem+env(safe-area-inset-bottom,0px))] sm:max-w-lg sm:rounded-2xl sm:my-8 animate-in slide-in-from-bottom duration-250 sm:slide-in-from-bottom-0 sm:fade-in sm:zoom-in-95"
+      >
+        {/* Mobile Grab Bar */}
+        <div className="sm:hidden -mt-2 mb-2 flex justify-center" aria-hidden="true">
+          <div className="h-1.5 w-12 rounded-full bg-hair" />
+        </div>
+
         {/* Header */}
         <div className="flex items-center justify-between border-b border-hair/50 pb-3">
           <div>
@@ -117,7 +163,7 @@ export function ShareSummaryModal({
           <button
             type="button"
             onClick={onClose}
-            className="flex h-8 w-8 items-center justify-center rounded-lg text-ink-soft hover:bg-canvas hover:text-ink transition-colors"
+            className="flex h-11 w-11 items-center justify-center rounded-xl text-ink-soft hover:bg-canvas hover:text-ink active:scale-[0.98] transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 cursor-pointer"
             aria-label="Close dialog"
           >
             <X size={18} />
@@ -155,7 +201,7 @@ export function ShareSummaryModal({
             type="button"
             onClick={handleShareImage}
             disabled={sharing}
-            className="flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-brand px-4 py-3 text-sm font-bold text-white shadow-sm hover:bg-blue-700 disabled:opacity-50 transition-colors"
+            className="flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-brand px-4 py-3 text-sm font-bold text-white shadow-sm hover:bg-blue-700 disabled:opacity-50 active:scale-[0.98] transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 cursor-pointer"
           >
             <Share2 size={16} />
             {sharing ? "Preparing Image…" : "📸 Share / Save Image Card"}
@@ -166,7 +212,7 @@ export function ShareSummaryModal({
             <button
               type="button"
               onClick={handleCopyText}
-              className="flex min-h-11 items-center justify-center gap-1.5 rounded-xl border border-hair bg-canvas/60 px-3 text-xs font-bold text-ink shadow-2xs hover:bg-canvas transition-colors"
+              className="flex min-h-11 items-center justify-center gap-1.5 rounded-xl border border-hair bg-canvas/60 px-3 text-xs font-bold text-ink shadow-2xs hover:bg-canvas active:scale-[0.98] transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 cursor-pointer"
             >
               {copiedText ? (
                 <>
@@ -182,7 +228,7 @@ export function ShareSummaryModal({
             <button
               type="button"
               onClick={handleShareWhatsApp}
-              className="flex min-h-11 items-center justify-center gap-1.5 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-3 text-xs font-bold text-emerald-700 dark:text-emerald-300 shadow-2xs hover:bg-emerald-500/20 transition-colors"
+              className="flex min-h-11 items-center justify-center gap-1.5 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-3 text-xs font-bold text-emerald-700 dark:text-emerald-300 shadow-2xs hover:bg-emerald-500/20 active:scale-[0.98] transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 cursor-pointer"
             >
               <MessageCircle size={14} /> WhatsApp
             </button>

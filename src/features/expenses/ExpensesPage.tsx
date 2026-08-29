@@ -5,10 +5,9 @@ import { formatMinor } from "@/lib/currency"
 import { useTrip } from "@/features/trips/hooks"
 import { useTripMembers } from "@/features/trips/useMembers"
 import { Skeleton } from "@/components/feedback/Skeleton"
-import { Plus, Search, Download, Paperclip, Filter, X, ArrowRight } from "lucide-react"
+import { Plus, Search, Download, Paperclip, Filter, ArrowRight } from "lucide-react"
 import { downloadExpensesCsv } from "./csvExport"
-import { useMemo, useState, useEffect } from "react"
-
+import { useMemo, useState } from "react"
 import { useAuth } from "@/lib/auth"
 
 export function ExpensesPage() {
@@ -103,7 +102,7 @@ export function ExpensesPage() {
             <button
               type="button"
               onClick={handleExportCsv}
-              className="inline-flex min-h-11 items-center gap-1.5 rounded-xl border border-hair bg-surface px-3.5 text-xs font-bold text-ink shadow-2xs hover:bg-canvas transition-colors"
+              className="inline-flex min-h-11 items-center gap-1.5 rounded-xl border border-hair bg-surface px-3.5 text-xs font-bold text-ink shadow-2xs hover:bg-canvas active:scale-[0.98] transition-all duration-150 ease-spring"
               aria-label="Export expenses as CSV"
             >
               <Download size={15} className="text-brand" /> Export CSV
@@ -112,7 +111,7 @@ export function ExpensesPage() {
           {canAdd ? (
             <Link
               to={`/trips/${tripId}/expenses/new`}
-              className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-brand px-4 py-2 text-sm font-bold text-white shadow-sm hover:bg-blue-700 transition-colors"
+              className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-brand px-4 py-2 text-sm font-bold text-white shadow-sm hover:bg-blue-700 active:scale-[0.98] transition-all duration-150 ease-spring"
             >
               <Plus size={16} /> Add expense
             </Link>
@@ -134,7 +133,7 @@ export function ExpensesPage() {
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search description, notes, or items..."
               aria-label="Search expenses"
-              className="w-full min-h-11 rounded-xl border border-hair bg-canvas/40 py-2 pl-10 pr-4 text-sm outline-none focus:border-brand focus:ring-1 focus:ring-brand"
+              className="w-full min-h-11 rounded-xl border border-hair bg-canvas/40 py-2 pl-10 pr-4 text-sm outline-none focus:border-brand focus:ring-1 focus:ring-brand focus:bg-surface transition-all"
             />
           </div>
 
@@ -142,7 +141,7 @@ export function ExpensesPage() {
           <button
             type="button"
             onClick={() => setMobileFiltersOpen((p) => !p)}
-            className={`sm:hidden inline-flex min-h-11 items-center gap-1.5 rounded-xl border px-3 text-xs font-bold transition-colors ${
+            className={`sm:hidden inline-flex min-h-11 items-center gap-1.5 rounded-xl border px-3 text-xs font-bold transition-all duration-150 ease-spring active:scale-[0.98] ${
               mobileFiltersOpen || activeFiltersCount > 0
                 ? "border-brand bg-brand/10 text-brand"
                 : "border-hair bg-surface text-ink-soft hover:bg-canvas"
@@ -283,7 +282,7 @@ export function ExpensesPage() {
             <div className="pt-2">
               <Link
                 to={`/trips/${tripId}/expenses/new`}
-                className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-brand px-5 text-sm font-bold text-white hover:bg-blue-700 shadow-2xs transition-colors"
+                className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-brand px-5 text-sm font-bold text-white hover:bg-blue-700 shadow-2xs active:scale-[0.98] transition-all duration-150 ease-spring"
               >
                 <Plus size={16} /> Add first expense
               </Link>
@@ -308,7 +307,7 @@ export function ExpensesPage() {
                 setDateFrom("")
                 setDateTo("")
               }}
-              className="min-h-10 rounded-xl border border-hair bg-canvas/60 px-4 text-xs font-bold text-ink hover:bg-canvas transition-colors shadow-2xs"
+              className="min-h-10 rounded-xl border border-hair bg-canvas/60 px-4 text-xs font-bold text-ink hover:bg-canvas active:scale-[0.98] transition-all duration-150 ease-spring shadow-2xs"
             >
               Clear all filters
             </button>
@@ -348,12 +347,12 @@ export function ExpensesPage() {
                       <Link
                         key={e.id}
                         to={`/trips/${tripId}/expenses/${e.id}`}
-                        className={`flex items-center justify-between p-4 transition-colors hover:bg-canvas/60 ${
+                        className={`group flex items-center justify-between p-4 transition-all duration-150 ease-spring hover:bg-canvas/60 active:scale-[0.995] ${
                           isDel ? "opacity-60 bg-red-50/40 dark:bg-red-950/30" : ""
                         }`}
                       >
                         <div className="flex items-center gap-3.5 min-w-0">
-                          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-canvas text-lg border border-hair">
+                          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-canvas text-lg border border-hair shadow-2xs">
                             {catIcons[e.category] ?? "📦"}
                           </span>
                           <div className="min-w-0">
@@ -377,10 +376,10 @@ export function ExpensesPage() {
                         </div>
 
                         <div className="text-right shrink-0 ml-4">
-                          <p className="font-mono text-base font-bold text-ink">
+                          <p className="font-mono text-base font-bold text-ink tnum">
                             {formatMinor(e.amount_minor ?? e.amount ?? 0, (trip as any)?.base_currency ?? "INR")}
                           </p>
-                          <span className="inline-flex items-center gap-0.5 text-[11px] font-semibold text-brand">
+                          <span className="inline-flex items-center gap-0.5 text-[11px] font-semibold text-brand group-hover:translate-x-0.5 transition-transform">
                             View details <ArrowRight size={12} />
                           </span>
                         </div>
@@ -396,13 +395,13 @@ export function ExpensesPage() {
             <div className="pt-2 flex flex-wrap justify-center gap-2">
               <button
                 onClick={() => setVisible((v) => v + 50)}
-                className="min-h-11 rounded-xl border border-hair bg-surface px-5 text-xs font-bold hover:bg-canvas shadow-2xs"
+                className="min-h-11 rounded-xl border border-hair bg-surface px-5 text-xs font-bold hover:bg-canvas active:scale-[0.98] transition-all duration-150 ease-spring shadow-2xs"
               >
                 Load more ({sorted.length - visible} remaining)
               </button>
               <button
                 onClick={() => setVisible(sorted.length)}
-                className="min-h-11 rounded-xl border border-hair bg-surface px-5 text-xs font-bold text-brand hover:bg-canvas shadow-2xs"
+                className="min-h-11 rounded-xl border border-hair bg-surface px-5 text-xs font-bold text-brand hover:bg-canvas active:scale-[0.98] transition-all duration-150 ease-spring shadow-2xs"
               >
                 Show all ({sorted.length})
               </button>

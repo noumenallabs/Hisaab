@@ -97,13 +97,29 @@ export function ActivityPage() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <h2 className="text-lg font-bold">Activity log</h2>
-        <div className="flex items-center gap-1 rounded-xl bg-canvas p-1 text-xs font-semibold">
+        <div className="relative flex items-center rounded-xl bg-canvas p-1 text-xs font-semibold">
+          <div
+            className="pointer-events-none absolute top-1 bottom-1 rounded-lg bg-brand shadow-xs transition-all duration-200 ease-spring"
+            style={{
+              width: "calc((100% - 8px) / 4)",
+              transform: `translateX(${
+                filter === "all"
+                  ? "0%"
+                  : filter === "expenses"
+                  ? "100%"
+                  : filter === "settlements"
+                  ? "200%"
+                  : "300%"
+              })`,
+            }}
+            aria-hidden="true"
+          />
           {["all", "expenses", "settlements", "members"].map((f) => (
             <button
               key={f}
               onClick={() => setFilter(f)}
-              className={`rounded-lg px-3 py-1.5 capitalize transition-colors ${
-                filter === f ? "bg-brand text-white" : "text-ink-soft hover:bg-canvas"
+              className={`relative z-10 flex-1 rounded-lg px-3 py-1.5 text-center capitalize transition-all duration-200 active:scale-[0.98] cursor-pointer ${
+                filter === f ? "text-white font-bold" : "text-ink-soft hover:text-ink"
               }`}
             >
               {f}

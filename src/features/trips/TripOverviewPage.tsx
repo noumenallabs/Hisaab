@@ -57,6 +57,7 @@ export function TripOverviewPage() {
     amount: number
   } | null>(null)
   const [isGeneralSettleOpen, setIsGeneralSettleOpen] = useState(false)
+  const [hoveredCategory, setHoveredCategory] = useState<string | null>(null)
 
   if (isLoading) return <Skeleton className="h-48 rounded-2xl" />
   if (!trip)
@@ -249,7 +250,7 @@ export function TripOverviewPage() {
               {!isSettled && (
                 <Link
                   to={`/trips/${tripId}/expenses/new`}
-                  className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-brand px-4 py-2 text-sm font-bold text-white shadow-sm hover:bg-blue-700 transition-colors"
+                  className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-brand px-4 py-2 text-sm font-bold text-white shadow-sm hover:bg-blue-700 active:scale-[0.98] transition-all"
                   aria-label="Add new expense"
                 >
                   <Plus size={16} /> Add expense
@@ -259,7 +260,7 @@ export function TripOverviewPage() {
                 <button
                   type="button"
                   onClick={() => setIsGeneralSettleOpen(true)}
-                  className="inline-flex min-h-11 items-center gap-1.5 rounded-xl border border-hair bg-surface px-3.5 text-xs font-bold text-ink shadow-2xs hover:bg-canvas transition-colors"
+                  className="inline-flex min-h-11 items-center gap-1.5 rounded-xl border border-hair bg-surface px-3.5 text-xs font-bold text-ink shadow-2xs hover:bg-canvas active:scale-[0.98] transition-all cursor-pointer"
                   aria-label="Settle debts"
                 >
                   <HandCoins size={15} className="text-brand" /> Settle up
@@ -268,7 +269,7 @@ export function TripOverviewPage() {
               <button
                 type="button"
                 onClick={() => setIsInviteModalOpen(true)}
-                className="inline-flex min-h-11 items-center gap-1.5 rounded-xl border border-hair bg-surface px-3.5 text-xs font-bold text-ink shadow-2xs hover:bg-canvas transition-colors"
+                className="inline-flex min-h-11 items-center gap-1.5 rounded-xl border border-hair bg-surface px-3.5 text-xs font-bold text-ink shadow-2xs hover:bg-canvas active:scale-[0.98] transition-all cursor-pointer"
                 aria-label="Invite traveler"
               >
                 <UserPlus size={15} className="text-brand" /> Invite
@@ -276,7 +277,7 @@ export function TripOverviewPage() {
               <button
                 type="button"
                 onClick={() => setIsShareModalOpen(true)}
-                className="inline-flex min-h-11 items-center gap-1.5 rounded-xl border border-hair bg-surface px-3.5 text-xs font-bold text-ink shadow-2xs hover:bg-canvas transition-colors"
+                className="inline-flex min-h-11 items-center gap-1.5 rounded-xl border border-hair bg-surface px-3.5 text-xs font-bold text-ink shadow-2xs hover:bg-canvas active:scale-[0.98] transition-all cursor-pointer"
                 aria-label="Share trip summary"
               >
                 <Share2 size={15} className="text-brand" /> Share
@@ -298,12 +299,12 @@ export function TripOverviewPage() {
       {/* Personal Standing Hero Banner */}
       {currentUserRow && (
         <div
-          className={`rounded-2xl border p-5 shadow-2xs transition-all ${
+          className={`relative overflow-hidden rounded-2xl border p-5 shadow-2xs transition-all tactile-card ${
             isUserOwed
-              ? "border-emerald-200 bg-gradient-to-r from-emerald-500/10 via-emerald-500/5 to-surface dark:border-emerald-800/60 dark:bg-emerald-950/30"
+              ? "border-l-4 border-l-emerald-500 border-emerald-200/90 bg-gradient-to-r from-emerald-500/10 via-emerald-500/5 to-surface dark:border-emerald-800/60 dark:bg-emerald-950/30 shadow-glow-owed/20"
               : isUserOwing
-              ? "border-rose-200 bg-gradient-to-r from-rose-500/10 via-rose-500/5 to-surface dark:border-rose-800/60 dark:bg-rose-950/30"
-              : "border-hair bg-surface"
+              ? "border-l-4 border-l-rose-500 border-rose-200/90 bg-gradient-to-r from-rose-500/10 via-rose-500/5 to-surface dark:border-rose-800/60 dark:bg-rose-950/30 shadow-glow-owe/20"
+              : "border-l-4 border-l-slate-300 dark:border-l-slate-700 border-hair bg-surface"
           }`}
         >
           <div className="flex flex-wrap items-center justify-between gap-4">
@@ -315,15 +316,26 @@ export function TripOverviewPage() {
                 size="lg"
               />
               <div>
-                <p className="text-xs font-bold uppercase tracking-wider text-ink-soft">
-                  {isUserOwed
-                    ? "Personal Balance · You are owed"
-                    : isUserOwing
-                    ? "Personal Balance · You owe"
-                    : "Personal Balance · You're all settled"}
+                <p className="text-xs font-bold uppercase tracking-wider text-ink-soft flex items-center gap-1.5">
+                  {isUserOwed ? (
+                    <>
+                      <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                      Personal Balance · You are owed
+                    </>
+                  ) : isUserOwing ? (
+                    <>
+                      <span className="h-2 w-2 rounded-full bg-rose-500" />
+                      Personal Balance · You owe
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle2 size={12} className="text-ink-soft" />
+                      Personal Balance · You're all settled
+                    </>
+                  )}
                 </p>
                 <p
-                  className={`mt-0.5 font-mono text-2xl font-bold tracking-tight ${
+                  className={`mt-0.5 font-mono text-2xl sm:text-3xl font-bold tracking-tight tnum ${
                     isUserOwed
                       ? "text-emerald-600 dark:text-emerald-400"
                       : isUserOwing
@@ -341,14 +353,14 @@ export function TripOverviewPage() {
                 <button
                   type="button"
                   onClick={() => setIsGeneralSettleOpen(true)}
-                  className="inline-flex min-h-10 items-center gap-1.5 rounded-xl bg-rose-600 px-4 text-xs font-bold text-white shadow-2xs hover:bg-rose-700 transition-colors"
+                  className="inline-flex min-h-10 items-center gap-1.5 rounded-xl bg-rose-600 px-4 text-xs font-bold text-white shadow-2xs hover:bg-rose-700 active:scale-[0.98] transition-all cursor-pointer"
                 >
                   Settle your share →
                 </button>
               )}
               <Link
                 to={`/trips/${tripId}/balances`}
-                className="inline-flex min-h-10 items-center gap-1 rounded-xl border border-hair bg-surface px-3.5 text-xs font-bold text-ink hover:bg-canvas transition-colors shadow-2xs"
+                className="inline-flex min-h-10 items-center gap-1 rounded-xl border border-hair bg-surface px-3.5 text-xs font-bold text-ink hover:bg-canvas active:scale-[0.98] transition-all shadow-2xs"
                 aria-label="Balances matrix"
               >
                 Balances matrix →
@@ -370,7 +382,7 @@ export function TripOverviewPage() {
               {baseCurrency}
             </span>
           </div>
-          <p className="mt-3 font-mono text-3xl font-bold tracking-tight text-ink">
+          <p className="mt-3 font-mono text-3xl font-bold tracking-tight text-ink tnum">
             {formatMinor(totalMinor, baseCurrency)}
           </p>
           <p className="mt-1 text-xs text-ink-soft">
@@ -383,7 +395,7 @@ export function TripOverviewPage() {
           <p className="text-xs font-bold uppercase tracking-wider text-ink-soft">
             Avg / Person
           </p>
-          <p className="mt-2 font-mono text-2xl font-bold tracking-tight text-ink">
+          <p className="mt-2 font-mono text-2xl font-bold tracking-tight text-ink tnum">
             {formatMinor(avgMinor, baseCurrency)}
           </p>
           <p className="mt-1 text-[11px] text-ink-faint">
@@ -396,7 +408,7 @@ export function TripOverviewPage() {
           <p className="text-xs font-bold uppercase tracking-wider text-ink-soft">
             Expenses
           </p>
-          <p className="mt-2 font-mono text-2xl font-bold tracking-tight text-ink">
+          <p className="mt-2 font-mono text-2xl font-bold tracking-tight text-ink tnum">
             {expenseCount}
           </p>
           <p className="mt-1 text-[11px] text-ink-faint">Total entries</p>
@@ -407,7 +419,7 @@ export function TripOverviewPage() {
           <p className="text-xs font-bold uppercase tracking-wider text-ink-soft">
             Members
           </p>
-          <p className="mt-2 font-mono text-2xl font-bold tracking-tight text-ink">
+          <p className="mt-2 font-mono text-2xl font-bold tracking-tight text-ink tnum">
             {memberCount}
           </p>
           <p className="mt-1 text-[11px] text-ink-faint">Active in group</p>
@@ -443,7 +455,7 @@ export function TripOverviewPage() {
               <button
                 type="button"
                 onClick={() => setIsInviteModalOpen(true)}
-                className="inline-flex items-center gap-1 text-xs font-bold text-brand hover:underline pt-1"
+                className="inline-flex items-center gap-1 text-xs font-bold text-brand hover:underline pt-1 cursor-pointer"
               >
                 <UserPlus size={13} /> Invite travelers →
               </button>
@@ -496,7 +508,7 @@ export function TripOverviewPage() {
             <div className="rounded-2xl border border-hair bg-surface p-6 shadow-2xs lg:col-span-7 space-y-4">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div>
-                  <h2 className="text-base font-bold tracking-tight flex items-center gap-2">
+                  <h2 className="text-base font-bold tracking-tight flex items-center gap-2 text-ink">
                     <TrendingUp size={18} className="text-brand" />
                     Spending Trajectory
                   </h2>
@@ -522,7 +534,10 @@ export function TripOverviewPage() {
                   data={dayTimeline.map((d) => ({
                     label: `D${d.dayNumber}`,
                     value: d.totalMinor,
+                    date: d.date,
+                    isPeak: peakDay ? d.dayNumber === peakDay.dayNumber && d.totalMinor > 0 : false,
                   }))}
+                  avgMinor={avgDailySpend}
                   currency={baseCurrency}
                 />
               </div>
@@ -532,7 +547,7 @@ export function TripOverviewPage() {
             <div className="rounded-2xl border border-hair bg-surface p-6 shadow-2xs lg:col-span-5 space-y-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="text-base font-bold tracking-tight flex items-center gap-2">
+                  <h2 className="text-base font-bold tracking-tight flex items-center gap-2 text-ink">
                     <PieChart size={18} className="text-brand" />
                     Spending by Category
                   </h2>
@@ -548,23 +563,39 @@ export function TripOverviewPage() {
               </div>
 
               <div className="flex items-center justify-center pt-2">
-                <Donut data={donutSegments} currency={baseCurrency} size={150} />
+                <Donut
+                  data={donutSegments}
+                  currency={baseCurrency}
+                  size={150}
+                  activeCategory={hoveredCategory}
+                  onHoverCategory={setHoveredCategory}
+                />
               </div>
 
               <div className="grid grid-cols-2 gap-2 text-xs pt-1">
-                {activeCategories.map((c) => (
-                  <div
-                    key={c.category}
-                    className="flex items-center justify-between rounded-lg bg-canvas/40 px-2.5 py-1.5 border border-hair/40"
-                  >
-                    <span className="font-semibold text-ink truncate">
-                      {c.emoji} {c.label}
-                    </span>
-                    <span className="font-mono font-bold text-ink-soft ml-1">
-                      {c.percentage.toFixed(0)}%
-                    </span>
-                  </div>
-                ))}
+                {activeCategories.map((c) => {
+                  const isHovered = hoveredCategory === c.label
+                  return (
+                    <div
+                      key={c.category}
+                      onMouseEnter={() => setHoveredCategory(c.label)}
+                      onMouseLeave={() => setHoveredCategory(null)}
+                      className={`flex items-center justify-between rounded-lg px-2.5 py-1.5 border transition-all duration-150 cursor-pointer ${
+                        isHovered
+                          ? "border-brand/40 bg-brand/10 shadow-xs scale-[1.02]"
+                          : "border-hair/40 bg-canvas/40 hover:bg-canvas/80"
+                      }`}
+                    >
+                      <span className="font-semibold text-ink truncate flex items-center gap-1.5">
+                        <span>{c.emoji}</span>
+                        <span className="truncate">{c.label}</span>
+                      </span>
+                      <span className="font-mono font-bold text-ink-soft ml-1 tnum">
+                        {c.percentage.toFixed(0)}%
+                      </span>
+                    </div>
+                  )
+                })}
               </div>
             </div>
           </div>
@@ -576,7 +607,7 @@ export function TripOverviewPage() {
               <div className="rounded-2xl border border-hair bg-surface p-6 shadow-2xs">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h2 className="text-base font-bold tracking-tight">
+                    <h2 className="text-base font-bold tracking-tight text-ink">
                       Member Breakdown ({memberCount})
                     </h2>
                     <p className="text-xs text-ink-soft">
@@ -630,7 +661,7 @@ export function TripOverviewPage() {
                           </div>
 
                           <span
-                            className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${
+                            className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase font-mono tnum ${
                               isPositive
                                 ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300"
                                 : isNegative
@@ -652,10 +683,10 @@ export function TripOverviewPage() {
                         <div className="space-y-1">
                           <div className="flex justify-between text-[11px] text-ink-soft">
                             <span>
-                              Paid: <b className="font-mono text-ink">{formatMinor(r.paid, baseCurrency)}</b> ({paidPct}%)
+                              Paid: <b className="font-mono text-ink tnum">{formatMinor(r.paid, baseCurrency)}</b> ({paidPct}%)
                             </span>
                             <span>
-                              Share: <b className="font-mono text-ink">{formatMinor(r.owed, baseCurrency)}</b>
+                              Share: <b className="font-mono text-ink tnum">{formatMinor(r.owed, baseCurrency)}</b>
                             </span>
                           </div>
                           <div className="h-1.5 w-full overflow-hidden rounded-full bg-canvas border border-hair/40">
@@ -678,7 +709,7 @@ export function TripOverviewPage() {
               <div className="rounded-2xl border border-hair bg-surface p-6 shadow-2xs">
                 <div className="flex items-center justify-between border-b border-hair/40 pb-3">
                   <div>
-                    <h2 className="text-base font-bold tracking-tight flex items-center gap-2">
+                    <h2 className="text-base font-bold tracking-tight flex items-center gap-2 text-ink">
                       <HandCoins size={17} className="text-brand" />
                       Quick Settlements
                     </h2>
@@ -704,10 +735,19 @@ export function TripOverviewPage() {
                     {simplifiedTransfers.slice(0, 3).map((tr, idx) => {
                       const fromName = memberMap.get(tr.fromId) ?? "Member"
                       const toName = memberMap.get(tr.toId) ?? "Member"
+                      const isMyDebt = user?.id === tr.fromId
+                      const isOwedToMe = user?.id === tr.toId
+
                       return (
                         <li
                           key={idx}
-                          className="flex items-center justify-between rounded-xl border border-hair bg-canvas/30 p-3 text-xs shadow-2xs"
+                          className={`flex items-center justify-between rounded-xl border p-3 text-xs shadow-2xs transition-all tactile-card ${
+                            isMyDebt
+                              ? "border-l-4 border-l-rose-500 border-rose-200/90 dark:border-rose-800/50 bg-gradient-to-r from-rose-500/10 via-surface to-surface"
+                              : isOwedToMe
+                              ? "border-l-4 border-l-emerald-500 border-emerald-200/90 dark:border-emerald-800/50 bg-gradient-to-r from-emerald-500/10 via-surface to-surface"
+                              : "border-l-4 border-l-brand/70 border-hair bg-canvas/30"
+                          }`}
                         >
                           <div>
                             <p className="font-semibold text-ink">
@@ -715,7 +755,7 @@ export function TripOverviewPage() {
                               pays{" "}
                               <span className="font-bold text-emerald-600 dark:text-emerald-400">{toName}</span>
                             </p>
-                            <p className="mt-0.5 font-mono text-xs font-bold text-ink">
+                            <p className="mt-0.5 font-mono text-xs font-bold text-ink tnum">
                               {formatMinor(tr.amount, baseCurrency)}
                             </p>
                           </div>
@@ -729,7 +769,7 @@ export function TripOverviewPage() {
                                   amount: tr.amount,
                                 })
                               }
-                              className="min-h-8 rounded-lg bg-brand px-3 text-xs font-bold text-white shadow-2xs hover:bg-blue-700 transition-colors"
+                              className="min-h-8 rounded-lg bg-brand px-3 text-xs font-bold text-white shadow-2xs hover:bg-blue-700 active:scale-[0.98] transition-all cursor-pointer"
                             >
                               Settle
                             </button>
@@ -744,7 +784,7 @@ export function TripOverviewPage() {
               {/* Recent Expenses Card */}
               <div className="rounded-2xl border border-hair bg-surface p-6 shadow-2xs">
                 <div className="flex items-center justify-between">
-                  <h2 className="text-base font-bold tracking-tight">Recent Expenses</h2>
+                  <h2 className="text-base font-bold tracking-tight text-ink">Recent Expenses</h2>
                   <Link
                     to={`/trips/${tripId}/expenses`}
                     className="inline-flex items-center gap-1 text-xs font-bold text-brand hover:underline"
@@ -770,7 +810,7 @@ export function TripOverviewPage() {
                               {exp.category} · {exp.expense_date ?? exp.date}
                             </p>
                           </div>
-                          <span className="font-mono text-xs font-bold text-ink">
+                          <span className="font-mono text-xs font-bold text-ink tnum">
                             {formatMinor(exp.amount_minor ?? exp.amount ?? 0, baseCurrency)}
                           </span>
                         </Link>

@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react"
 import { createPortal } from "react-dom"
 import { getSupabase } from "@/lib/supabase"
 import { formatMinor, parseCurrencyInput, fromMinor, decimalsFor } from "@/lib/currency"
-import { ArrowRight, ExternalLink } from "lucide-react"
+import { ArrowRight, ExternalLink, Copy, Check } from "lucide-react"
 
 export function SettlementDialog({
   open,
@@ -37,6 +37,7 @@ export function SettlementDialog({
   const [reference, setReference] = useState("")
   const [note, setNote] = useState(defaultNote ?? "")
   const [submitting, setSubmitting] = useState(false)
+  const [copiedUpi, setCopiedUpi] = useState(false)
   const requestIdRef = useRef(crypto.randomUUID())
   const amountInputRef = useRef<HTMLInputElement>(null)
   const prevFocus = useRef<HTMLElement | null>(null)
@@ -47,6 +48,7 @@ export function SettlementDialog({
       setAmountStr(String(fromMinor(outstandingMinor, dec)))
       setErr(null)
       setNote(defaultNote ?? "")
+      setCopiedUpi(false)
       requestIdRef.current = crypto.randomUUID()
       prevFocus.current = document.activeElement as HTMLElement | null
       setTimeout(() => amountInputRef.current?.focus(), 0)
@@ -89,6 +91,20 @@ export function SettlementDialog({
       prevFocus.current?.focus()
     }
   }, [open, onClose, submitting])
+
+  const upiUri = `upi://pay?pn=${encodeURIComponent(toName ?? "Member")}&am=${fromMinor(amountMinor, dec)}&cu=${baseCurrency}&tn=${encodeURIComponent(note || "Trip settlement")}`
+
+  async function handleCopyUpi() {
+    try {
+      if (navigator.clipboard) {
+        await navigator.clipboard.writeText(upiUri)
+        setCopiedUpi(true)
+        setTimeout(() => setCopiedUpi(false), 2000)
+      }
+    } catch {
+      // Fallback
+    }
+  }
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
@@ -137,13 +153,13 @@ export function SettlementDialog({
 
   return createPortal(
     <div
-      className="fixed inset-0 z-50 grid place-items-center p-4"
+      className="fixed inset-0 z-50 flex items-end justify-center sm:items-center p-0 sm:p-4 overflow-y-auto"
       role="dialog"
       aria-modal="true"
       aria-labelledby="settle-title"
     >
       <div
-        className="absolute inset-0 bg-black/60 backdrop-blur-xs transition-opacity"
+        className="fixed inset-0 bg-black/70 backdrop-blur-md transition-opacity animate-in fade-in duration-200"
         onClick={() => {
           if (!submitting) onClose()
         }}
@@ -152,17 +168,27 @@ export function SettlementDialog({
       <form
         id="settle-dialog"
         onSubmit={submit}
-        className="relative w-full max-w-md rounded-xl bg-surface p-6 shadow-2xl"
+        className="relative w-full border-t sm:border border-hair bg-surface p-6 shadow-2xl max-sm:fixed max-sm:inset-x-0 max-sm:bottom-0 max-sm:rounded-t-3xl max-sm:max-h-[90dvh] max-sm:overflow-y-auto max-sm:pb-[calc(1.5rem+env(safe-area-inset-bottom,0px))] sm:max-w-md sm:rounded-2xl sm:my-8 animate-in slide-in-from-bottom duration-250 sm:slide-in-from-bottom-0 sm:fade-in sm:zoom-in-95"
       >
-        <h2 id="settle-title" className="text-lg font-bold">
+        {/* Mobile Grab Bar */}
+        <div className="sm:hidden -mt-2 mb-4 flex justify-center" aria-hidden="true">
+          <div className="h-1.5 w-12 rounded-full bg-hair" />
+        </div>
+
+        <h2 id="settle-title" className="text-lg font-bold text-ink">
           Record settlement
         </h2>
-        <div className="mt-1 flex items-center gap-1.5 text-sm text-ink-soft">
-          <span>{fromName ?? fromId.slice(0, 8)}</span>
-          <ArrowRight size={14} className="text-brand shrink-0" />
-          <span>{toName ?? toId.slice(0, 8)}</span>
-          <span>· Outstanding {formatMinor(outstandingMinor, baseCurrency)}</span>
+        <div className="mt-1.5 rounded-xl border border-brand/20 bg-gradient-to-r from-brand/10 via-surface to-surface p-3 border-l-4 border-l-brand flex items-center justify-between gap-2 text-xs">
+          <div className="flex items-center gap-1.5 font-medium text-ink-soft">
+            <span className="font-bold text-ink">{fromName ?? fromId.slice(0, 8)}</span>
+            <ArrowRight size={13} className="text-brand shrink-0" />
+            <span className="font-bold text-ink">{toName ?? toId.slice(0, 8)}</span>
+          </div>
+          <span className="font-mono font-bold text-ink tnum">
+            Outstanding {formatMinor(outstandingMinor, baseCurrency)}
+          </span>
         </div>
+
         <div className="mt-4 flex items-center justify-between">
           <label htmlFor="settle-amount" className="block text-xs font-bold uppercase tracking-wider text-ink-soft">
             Amount ({baseCurrency})
@@ -173,7 +199,7 @@ export function SettlementDialog({
               setAmountStr(String(fromMinor(outstandingMinor, dec)))
               if (err) setErr(null)
             }}
-            className="text-xs font-semibold text-brand hover:underline"
+            className="min-h-11 inline-flex items-center text-xs font-bold text-brand hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand rounded-lg px-1 cursor-pointer"
           >
             Full amount: {formatMinor(outstandingMinor, baseCurrency)}
           </button>
@@ -187,7 +213,7 @@ export function SettlementDialog({
             if (err) setErr(null)
           }}
           placeholder={dec === 0 ? "e.g. 1250" : "e.g. 1250.50"}
-          className="mt-1 w-full min-h-11 rounded-xl border border-hair bg-surface px-3 py-3 text-base font-semibold tabular-nums outline-none focus:border-brand focus:ring-1 focus:ring-brand"
+          className="mt-1 w-full min-h-11 rounded-xl border border-hair bg-surface px-3 py-3 font-mono text-base font-bold tabular-nums tnum outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
           aria-describedby="settle-hint"
           aria-invalid={!!err}
         />
@@ -195,34 +221,60 @@ export function SettlementDialog({
           Outstanding {formatMinor(outstandingMinor, baseCurrency)} · Recording {formatMinor(amountMinor, baseCurrency)}
         </p>
 
-        {/* Quick Payment Action for UPI */}
+        {/* Quick 1-Tap UPI Action Box */}
         {method === "UPI" && amountMinor > 0 && (
-          <div className="mt-3 rounded-xl border border-brand/20 bg-brand-soft/40 p-3 text-xs">
+          <div className="mt-3.5 rounded-2xl border border-brand/20 bg-brand-soft/40 p-3.5 text-xs space-y-2">
             <div className="flex items-center justify-between">
-              <span className="font-bold text-brand">Pay directly via UPI:</span>
-              <a
-                href={`upi://pay?pn=${encodeURIComponent(toName ?? "Member")}&am=${fromMinor(amountMinor, dec)}&cu=${baseCurrency}&tn=${encodeURIComponent(note || "Trip settlement")}`}
-                className="inline-flex items-center gap-1 rounded-lg bg-brand px-2.5 py-1 text-[11px] font-bold text-white shadow-2xs hover:bg-blue-700 transition-colors"
-                target="_blank"
-                rel="noreferrer"
-              >
-                Open UPI App <ExternalLink size={11} />
-              </a>
+              <span className="font-bold text-brand flex items-center gap-1.5">
+                <span className="rounded bg-brand/10 px-1 py-0.5 text-[10px] font-extrabold uppercase text-brand">
+                  UPI
+                </span>
+                Pay directly:
+              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleCopyUpi}
+                  className="inline-flex min-h-10 items-center gap-1 rounded-xl border border-hair bg-surface px-2.5 py-1.5 text-xs font-semibold text-ink shadow-2xs hover:bg-canvas active:scale-[0.98] transition-all cursor-pointer"
+                  title="Copy UPI Deep Link to clipboard"
+                  aria-label="Copy UPI link"
+                >
+                  {copiedUpi ? (
+                    <>
+                      <Check size={13} className="text-emerald-600 dark:text-emerald-400" />
+                      <span className="text-emerald-600 dark:text-emerald-400 font-bold">Copied!</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy size={13} className="text-ink-soft" />
+                      <span>Copy link</span>
+                    </>
+                  )}
+                </button>
+                <a
+                  href={upiUri}
+                  className="inline-flex min-h-10 items-center gap-1.5 rounded-xl bg-brand px-3.5 py-1.5 text-xs font-bold text-white shadow-2xs hover:bg-blue-700 active:scale-[0.98] transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 cursor-pointer"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Open UPI App <ExternalLink size={12} />
+                </a>
+              </div>
             </div>
-            <p className="mt-1 text-[11px] text-ink-soft">
+            <p className="text-[11px] text-ink-soft">
               Opens GPay, PhonePe, or Paytm with {formatMinor(amountMinor, baseCurrency)} pre-filled.
             </p>
           </div>
         )}
 
-        <label htmlFor="settle-method" className="mt-3 block text-xs font-bold uppercase tracking-wider text-ink-soft">
+        <label htmlFor="settle-method" className="mt-3.5 block text-xs font-bold uppercase tracking-wider text-ink-soft">
           Payment Method
         </label>
         <select
           id="settle-method"
           value={method}
           onChange={(e) => setMethod(e.target.value)}
-          className="mt-1 w-full min-h-11 rounded-xl border border-hair bg-surface px-3 py-3 text-sm font-medium outline-none focus:border-brand"
+          className="mt-1 w-full min-h-11 rounded-xl border border-hair bg-surface px-3 py-3 text-sm font-medium outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 cursor-pointer"
         >
           {["UPI", "Cash", "Bank Transfer", "Card", "Other"].map((m) => (
             <option key={m} value={m}>
@@ -238,7 +290,7 @@ export function SettlementDialog({
           value={reference}
           onChange={(e) => setReference(e.target.value)}
           placeholder="e.g. UPI / Transaction ID"
-          className="mt-1 w-full min-h-11 rounded-xl border border-hair bg-surface px-3 py-3 text-sm text-ink outline-none focus:border-brand focus:ring-1 focus:ring-brand"
+          className="mt-1 w-full min-h-11 rounded-xl border border-hair bg-surface px-3 py-3 text-sm text-ink outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
         />
         <label htmlFor="settle-note" className="mt-3 block text-xs font-semibold text-ink-soft">
           NOTE
@@ -249,24 +301,24 @@ export function SettlementDialog({
           onChange={(e) => setNote(e.target.value)}
           rows={2}
           placeholder="Optional note..."
-          className="mt-1 w-full rounded-xl border border-hair bg-surface px-3 py-3 text-sm text-ink outline-none focus:border-brand focus:ring-1 focus:ring-brand"
+          className="mt-1 w-full rounded-xl border border-hair bg-surface px-3 py-3 text-sm text-ink outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
         />
         {err && (
-          <p role="alert" className="mt-2 rounded-md bg-owe-soft px-3 py-2 text-sm font-medium text-owe">
+          <p role="alert" className="mt-2 rounded-xl bg-owe-soft px-3 py-2 text-sm font-medium text-owe">
             {err}
           </p>
         )}
-        <div className="mt-6 flex justify-end gap-2">
+        <div className="mt-6 flex flex-col-reverse sm:flex-row justify-end gap-2.5">
           <button
             type="button"
             onClick={onClose}
-            className="min-h-11 rounded-md border border-hair px-4 text-sm font-semibold"
+            className="min-h-11 rounded-xl border border-hair px-5 text-sm font-semibold text-ink hover:bg-canvas active:scale-[0.98] transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 cursor-pointer"
           >
             Cancel
           </button>
           <button
             disabled={submitting}
-            className="min-h-11 rounded-md bg-brand px-4 text-sm font-bold text-white disabled:opacity-50"
+            className="min-h-11 rounded-xl bg-brand px-5 text-sm font-bold text-white disabled:opacity-50 shadow-sm hover:bg-blue-700 active:scale-[0.98] transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 cursor-pointer"
           >
             Confirm {formatMinor(amountMinor, baseCurrency)}
           </button>

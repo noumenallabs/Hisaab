@@ -13,10 +13,15 @@ export function TripNavigation({
   tripId,
   base,
 }: {
-  tripId: string; base: string
+  tripId: string
+  base: string
 }) {
   return (
-    <nav className="flex w-full gap-1 overflow-x-auto border-b border-hair bg-surface px-4 sm:px-8" style={{ scrollbarWidth: "thin" }} aria-label="Trip sections">
+    <nav
+      className="flex w-full gap-1 overflow-x-auto px-4 sm:px-8"
+      style={{ scrollbarWidth: "thin" }}
+      aria-label="Trip sections"
+    >
       {tabs.map((t) => {
         const to = t.to ? `${base}/${t.to}` : base
         const Icon = t.icon
@@ -26,14 +31,14 @@ export function TripNavigation({
             to={to}
             end={!t.to}
             className={({ isActive }) =>
-              `inline-flex items-center gap-2 whitespace-nowrap border-b-2 px-4 py-3 text-sm font-semibold transition-all rounded-t-lg focus-visible:outline-2 focus-visible:outline-brand focus-visible:outline-offset-2 ${
+              `inline-flex items-center gap-2 whitespace-nowrap border-b-2 px-4 py-3 text-sm font-semibold transition-all duration-150 rounded-t-xl focus-visible:outline-2 focus-visible:outline-brand focus-visible:outline-offset-2 active:scale-[0.98] ${
                 isActive
-                  ? "border-brand text-brand font-bold"
-                  : "border-transparent text-ink-soft hover:text-ink hover:border-hair"
+                  ? "border-brand text-brand font-bold bg-brand-soft/20"
+                  : "border-transparent text-ink-soft hover:text-ink hover:bg-canvas/50 hover:border-hair/60"
               }`
             }
           >
-            <Icon size={16} />
+            <Icon size={16} strokeWidth={2} />
             <span>{t.label}</span>
           </NavLink>
         )
@@ -41,3 +46,4 @@ export function TripNavigation({
     </nav>
   )
 }
+

@@ -200,7 +200,7 @@ export function BalancesPage() {
         Failed to load members — please retry.{" "}
         <button
           onClick={() => queryClient.invalidateQueries({ queryKey: ["trip_members", tripId] })}
-          className="ml-2 min-h-11 underline"
+          className="ml-2 min-h-11 underline cursor-pointer"
         >
           Retry
         </button>
@@ -212,7 +212,7 @@ export function BalancesPage() {
       {/* Top Header with Share Button */}
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold tracking-tight">Balances & Settlements</h1>
+          <h1 className="text-xl font-bold tracking-tight text-ink">Balances & Settlements</h1>
           <p className="text-xs text-ink-soft">
             Review each member's net position and settle debts with minimum transfers
           </p>
@@ -220,7 +220,7 @@ export function BalancesPage() {
         <button
           type="button"
           onClick={() => setIsShareModalOpen(true)}
-          className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-surface border border-hair px-4 text-xs font-bold text-ink shadow-2xs hover:bg-canvas transition-colors"
+          className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-surface border border-hair px-4 text-xs font-bold text-ink shadow-2xs hover:bg-canvas active:scale-[0.98] transition-all cursor-pointer"
           aria-label="Share trip settlement summary"
         >
           <Share2 size={15} className="text-brand" /> Share summary
@@ -270,7 +270,13 @@ export function BalancesPage() {
               return (
                 <div
                   key={m.id}
-                  className="rounded-2xl border border-hair bg-surface p-4 shadow-2xs transition-all hover:shadow-xs"
+                  className={`relative overflow-hidden rounded-2xl border bg-surface p-4 shadow-2xs transition-all tactile-card hover:shadow-xs ${
+                    isPositive
+                      ? "border-l-4 border-l-emerald-500 border-emerald-200/80 dark:border-emerald-800/50 hover:shadow-glow-owed/30"
+                      : isNegative
+                      ? "border-l-4 border-l-rose-500 border-rose-200/80 dark:border-rose-800/50 hover:shadow-glow-owe/30"
+                      : "border-l-4 border-l-slate-300 dark:border-l-slate-700 border-hair"
+                  }`}
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2.5">
@@ -290,52 +296,67 @@ export function BalancesPage() {
                       </p>
                     </div>
                     <span
-                      className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${
+                      className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-extrabold uppercase tracking-wide ${
                         isPositive
-                          ? "border border-emerald-200 bg-emerald-100 text-emerald-800 dark:border-emerald-800/60 dark:bg-emerald-950/60 dark:text-emerald-300"
+                          ? "border border-emerald-200 bg-emerald-100/90 text-emerald-800 dark:border-emerald-800/60 dark:bg-emerald-950/70 dark:text-emerald-300"
                           : isNegative
-                          ? "border border-red-200 bg-red-100 text-red-800 dark:border-red-800/60 dark:bg-red-950/60 dark:text-red-300"
-                          : "border border-hair bg-canvas text-ink-soft"
+                          ? "border border-rose-200 bg-rose-100/90 text-rose-800 dark:border-rose-800/60 dark:bg-rose-950/70 dark:text-rose-300"
+                          : "border border-hair bg-canvas/80 text-ink-soft"
                       }`}
                     >
-                      {isPositive ? "Receives" : isNegative ? "Owes" : "Settled"}
+                      {isPositive ? (
+                        <>
+                          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                          Receives
+                        </>
+                      ) : isNegative ? (
+                        <>
+                          <span className="h-1.5 w-1.5 rounded-full bg-rose-500" />
+                          Owes
+                        </>
+                      ) : (
+                        <>
+                          <Check size={10} className="text-ink-soft" />
+                          Settled
+                        </>
+                      )}
                     </span>
                   </div>
 
                   <p
-                    className={`mt-3 font-mono text-xl font-bold tabular-nums tracking-tight ${
+                    className={`mt-3 font-mono text-2xl font-bold tabular-nums tracking-tight tnum ${
                       isPositive
                         ? "text-emerald-600 dark:text-emerald-400"
                         : isNegative
-                        ? "text-red-600 dark:text-red-400"
+                        ? "text-rose-600 dark:text-rose-400"
                         : "text-ink"
                     }`}
                   >
                     {formatMinor(v, baseCurrency)}
                   </p>
 
-                  <div className="mt-3 rounded-xl bg-canvas/50 p-2.5 text-xs grid grid-cols-2 gap-x-2 gap-y-1 border border-hair/30">
+                  <div className="mt-3 rounded-xl bg-canvas/50 p-2.5 text-xs grid grid-cols-2 gap-x-2 gap-y-1.5 border border-hair/40">
                     <div className="flex justify-between text-ink-soft">
                       <span>Paid:</span>{" "}
-                      <span className="font-mono font-semibold text-ink">
+                      <span className="font-mono font-semibold text-ink tabular-nums tnum">
                         {formatMinor(r.paid, baseCurrency)}
                       </span>
                     </div>
                     <div className="flex justify-between text-ink-soft">
                       <span>Share:</span>{" "}
-                      <span className="font-mono font-semibold text-ink">
+                      <span className="font-mono font-semibold text-ink tabular-nums tnum">
                         {formatMinor(r.owed, baseCurrency)}
                       </span>
                     </div>
                     <div className="flex justify-between text-ink-soft">
                       <span>Sent:</span>{" "}
-                      <span className="font-mono font-semibold text-ink">
+                      <span className="font-mono font-semibold text-ink tabular-nums tnum">
                         {formatMinor(r.sent, baseCurrency)}
                       </span>
                     </div>
                     <div className="flex justify-between text-ink-soft">
                       <span>Recv:</span>{" "}
-                      <span className="font-mono font-semibold text-ink">
+                      <span className="font-mono font-semibold text-ink tabular-nums tnum">
                         {formatMinor(r.received, baseCurrency)}
                       </span>
                     </div>
@@ -370,14 +391,22 @@ export function BalancesPage() {
 
               {/* My Debts vs All Filter */}
               {user?.id && currentTransfers.length > 0 && (
-                <div className="flex rounded-xl border border-hair bg-canvas p-0.5 text-xs font-semibold">
+                <div className="relative flex rounded-xl border border-hair bg-canvas p-0.5 text-xs font-semibold">
+                  <div
+                    className="pointer-events-none absolute top-0.5 bottom-0.5 rounded-lg bg-surface shadow-2xs border border-hair/50 transition-all duration-200 ease-spring"
+                    style={{
+                      width: "calc((100% - 4px) / 2)",
+                      transform: `translateX(${debtFilter === "all" ? "0%" : "100%"})`,
+                    }}
+                    aria-hidden="true"
+                  />
                   <button
                     type="button"
                     onClick={() => setDebtFilter("all")}
-                    className={`rounded-lg px-2.5 py-1 transition-colors ${
+                    className={`relative z-10 flex-1 rounded-lg px-2.5 py-1 text-center transition-all active:scale-[0.98] cursor-pointer ${
                       debtFilter === "all"
-                        ? "bg-surface text-brand shadow-2xs font-bold"
-                        : "text-ink-soft"
+                        ? "text-brand font-bold"
+                        : "text-ink-soft hover:text-ink"
                     }`}
                   >
                     All
@@ -385,10 +414,10 @@ export function BalancesPage() {
                   <button
                     type="button"
                     onClick={() => setDebtFilter("mine")}
-                    className={`rounded-lg px-2.5 py-1 transition-colors ${
+                    className={`relative z-10 flex-1 rounded-lg px-2.5 py-1 text-center transition-all active:scale-[0.98] cursor-pointer ${
                       debtFilter === "mine"
-                        ? "bg-surface text-brand shadow-2xs font-bold"
-                        : "text-ink-soft"
+                        ? "text-brand font-bold"
+                        : "text-ink-soft hover:text-ink"
                     }`}
                   >
                     My debts
@@ -399,13 +428,27 @@ export function BalancesPage() {
 
             {/* View Mode Switcher: Total / By Day / By Category */}
             <div className="pt-3 pb-2 border-b border-hair/40">
-              <div className="flex items-center gap-1 rounded-xl bg-canvas p-1 text-xs font-semibold">
+              <div className="relative flex items-center rounded-xl bg-canvas p-1 text-xs font-semibold">
+                <div
+                  className="pointer-events-none absolute top-1 bottom-1 rounded-lg bg-surface shadow-2xs border border-hair/60 transition-all duration-300 ease-spring"
+                  style={{
+                    width: "calc((100% - 8px) / 3)",
+                    transform: `translateX(${
+                      settleViewMode === "total"
+                        ? "0%"
+                        : settleViewMode === "day"
+                        ? "100%"
+                        : "200%"
+                    })`,
+                  }}
+                  aria-hidden="true"
+                />
                 <button
                   type="button"
                   onClick={() => setSettleViewMode("total")}
-                  className={`flex-1 py-1.5 rounded-lg text-center transition-all ${
+                  className={`relative z-10 flex-1 py-1.5 rounded-lg text-center transition-all duration-200 active:scale-[0.98] cursor-pointer ${
                     settleViewMode === "total"
-                      ? "bg-surface text-brand shadow-2xs font-bold"
+                      ? "text-brand font-bold"
                       : "text-ink-soft hover:text-ink"
                   }`}
                 >
@@ -414,9 +457,9 @@ export function BalancesPage() {
                 <button
                   type="button"
                   onClick={() => setSettleViewMode("day")}
-                  className={`flex-1 py-1.5 rounded-lg text-center transition-all ${
+                  className={`relative z-10 flex-1 py-1.5 rounded-lg text-center transition-all duration-200 active:scale-[0.98] cursor-pointer ${
                     settleViewMode === "day"
-                      ? "bg-surface text-brand shadow-2xs font-bold"
+                      ? "text-brand font-bold"
                       : "text-ink-soft hover:text-ink"
                   }`}
                 >
@@ -425,9 +468,9 @@ export function BalancesPage() {
                 <button
                   type="button"
                   onClick={() => setSettleViewMode("category")}
-                  className={`flex-1 py-1.5 rounded-lg text-center transition-all ${
+                  className={`relative z-10 flex-1 py-1.5 rounded-lg text-center transition-all duration-200 active:scale-[0.98] cursor-pointer ${
                     settleViewMode === "category"
-                      ? "bg-surface text-brand shadow-2xs font-bold"
+                      ? "text-brand font-bold"
                       : "text-ink-soft hover:text-ink"
                   }`}
                 >
@@ -443,7 +486,7 @@ export function BalancesPage() {
                   <button
                     type="button"
                     onClick={() => setSettleDate("all")}
-                    className={`inline-flex items-center gap-1 shrink-0 rounded-xl px-3 py-1.5 text-xs font-bold transition-all ${
+                    className={`inline-flex items-center gap-1 shrink-0 rounded-xl px-3 py-1.5 text-xs font-bold transition-all active:scale-[0.98] cursor-pointer ${
                       settleDate === "all"
                         ? "bg-brand text-white shadow-xs"
                         : "border border-hair bg-canvas/60 text-ink-soft hover:bg-canvas hover:text-ink"
@@ -458,7 +501,7 @@ export function BalancesPage() {
                         key={day.date}
                         type="button"
                         onClick={() => setSettleDate(day.date)}
-                        className={`inline-flex items-center gap-1.5 shrink-0 rounded-xl px-3 py-1.5 text-xs font-bold transition-all ${
+                        className={`inline-flex items-center gap-1.5 shrink-0 rounded-xl px-3 py-1.5 text-xs font-bold transition-all active:scale-[0.98] cursor-pointer ${
                           isSelected
                             ? "bg-brand text-white shadow-xs"
                             : "border border-hair bg-canvas/60 text-ink-soft hover:bg-canvas hover:text-ink"
@@ -480,7 +523,7 @@ export function BalancesPage() {
                   <button
                     type="button"
                     onClick={() => setSettleCategory("all")}
-                    className={`inline-flex items-center gap-1 shrink-0 rounded-xl px-3 py-1.5 text-xs font-bold transition-all ${
+                    className={`inline-flex items-center gap-1 shrink-0 rounded-xl px-3 py-1.5 text-xs font-bold transition-all active:scale-[0.98] cursor-pointer ${
                       settleCategory === "all"
                         ? "bg-brand text-white shadow-xs"
                         : "border border-hair bg-canvas/60 text-ink-soft hover:bg-canvas hover:text-ink"
@@ -496,7 +539,7 @@ export function BalancesPage() {
                         key={cat}
                         type="button"
                         onClick={() => setSettleCategory(cat)}
-                        className={`inline-flex items-center gap-1.5 shrink-0 rounded-xl px-3 py-1.5 text-xs font-bold transition-all ${
+                        className={`inline-flex items-center gap-1.5 shrink-0 rounded-xl px-3 py-1.5 text-xs font-bold transition-all active:scale-[0.98] cursor-pointer ${
                           isSelected
                             ? "bg-brand text-white shadow-xs"
                             : "border border-hair bg-canvas/60 text-ink-soft hover:bg-canvas hover:text-ink"
@@ -527,7 +570,7 @@ export function BalancesPage() {
                 You have no outstanding debts in this category.
               </div>
             ) : (
-              <ul className="mt-4 space-y-2.5">
+              <ul className="mt-4 space-y-3">
                 {visibleTransfers.map((t, i) => {
                   const canSettle =
                     !isArchived &&
@@ -537,16 +580,24 @@ export function BalancesPage() {
                       !supabase)
                   const fromMemberName = memberMap.get(t.fromId) ?? "Member"
                   const toMemberName = memberMap.get(t.toId) ?? "Member"
+                  const isMyDebt = user?.id === t.fromId
+                  const isOwedToMe = user?.id === t.toId
 
                   return (
                     <li
                       key={i}
-                      className="flex items-center justify-between rounded-xl border border-hair bg-canvas/30 p-3 text-sm shadow-2xs"
+                      className={`relative overflow-hidden flex items-center justify-between rounded-xl border p-3.5 text-sm shadow-2xs transition-all tactile-card ${
+                        isMyDebt
+                          ? "border-l-4 border-l-rose-500 border-rose-200/90 dark:border-rose-800/60 bg-gradient-to-r from-rose-500/10 via-surface to-surface shadow-glow-owe/20"
+                          : isOwedToMe
+                          ? "border-l-4 border-l-emerald-500 border-emerald-200/90 dark:border-emerald-800/60 bg-gradient-to-r from-emerald-500/10 via-surface to-surface shadow-glow-owed/20"
+                          : "border-l-4 border-l-brand/70 border-hair bg-canvas/30 hover:bg-canvas/50"
+                      }`}
                     >
                       <div className="min-w-0 pr-2">
                         <div className="flex items-center gap-1.5 flex-wrap">
                           <UserAvatar id={t.fromId} name={fromMemberName} size="xs" />
-                          <span className="font-bold text-xs text-red-600 dark:text-red-400">
+                          <span className="font-bold text-xs text-rose-600 dark:text-rose-400">
                             {fromMemberName}
                           </span>
                           <span className="text-[11px] text-ink-soft font-medium">pays</span>
@@ -554,8 +605,18 @@ export function BalancesPage() {
                           <span className="font-bold text-xs text-emerald-600 dark:text-emerald-400">
                             {toMemberName}
                           </span>
+                          {isMyDebt && (
+                            <span className="ml-1 rounded-md bg-rose-500/15 px-1.5 py-0.2 text-[10px] font-extrabold text-rose-700 dark:text-rose-300">
+                              You pay
+                            </span>
+                          )}
+                          {isOwedToMe && (
+                            <span className="ml-1 rounded-md bg-emerald-500/15 px-1.5 py-0.2 text-[10px] font-extrabold text-emerald-700 dark:text-emerald-300">
+                              You receive
+                            </span>
+                          )}
                         </div>
-                        <p className="mt-1 font-mono text-sm font-bold text-ink tnum">
+                        <p className="mt-1.5 font-mono text-base font-bold text-ink tnum tracking-tight">
                           {formatMinor(t.amount, baseCurrency)}
                         </p>
                         <button
@@ -569,35 +630,37 @@ export function BalancesPage() {
                               amount: t.amount,
                             })
                           }
-                          className="mt-1 inline-flex items-center gap-1 text-[11px] text-ink-faint hover:text-brand transition-colors"
+                          className="mt-1 inline-flex items-center gap-1 text-[11px] text-ink-faint hover:text-brand transition-colors cursor-pointer"
                         >
                           <Info size={12} /> Why this amount?
                         </button>
                       </div>
                       {canSettle && (
-                        <button
-                          onClick={() => {
-                            const dayObj = settleDate !== "all" ? dayTimeline.find((d) => d.date === settleDate) : null
-                            setSettle({
-                              fromId: t.fromId,
-                              toId: t.toId,
-                              amount: t.amount,
-                              dayLabel:
-                                settleViewMode === "day" && dayObj
-                                  ? `${dayObj.label} settlement`
-                                  : undefined,
-                              categoryLabel:
-                                settleViewMode === "category" && settleCategory !== "all"
-                                  ? `${CATEGORY_META[settleCategory]?.emoji} ${CATEGORY_META[settleCategory]?.label}`
-                                  : undefined,
-                            })
-                          }}
-                          className="shrink-0 min-h-9 rounded-xl bg-brand px-3.5 text-xs font-bold text-white shadow-2xs hover:bg-blue-700 transition-colors"
-                          title="Record settlement to clear this debt"
-                          aria-label={`Settle ${formatMinor(t.amount, baseCurrency)}`}
-                        >
-                          Settle
-                        </button>
+                        <div className="flex items-center gap-1.5 shrink-0 ml-2">
+                          <button
+                            onClick={() => {
+                              const dayObj = settleDate !== "all" ? dayTimeline.find((d) => d.date === settleDate) : null
+                              setSettle({
+                                fromId: t.fromId,
+                                toId: t.toId,
+                                amount: t.amount,
+                                dayLabel:
+                                  settleViewMode === "day" && dayObj
+                                    ? `${dayObj.label} settlement`
+                                    : undefined,
+                                categoryLabel:
+                                  settleViewMode === "category" && settleCategory !== "all"
+                                    ? `${CATEGORY_META[settleCategory]?.emoji} ${CATEGORY_META[settleCategory]?.label}`
+                                    : undefined,
+                              })
+                            }}
+                            className="min-h-9 rounded-xl bg-brand px-3.5 text-xs font-bold text-white shadow-2xs hover:bg-blue-700 active:scale-[0.98] transition-all cursor-pointer"
+                            title="Record settlement to clear this debt"
+                            aria-label={`Settle ${formatMinor(t.amount, baseCurrency)}`}
+                          >
+                            Settle
+                          </button>
+                        </div>
                       )}
                     </li>
                   )
@@ -659,6 +722,7 @@ export function BalancesPage() {
               : undefined
           }
           onSuccess={() => {
+            toast("🎉 Settlement recorded successfully!", "success")
             queryClient.invalidateQueries({ queryKey: ["balances", tripId] })
             queryClient.invalidateQueries({ queryKey: ["expenses", tripId] })
             queryClient.invalidateQueries({ queryKey: ["settlements", tripId] })

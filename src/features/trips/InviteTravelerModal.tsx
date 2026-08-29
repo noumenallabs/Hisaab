@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef } from "react"
 import { createPortal } from "react-dom"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { listInvites, createInvite } from "./api"
@@ -29,6 +29,7 @@ export function InviteTravelerModal({
   const { toast } = useToast()
   const [copiedCode, setCopiedCode] = useState<string | null>(null)
   const [copiedLink, setCopiedLink] = useState<string | null>(null)
+  const prevFocus = useRef<HTMLElement | null>(null)
 
   const { data: invites, isLoading } = useQuery({
     queryKey: ["invites", tripId],
@@ -62,11 +63,40 @@ export function InviteTravelerModal({
 
   useEffect(() => {
     if (!open) return
+    prevFocus.current = document.activeElement as HTMLElement | null
     const handleKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose()
+      if (e.key === "Tab") {
+        const dialog = document.getElementById("invite-dialog")
+        if (!dialog) return
+        const nodes = Array.from(
+          dialog.querySelectorAll<HTMLElement>(
+            "button, [href], input, select, textarea, [tabindex]:not([tabindex='-1'])"
+          )
+        ).filter((el) => !el.hasAttribute("disabled"))
+        if (!nodes.length) return
+        const first = nodes[0],
+          last = nodes[nodes.length - 1]
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault()
+          last.focus()
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault()
+          first.focus()
+        }
+      }
     }
     window.addEventListener("keydown", handleKey)
-    return () => window.removeEventListener("keydown", handleKey)
+    document.body.style.overflow = "hidden"
+    const appRoot = document.getElementById("root")
+    if (appRoot) appRoot.setAttribute("aria-hidden", "true")
+
+    return () => {
+      window.removeEventListener("keydown", handleKey)
+      document.body.style.overflow = ""
+      if (appRoot) appRoot.removeAttribute("aria-hidden")
+      prevFocus.current?.focus()
+    }
   }, [open, onClose])
 
   if (!open) return null
@@ -119,12 +149,22 @@ export function InviteTravelerModal({
       role="dialog"
       aria-modal="true"
       aria-labelledby="invite-modal-title"
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs animate-in fade-in duration-150 overflow-y-auto"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose()
-      }}
+      className="fixed inset-0 z-50 flex items-end justify-center sm:items-center p-0 sm:p-4 overflow-y-auto"
     >
-      <div className="relative w-full max-w-md rounded-2xl border border-hair bg-surface p-6 shadow-2xl space-y-5 my-8">
+      <div
+        className="fixed inset-0 bg-black/70 backdrop-blur-md transition-opacity animate-in fade-in duration-200"
+        onClick={onClose}
+        aria-hidden="true"
+      />
+      <div
+        id="invite-dialog"
+        className="relative w-full border-t sm:border border-hair bg-surface p-6 shadow-2xl space-y-5 max-sm:fixed max-sm:inset-x-0 max-sm:bottom-0 max-sm:rounded-t-3xl max-sm:max-h-[90dvh] max-sm:overflow-y-auto max-sm:pb-[calc(1.5rem+env(safe-area-inset-bottom,0px))] sm:max-w-md sm:rounded-2xl sm:my-8 animate-in slide-in-from-bottom duration-250 sm:slide-in-from-bottom-0 sm:fade-in sm:zoom-in-95"
+      >
+        {/* Mobile Grab Bar */}
+        <div className="sm:hidden -mt-2 mb-2 flex justify-center" aria-hidden="true">
+          <div className="h-1.5 w-12 rounded-full bg-hair" />
+        </div>
+
         {/* Header */}
         <div className="flex items-center justify-between border-b border-hair/50 pb-3">
           <div>
@@ -141,7 +181,7 @@ export function InviteTravelerModal({
           <button
             type="button"
             onClick={onClose}
-            className="flex h-8 w-8 items-center justify-center rounded-lg text-ink-soft hover:bg-canvas hover:text-ink transition-colors"
+            className="flex h-11 w-11 items-center justify-center rounded-xl text-ink-soft hover:bg-canvas hover:text-ink active:scale-[0.98] transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 cursor-pointer"
             aria-label="Close invite modal"
           >
             <X size={18} />
@@ -150,7 +190,7 @@ export function InviteTravelerModal({
 
         {/* Highlighted Active Invite Box */}
         {isLoading || (activeInvites.length === 0 && create.isPending) ? (
-          <div className="rounded-xl border border-hair bg-canvas/40 p-6 text-center text-xs text-ink-soft animate-pulse">
+          <div className="rounded-2xl border border-hair bg-canvas/40 p-6 text-center text-xs text-ink-soft animate-pulse">
             Generating secure invite code…
           </div>
         ) : activeCode ? (
@@ -167,17 +207,16 @@ export function InviteTravelerModal({
               </p>
 
               {/* Action Buttons Row */}
-              <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
+              <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <button
                   type="button"
                   onClick={() => copyToClipboard(activeCode, "code")}
-                  className="inline-flex min-h-10 items-center gap-1.5 rounded-xl border border-hair bg-surface px-3.5 text-xs font-bold text-ink shadow-2xs hover:bg-canvas transition-colors"
+                  className="inline-flex min-h-11 items-center justify-center gap-1.5 rounded-xl border border-hair bg-surface px-3.5 text-xs font-bold text-ink shadow-2xs hover:bg-canvas active:scale-[0.98] transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 cursor-pointer"
                   aria-label={`Copy invite code ${activeCode}`}
                 >
                   {copiedCode === activeCode ? (
                     <>
-                      <Check size={14} className="text-emerald-500" /> Copied
-                      Code
+                      <Check size={14} className="text-emerald-500" /> Copied Code
                     </>
                   ) : (
                     <>
@@ -191,7 +230,7 @@ export function InviteTravelerModal({
                   onClick={() =>
                     copyToClipboard(`${origin}/join/${activeCode}`, "link")
                   }
-                  className="inline-flex min-h-10 items-center gap-1.5 rounded-xl bg-brand px-3.5 text-xs font-bold text-white shadow-2xs hover:bg-blue-700 transition-colors"
+                  className="inline-flex min-h-11 items-center justify-center gap-1.5 rounded-xl bg-brand px-3.5 text-xs font-bold text-white shadow-2xs hover:bg-blue-700 active:scale-[0.98] transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 cursor-pointer"
                   aria-label="Copy direct join link"
                 >
                   {copiedLink === `${origin}/join/${activeCode}` ? (
@@ -211,9 +250,9 @@ export function InviteTravelerModal({
             <button
               type="button"
               onClick={() => handleShareWhatsApp(activeCode)}
-              className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 text-xs font-bold text-emerald-700 dark:text-emerald-300 shadow-2xs hover:bg-emerald-500/20 transition-colors"
+              className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 text-xs font-bold text-emerald-700 dark:text-emerald-300 shadow-2xs hover:bg-emerald-500/20 active:scale-[0.98] transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 cursor-pointer"
             >
-              <MessageCircle size={15} /> Share via WhatsApp
+              <MessageCircle size={16} /> Share via WhatsApp
             </button>
 
             {/* Trust badge / Explanation */}
@@ -234,9 +273,9 @@ export function InviteTravelerModal({
               type="button"
               onClick={() => create.mutate()}
               disabled={create.isPending}
-              className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-brand px-4 text-xs font-bold text-white shadow-2xs hover:bg-blue-700 disabled:opacity-50 transition-colors"
+              className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-brand px-4 text-xs font-bold text-white shadow-2xs hover:bg-blue-700 disabled:opacity-50 active:scale-[0.98] transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 cursor-pointer"
             >
-              <Plus size={15} />{" "}
+              <Plus size={16} />{" "}
               {create.isPending ? "Generating…" : "Generate Invite Code"}
             </button>
           </div>
@@ -247,7 +286,7 @@ export function InviteTravelerModal({
           <button
             type="button"
             onClick={onClose}
-            className="min-h-10 rounded-xl border border-hair px-4 text-xs font-semibold hover:bg-canvas transition-colors"
+            className="min-h-11 rounded-xl border border-hair px-5 text-xs font-semibold hover:bg-canvas active:scale-[0.98] transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 cursor-pointer"
           >
             Close
           </button>

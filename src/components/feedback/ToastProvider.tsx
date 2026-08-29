@@ -32,17 +32,17 @@ export function ToastProvider({ children }: { children: ReactNode }) {
             key={t.id}
             role={t.kind === "error" ? "alert" : "status"}
             aria-live={t.kind === "error" ? "assertive" : "polite"}
-            className={`pointer-events-auto flex items-center justify-between gap-3 rounded-2xl border px-4 py-3 text-sm font-semibold shadow-2xl backdrop-blur-xl transition-all ${
+            className={`animate-toast-in pointer-events-auto flex items-center justify-between gap-3 rounded-2xl border px-4 py-3 text-sm font-semibold backdrop-blur-xl transition-all ${
               t.kind === "error"
-                ? "border-owe/40 bg-surface text-ink shadow-owe/10"
+                ? "border-owe/40 bg-surface/95 text-ink shadow-glow-owe"
                 : t.kind === "success"
-                ? "border-owed/40 bg-surface text-ink shadow-owed/10"
-                : "border-hair bg-surface text-ink shadow-2xs"
+                ? "border-owed/40 bg-surface/95 text-ink shadow-glow-owed"
+                : "border-hair bg-surface/95 text-ink shadow-glow-brand"
             }`}
           >
             <div className="flex items-center gap-3 min-w-0">
               <span
-                className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-xl ${
+                className={`animate-badge-pop flex h-7 w-7 shrink-0 items-center justify-center rounded-xl ${
                   t.kind === "error"
                     ? "bg-owe/15 text-owe"
                     : t.kind === "success"
@@ -62,7 +62,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
             </div>
             <button
               onClick={() => setToasts((p) => p.filter((x) => x.id !== t.id))}
-              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-ink-soft hover:bg-canvas hover:text-ink transition-colors"
+              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-ink-soft hover:bg-canvas hover:text-ink active:scale-[0.90] transition-all cursor-pointer"
               aria-label="Dismiss toast"
             >
               <X className="h-4 w-4 opacity-70 hover:opacity-100" />
